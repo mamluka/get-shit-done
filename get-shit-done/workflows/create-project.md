@@ -43,11 +43,66 @@ Wait for response.
 If `has_flat_structure` AND `existing_projects.length` === 0:
 - This means flat .planning/ structure exists with no projects yet
 - This is the first time multi-project is being used
-- Display: "I notice you have an existing project in .planning/. To support multiple projects, I'll need to move your existing work into a project folder."
-- Ask inline: "I'll move your existing work into a project folder. What should I call it?"
-  - Suggest name based on PROJECT.md title if available
-  - Or suggest based on directory name
-- Note: "Migration workflow will be available after Plan 03 is complete. For now, creating the new project alongside existing flat structure."
+
+**Read existing PROJECT.md to suggest a name:**
+```bash
+cat .planning/PROJECT.md 2>/dev/null | head -5
+```
+
+Extract title from first `# Heading` line if possible.
+
+**Display:**
+"I notice you have an existing project in .planning/. To support multiple projects, I need to move your existing work into a project folder."
+
+**Confirm migration:**
+Use AskUserQuestion:
+- header: "Migrate Existing Project"
+- question: "I'll move your existing work into a project folder. OK?"
+- options:
+  - "Yes" — Proceed with migration
+  - "No" — Cancel operation (user must migrate manually later)
+
+If "No": Display error and exit. Migration is required before creating additional projects.
+
+**If "Yes", ask for name:**
+Ask inline: "What should I call this existing project?"
+- Suggest based on PROJECT.md title if detected
+- Or use current directory name as suggestion
+
+Wait for response.
+
+**Execute migration:**
+```bash
+MIGRATE_RESULT=$(node ./get-shit-done/bin/gsd-tools.js project migrate "{existingProjectName}" "{description from PROJECT.md if available}" --raw)
+```
+
+Parse result JSON for: `migrated`, `project_slug`, `backup_path`, `files_moved`, `verification`, `error`.
+
+If `error` present: Display error, mention backup location, and exit.
+
+**Verify migration:**
+```bash
+VERIFY_RESULT=$(node ./get-shit-done/bin/gsd-tools.js project verify-migration "{project_slug}" --raw)
+```
+
+Parse result for: `valid`, `issues`.
+
+If not valid: Display issues and warn user to check backup.
+
+**Display results:**
+```
+Migration complete:
+  Project: {existingProjectName}
+  Folder: .planning/{project_slug}/
+  Backup: {backup_path}
+  Files moved: {files_moved}
+  Status: ✓ Verified
+
+Your existing work is now in .planning/{project_slug}/v1/
+A backup was created at {backup_path}
+```
+
+Then proceed to create the NEW project (the one the user originally requested).
 
 ## 4. Create Project
 
