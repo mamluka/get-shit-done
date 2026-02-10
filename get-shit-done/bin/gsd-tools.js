@@ -155,7 +155,7 @@ function safeReadFile(filePath) {
 }
 
 function loadConfig(cwd) {
-  const configPath = path.join(cwd, '.planning', 'config.json');
+  const configPath = resolvePlanning(cwd, 'config.json');
   const defaults = {
     model_profile: 'balanced',
     commit_docs: true,
@@ -677,6 +677,16 @@ class PathResolver {
   }
 }
 
+/**
+ * Helper function to resolve planning paths using PathResolver
+ * @param {string} cwd - Working directory
+ * @param {string} relativePath - Path relative to .planning root
+ * @returns {string} Absolute path
+ */
+function resolvePlanning(cwd, relativePath) {
+  return PathResolver.getInstance(cwd).resolve(relativePath);
+}
+
 // ─── Commands ─────────────────────────────────────────────────────────────────
 
 function cmdGenerateSlug(text, raw) {
@@ -714,7 +724,7 @@ function cmdCurrentTimestamp(format, raw) {
 }
 
 function cmdListTodos(cwd, area, raw) {
-  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
+  const pendingDir = path.join(resolvePlanning(cwd, 'todos'), 'pending');
 
   let count = 0;
   const todos = [];
@@ -769,8 +779,8 @@ function cmdVerifyPathExists(cwd, targetPath, raw) {
 }
 
 function cmdConfigEnsureSection(cwd, raw) {
-  const configPath = path.join(cwd, '.planning', 'config.json');
-  const planningDir = path.join(cwd, '.planning');
+  const configPath = resolvePlanning(cwd, 'config.json');
+  const planningDir = PathResolver.getInstance(cwd).planningRoot;
 
   // Ensure .planning directory exists
   try {
@@ -820,7 +830,7 @@ function cmdConfigEnsureSection(cwd, raw) {
 }
 
 function cmdConfigSet(cwd, keyPath, value, raw) {
-  const configPath = path.join(cwd, '.planning', 'config.json');
+  const configPath = resolvePlanning(cwd, 'config.json');
 
   if (!keyPath) {
     error('Usage: config-set <key.path> <value>');
@@ -865,7 +875,7 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
 }
 
 function cmdHistoryDigest(cwd, raw) {
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const digest = { phases: {}, decisions: [], tech_stack: new Set() };
 
   if (!fs.existsSync(phasesDir)) {
@@ -950,7 +960,7 @@ function cmdHistoryDigest(cwd, raw) {
 }
 
 function cmdPhasesList(cwd, options, raw) {
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const { type, phase } = options;
 
   // If no phases directory, return empty
@@ -1022,7 +1032,7 @@ function cmdPhasesList(cwd, options, raw) {
 }
 
 function cmdRoadmapGetPhase(cwd, phaseNum, raw) {
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
 
   if (!fs.existsSync(roadmapPath)) {
     output({ found: false, error: 'ROADMAP.md not found' }, raw, '');
@@ -1080,7 +1090,7 @@ function cmdRoadmapGetPhase(cwd, phaseNum, raw) {
 }
 
 function cmdPhaseNextDecimal(cwd, basePhase, raw) {
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalized = normalizePhaseName(basePhase);
 
   // Check if phases directory exists
@@ -1150,7 +1160,7 @@ function cmdPhaseNextDecimal(cwd, basePhase, raw) {
 
 function cmdStateLoad(cwd, raw) {
   const config = loadConfig(cwd);
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = PathResolver.getInstance(cwd).planningRoot;
 
   let stateRaw = '';
   try {
@@ -1194,7 +1204,7 @@ function cmdStateLoad(cwd, raw) {
 }
 
 function cmdStateGet(cwd, section, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   try {
     const content = fs.readFileSync(statePath, 'utf-8');
     
@@ -1229,7 +1239,7 @@ function cmdStateGet(cwd, section, raw) {
 }
 
 function cmdStatePatch(cwd, patches, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   try {
     let content = fs.readFileSync(statePath, 'utf-8');
     const results = { updated: [], failed: [] };
@@ -1261,7 +1271,7 @@ function cmdStateUpdate(cwd, field, value) {
     error('field and value required for state update');
   }
 
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   try {
     let content = fs.readFileSync(statePath, 'utf-8');
     const fieldEscaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1296,7 +1306,7 @@ function stateReplaceField(content, fieldName, newValue) {
 }
 
 function cmdStateAdvancePlan(cwd, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1325,7 +1335,7 @@ function cmdStateAdvancePlan(cwd, raw) {
 }
 
 function cmdStateRecordMetric(cwd, options, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1360,13 +1370,13 @@ function cmdStateRecordMetric(cwd, options, raw) {
 }
 
 function cmdStateUpdateProgress(cwd, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
 
   // Count summaries across all phases
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   let totalPlans = 0;
   let totalSummaries = 0;
 
@@ -1397,7 +1407,7 @@ function cmdStateUpdateProgress(cwd, raw) {
 }
 
 function cmdStateAddDecision(cwd, options, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
 
   const { phase, summary, rationale } = options;
@@ -1424,7 +1434,7 @@ function cmdStateAddDecision(cwd, options, raw) {
 }
 
 function cmdStateAddBlocker(cwd, text, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
@@ -1447,7 +1457,7 @@ function cmdStateAddBlocker(cwd, text, raw) {
 }
 
 function cmdStateResolveBlocker(cwd, text, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
@@ -1479,7 +1489,7 @@ function cmdStateResolveBlocker(cwd, text, raw) {
 }
 
 function cmdStateRecordSession(cwd, options, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1538,7 +1548,7 @@ function cmdFindPhase(cwd, phase, raw) {
     error('phase identifier required');
   }
 
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalized = normalizePhaseName(phase);
 
   const notFound = { found: false, directory: null, phase_number: null, phase_name: null, plans: [], summaries: [] };
@@ -1938,7 +1948,7 @@ function cmdPhasePlanIndex(cwd, phase, raw) {
     error('phase required for phase-plan-index');
   }
 
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalized = normalizePhaseName(phase);
 
   // Find phase directory
@@ -2042,7 +2052,7 @@ function cmdPhasePlanIndex(cwd, phase, raw) {
 }
 
 function cmdStateSnapshot(cwd, raw) {
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
 
   if (!fs.existsSync(statePath)) {
     output({ error: 'STATE.md not found' }, raw);
@@ -2620,7 +2630,7 @@ function cmdVerifyKeyLinks(cwd, planFilePath, raw) {
 // ─── Roadmap Analysis ─────────────────────────────────────────────────────────
 
 function cmdRoadmapAnalyze(cwd, raw) {
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
 
   if (!fs.existsSync(roadmapPath)) {
     output({ error: 'ROADMAP.md not found', milestones: [], phases: [], current_phase: null }, raw);
@@ -2628,7 +2638,7 @@ function cmdRoadmapAnalyze(cwd, raw) {
   }
 
   const content = fs.readFileSync(roadmapPath, 'utf-8');
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
 
   // Extract all phase headings: ### Phase N: Name
   const phasePattern = /###\s*Phase\s+(\d+(?:\.\d+)?)\s*:\s*([^\n]+)/gi;
@@ -2742,7 +2752,7 @@ function cmdPhaseAdd(cwd, description, raw) {
     error('description required for phase add');
   }
 
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
     error('ROADMAP.md not found');
   }
@@ -2762,7 +2772,7 @@ function cmdPhaseAdd(cwd, description, raw) {
   const newPhaseNum = maxPhase + 1;
   const paddedNum = String(newPhaseNum).padStart(2, '0');
   const dirName = `${paddedNum}-${slug}`;
-  const dirPath = path.join(cwd, '.planning', 'phases', dirName);
+  const dirPath = path.join(resolvePlanning(cwd, 'phases'), dirName);
 
   // Create directory
   fs.mkdirSync(dirPath, { recursive: true });
@@ -2799,7 +2809,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
     error('after-phase and description required for phase insert');
   }
 
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
     error('ROADMAP.md not found');
   }
@@ -2815,7 +2825,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   }
 
   // Calculate next decimal using existing logic
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalizedBase = normalizePhaseName(afterPhase);
   let existingDecimals = [];
 
@@ -2832,7 +2842,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   const nextDecimal = existingDecimals.length === 0 ? 1 : Math.max(...existingDecimals) + 1;
   const decimalPhase = `${normalizedBase}.${nextDecimal}`;
   const dirName = `${decimalPhase}-${slug}`;
-  const dirPath = path.join(cwd, '.planning', 'phases', dirName);
+  const dirPath = path.join(resolvePlanning(cwd, 'phases'), dirName);
 
   // Create directory
   fs.mkdirSync(dirPath, { recursive: true });
@@ -2879,8 +2889,8 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
     error('phase number required for phase remove');
   }
 
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const force = options.force || false;
 
   if (!fs.existsSync(roadmapPath)) {
@@ -3093,7 +3103,7 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
   fs.writeFileSync(roadmapPath, roadmapContent, 'utf-8');
 
   // Update STATE.md phase count
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
   if (fs.existsSync(statePath)) {
     let stateContent = fs.readFileSync(statePath, 'utf-8');
     // Update "Total Phases" field
@@ -3132,9 +3142,9 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
     error('phase number required for phase complete');
   }
 
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalized = normalizePhaseName(phaseNum);
   const today = new Date().toISOString().split('T')[0];
 
@@ -3274,12 +3284,12 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
     error('version required for milestone complete (e.g., v1.0)');
   }
 
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
-  const reqPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');
-  const statePath = path.join(cwd, '.planning', 'STATE.md');
-  const milestonesPath = path.join(cwd, '.planning', 'MILESTONES.md');
-  const archiveDir = path.join(cwd, '.planning', 'milestones');
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
+  const reqPath = resolvePlanning(cwd, 'REQUIREMENTS.md');
+  const statePath = resolvePlanning(cwd, 'STATE.md');
+  const milestonesPath = resolvePlanning(cwd, 'MILESTONES.md');
+  const archiveDir = resolvePlanning(cwd, 'milestones');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const today = new Date().toISOString().split('T')[0];
   const milestoneName = options.name || version;
 
@@ -3333,7 +3343,7 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
   }
 
   // Archive audit file if exists
-  const auditFile = path.join(cwd, '.planning', `${version}-MILESTONE-AUDIT.md`);
+  const auditFile = resolvePlanning(cwd, `${version}-MILESTONE-AUDIT.md`);
   if (fs.existsSync(auditFile)) {
     fs.renameSync(auditFile, path.join(archiveDir, `${version}-MILESTONE-AUDIT.md`));
   }
@@ -3390,8 +3400,8 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
 // ─── Validate Consistency ─────────────────────────────────────────────────────
 
 function cmdValidateConsistency(cwd, raw) {
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const errors = [];
   const warnings = [];
 
@@ -3512,8 +3522,8 @@ function cmdValidateConsistency(cwd, raw) {
 // ─── Progress Render ──────────────────────────────────────────────────────────
 
 function cmdProgressRender(cwd, format, raw) {
-  const phasesDir = path.join(cwd, '.planning', 'phases');
-  const roadmapPath = path.join(cwd, '.planning', 'ROADMAP.md');
+  const phasesDir = resolvePlanning(cwd, 'phases');
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   const milestone = getMilestoneInfo(cwd);
 
   const phases = [];
@@ -3590,8 +3600,8 @@ function cmdTodoComplete(cwd, filename, raw) {
     error('filename required for todo complete');
   }
 
-  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
-  const completedDir = path.join(cwd, '.planning', 'todos', 'completed');
+  const pendingDir = path.join(resolvePlanning(cwd, 'todos'), 'pending');
+  const completedDir = path.join(resolvePlanning(cwd, 'todos'), 'completed');
   const sourcePath = path.join(pendingDir, filename);
 
   if (!fs.existsSync(sourcePath)) {
@@ -3651,7 +3661,7 @@ function cmdScaffold(cwd, type, options, raw) {
       }
       const slug = generateSlugInternal(name);
       const dirName = `${padded}-${slug}`;
-      const phasesParent = path.join(cwd, '.planning', 'phases');
+      const phasesParent = resolvePlanning(cwd, 'phases');
       fs.mkdirSync(phasesParent, { recursive: true });
       const dirPath = path.join(phasesParent, dirName);
       fs.mkdirSync(dirPath, { recursive: true });
@@ -3685,7 +3695,7 @@ function resolveModelInternal(cwd, agentType) {
 function findPhaseInternal(cwd, phase) {
   if (!phase) return null;
 
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const normalized = normalizePhaseName(phase);
 
   try {
@@ -3750,7 +3760,7 @@ function generateSlugInternal(text) {
 
 function getMilestoneInfo(cwd) {
   try {
-    const roadmap = fs.readFileSync(path.join(cwd, '.planning', 'ROADMAP.md'), 'utf-8');
+    const roadmap = fs.readFileSync(resolvePlanning(cwd, 'ROADMAP.md'), 'utf-8');
     const versionMatch = roadmap.match(/v(\d+\.\d+)/);
     const nameMatch = roadmap.match(/## .*v\d+\.\d+[:\s]+([^\n(]+)/);
     return {
@@ -3815,20 +3825,20 @@ function cmdInitExecutePhase(cwd, phase, includes, raw) {
     milestone_slug: generateSlugInternal(milestone.name),
 
     // File existence
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    config_exists: pathExistsInternal(cwd, '.planning/config.json'),
+    state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    config_exists: fs.existsSync(resolvePlanning(cwd, 'config.json')),
   };
 
   // Include file contents if requested via --include
   if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+    result.state_content = safeReadFile(resolvePlanning(cwd, 'STATE.md'));
   }
   if (includes.has('config')) {
-    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
+    result.config_content = safeReadFile(resolvePlanning(cwd, 'config.json'));
   }
   if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+    result.roadmap_content = safeReadFile(resolvePlanning(cwd, 'ROADMAP.md'));
   }
 
   output(result, raw);
@@ -3868,19 +3878,19 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
     plan_count: phaseInfo?.plans?.length || 0,
 
     // Environment
-    planning_exists: pathExistsInternal(cwd, '.planning'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
   };
 
   // Include file contents if requested via --include
   if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+    result.state_content = safeReadFile(resolvePlanning(cwd, 'STATE.md'));
   }
   if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+    result.roadmap_content = safeReadFile(resolvePlanning(cwd, 'ROADMAP.md'));
   }
   if (includes.has('requirements')) {
-    result.requirements_content = safeReadFile(path.join(cwd, '.planning', 'REQUIREMENTS.md'));
+    result.requirements_content = safeReadFile(resolvePlanning(cwd, 'REQUIREMENTS.md'));
   }
   if (includes.has('context') && phaseInfo?.directory) {
     // Find *-CONTEXT.md in phase directory
@@ -3966,15 +3976,15 @@ function cmdInitNewProject(cwd, raw) {
     commit_docs: config.commit_docs,
 
     // Existing state
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    has_codebase_map: pathExistsInternal(cwd, '.planning/codebase'),
-    planning_exists: pathExistsInternal(cwd, '.planning'),
+    project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
+    has_codebase_map: fs.existsSync(resolvePlanning(cwd, 'codebase')),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
 
     // Brownfield detection
     has_existing_code: hasCode,
     has_package_file: hasPackageFile,
     is_brownfield: hasCode || hasPackageFile,
-    needs_codebase_map: (hasCode || hasPackageFile) && !pathExistsInternal(cwd, '.planning/codebase'),
+    needs_codebase_map: (hasCode || hasPackageFile) && !fs.existsSync(resolvePlanning(cwd, 'codebase')),
 
     // Git state
     has_git: pathExistsInternal(cwd, '.git'),
@@ -4005,9 +4015,9 @@ function cmdInitNewMilestone(cwd, raw) {
     current_milestone_name: milestone.name,
 
     // File existence
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
+    project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
   };
 
   output(result, raw);
@@ -4019,7 +4029,7 @@ function cmdInitQuick(cwd, description, raw) {
   const slug = description ? generateSlugInternal(description)?.substring(0, 40) : null;
 
   // Find next quick task number
-  const quickDir = path.join(cwd, '.planning', 'quick');
+  const quickDir = resolvePlanning(cwd, 'quick');
   let nextNum = 1;
   try {
     const existing = fs.readdirSync(quickDir)
@@ -4053,8 +4063,8 @@ function cmdInitQuick(cwd, description, raw) {
     task_dir: slug ? `.planning/quick/${nextNum}-${slug}` : null,
 
     // File existence
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    planning_exists: pathExistsInternal(cwd, '.planning'),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
   };
 
   output(result, raw);
@@ -4066,15 +4076,15 @@ function cmdInitResume(cwd, raw) {
   // Check for interrupted agent
   let interruptedAgentId = null;
   try {
-    interruptedAgentId = fs.readFileSync(path.join(cwd, '.planning', 'current-agent-id.txt'), 'utf-8').trim();
+    interruptedAgentId = fs.readFileSync(resolvePlanning(cwd, 'current-agent-id.txt'), 'utf-8').trim();
   } catch {}
 
   const result = {
     // File existence
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    planning_exists: pathExistsInternal(cwd, '.planning'),
+    state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
 
     // Agent state
     has_interrupted_agent: !!interruptedAgentId,
@@ -4141,8 +4151,8 @@ function cmdInitPhaseOp(cwd, phase, raw) {
     plan_count: phaseInfo?.plans?.length || 0,
 
     // File existence
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    planning_exists: pathExistsInternal(cwd, '.planning'),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
   };
 
   output(result, raw);
@@ -4153,7 +4163,7 @@ function cmdInitTodos(cwd, area, raw) {
   const now = new Date();
 
   // List todos (reuse existing logic)
-  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
+  const pendingDir = path.join(resolvePlanning(cwd, 'todos'), 'pending');
   let count = 0;
   const todos = [];
 
@@ -4199,9 +4209,9 @@ function cmdInitTodos(cwd, area, raw) {
     completed_dir: '.planning/todos/completed',
 
     // File existence
-    planning_exists: pathExistsInternal(cwd, '.planning'),
-    todos_dir_exists: pathExistsInternal(cwd, '.planning/todos'),
-    pending_dir_exists: pathExistsInternal(cwd, '.planning/todos/pending'),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
+    todos_dir_exists: fs.existsSync(resolvePlanning(cwd, 'todos')),
+    pending_dir_exists: fs.existsSync(path.join(resolvePlanning(cwd, 'todos'), 'pending')),
   };
 
   output(result, raw);
@@ -4214,7 +4224,7 @@ function cmdInitMilestoneOp(cwd, raw) {
   // Count phases
   let phaseCount = 0;
   let completedPhases = 0;
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   try {
     const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
     const dirs = entries.filter(e => e.isDirectory()).map(e => e.name);
@@ -4231,7 +4241,7 @@ function cmdInitMilestoneOp(cwd, raw) {
   } catch {}
 
   // Check archive
-  const archiveDir = path.join(cwd, '.planning', 'archive');
+  const archiveDir = resolvePlanning(cwd, 'archive');
   let archivedMilestones = [];
   try {
     archivedMilestones = fs.readdirSync(archiveDir, { withFileTypes: true })
@@ -4258,11 +4268,11 @@ function cmdInitMilestoneOp(cwd, raw) {
     archive_count: archivedMilestones.length,
 
     // File existence
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
-    archive_exists: pathExistsInternal(cwd, '.planning/archive'),
-    phases_dir_exists: pathExistsInternal(cwd, '.planning/phases'),
+    project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
+    archive_exists: fs.existsSync(resolvePlanning(cwd, 'archive')),
+    phases_dir_exists: fs.existsSync(resolvePlanning(cwd, 'phases')),
   };
 
   output(result, raw);
@@ -4272,7 +4282,7 @@ function cmdInitMapCodebase(cwd, raw) {
   const config = loadConfig(cwd);
 
   // Check for existing codebase maps
-  const codebaseDir = path.join(cwd, '.planning', 'codebase');
+  const codebaseDir = resolvePlanning(cwd, 'codebase');
   let existingMaps = [];
   try {
     existingMaps = fs.readdirSync(codebaseDir).filter(f => f.endsWith('.md'));
@@ -4295,8 +4305,8 @@ function cmdInitMapCodebase(cwd, raw) {
     has_maps: existingMaps.length > 0,
 
     // File existence
-    planning_exists: pathExistsInternal(cwd, '.planning'),
-    codebase_dir_exists: pathExistsInternal(cwd, '.planning/codebase'),
+    planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
+    codebase_dir_exists: fs.existsSync(resolvePlanning(cwd, 'codebase')),
   };
 
   output(result, raw);
@@ -4307,7 +4317,7 @@ function cmdInitProgress(cwd, includes, raw) {
   const milestone = getMilestoneInfo(cwd);
 
   // Analyze phases
-  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const phasesDir = resolvePlanning(cwd, 'phases');
   const phases = [];
   let currentPhase = null;
   let nextPhase = null;
@@ -4357,7 +4367,7 @@ function cmdInitProgress(cwd, includes, raw) {
   // Check for paused work
   let pausedAt = null;
   try {
-    const state = fs.readFileSync(path.join(cwd, '.planning', 'STATE.md'), 'utf-8');
+    const state = fs.readFileSync(resolvePlanning(cwd, 'STATE.md'), 'utf-8');
     const pauseMatch = state.match(/\*\*Paused At:\*\*\s*(.+)/);
     if (pauseMatch) pausedAt = pauseMatch[1].trim();
   } catch {}
@@ -4387,23 +4397,23 @@ function cmdInitProgress(cwd, includes, raw) {
     has_work_in_progress: !!currentPhase,
 
     // File existence
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
+    project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
+    roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+    state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
   };
 
   // Include file contents if requested via --include
   if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+    result.state_content = safeReadFile(resolvePlanning(cwd, 'STATE.md'));
   }
   if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+    result.roadmap_content = safeReadFile(resolvePlanning(cwd, 'ROADMAP.md'));
   }
   if (includes.has('project')) {
-    result.project_content = safeReadFile(path.join(cwd, '.planning', 'PROJECT.md'));
+    result.project_content = safeReadFile(resolvePlanning(cwd, 'PROJECT.md'));
   }
   if (includes.has('config')) {
-    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
+    result.config_content = safeReadFile(resolvePlanning(cwd, 'config.json'));
   }
 
   output(result, raw);
