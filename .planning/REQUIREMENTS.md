@@ -84,30 +84,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| INFRA-04 | TBD | Pending |
-| INFRA-05 | TBD | Pending |
-| GIT-01 | TBD | Pending |
-| GIT-02 | TBD | Pending |
-| GIT-03 | TBD | Pending |
-| WKFL-01 | TBD | Pending |
-| WKFL-02 | TBD | Pending |
-| WKFL-03 | TBD | Pending |
-| WKFL-04 | TBD | Pending |
-| WKFL-05 | TBD | Pending |
-| WKFL-06 | TBD | Pending |
-| JIRA-01 | TBD | Pending |
-| JIRA-02 | TBD | Pending |
-| PMX-01 | TBD | Pending |
-| PMX-02 | TBD | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| GIT-01 | Phase 2 | Pending |
+| GIT-02 | Phase 2 | Pending |
+| GIT-03 | Phase 2 | Pending |
+| WKFL-01 | Phase 3 | Pending |
+| WKFL-02 | Phase 3 | Pending |
+| WKFL-03 | Phase 3 | Pending |
+| WKFL-04 | Phase 3 | Pending |
+| WKFL-05 | Phase 3 | Pending |
+| WKFL-06 | Phase 3 | Pending |
+| JIRA-01 | Phase 5 | Pending |
+| JIRA-02 | Phase 5 | Pending |
+| PMX-01 | Phase 4 | Pending |
+| PMX-02 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- Mapped to phases: 18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-10*
-*Last updated: 2026-02-10 after initial definition*
+*Last updated: 2026-02-10 after roadmap creation*
