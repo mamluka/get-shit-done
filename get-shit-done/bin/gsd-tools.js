@@ -3306,6 +3306,62 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
   output(result, raw);
 }
 
+// ─── Phase Validation ─────────────────────────────────────────────────────────
+
+function validatePhaseComplete(cwd, phaseNum) {
+  const result = { valid: true, warnings: [], errors: [] };
+  const phaseInfo = findPhaseInternal(cwd, phaseNum);
+
+  if (!phaseInfo || !phaseInfo.found) {
+    result.valid = false;
+    result.errors.push(`Phase ${phaseNum} not found`);
+    return result;
+  }
+
+  // Check 1: At least one PLAN exists
+  if (!phaseInfo.plans || phaseInfo.plans.length === 0) {
+    result.warnings.push('No plans created for this phase');
+  }
+
+  // Check 2: Requirements mapped (if REQUIREMENTS.md exists)
+  const reqPath = resolvePlanning(cwd, 'REQUIREMENTS.md');
+  if (fs.existsSync(reqPath)) {
+    const reqContent = fs.readFileSync(reqPath, 'utf-8');
+
+    // Find requirements mapped to this phase in the traceability table
+    // Pattern: | REQ-ID | Phase N | Status |
+    const phasePattern = new RegExp(
+      `\\|\\s*(\\w+-\\d+)\\s*\\|\\s*Phase\\s+${phaseNum}\\s*\\|\\s*(\\w+)\\s*\\|`,
+      'gi'
+    );
+    let match;
+    const mappedReqs = [];
+    const pendingReqs = [];
+    while ((match = phasePattern.exec(reqContent)) !== null) {
+      mappedReqs.push(match[1]);
+      if (match[2].toLowerCase() === 'pending') {
+        pendingReqs.push(match[1]);
+      }
+    }
+
+    if (pendingReqs.length > 0) {
+      result.warnings.push(
+        `${pendingReqs.length} requirement(s) still pending: ${pendingReqs.join(', ')}`
+      );
+    }
+  }
+
+  return result;
+}
+
+function cmdPhaseValidate(cwd, phaseNum, raw) {
+  if (!phaseNum) {
+    error('phase number required for phase validate');
+  }
+  const result = validatePhaseComplete(cwd, phaseNum);
+  output(result, raw);
+}
+
 // ─── Phase Complete (Transition) ──────────────────────────────────────────────
 
 function cmdPhaseComplete(cwd, phaseNum, raw) {
@@ -3433,6 +3489,8 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
     fs.writeFileSync(statePath, stateContent, 'utf-8');
   }
 
+  const validation = validatePhaseComplete(cwd, phaseNum);
+
   const result = {
     completed_phase: phaseNum,
     phase_name: phaseInfo.phase_name,
@@ -3443,6 +3501,9 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
     date: today,
     roadmap_updated: fs.existsSync(roadmapPath),
     state_updated: fs.existsSync(statePath),
+    validation: validation,
+    auto_advance: !isLastPhase && nextPhaseNum !== null,
+    milestone_complete: isLastPhase,
   };
 
   output(result, raw);
@@ -5564,8 +5625,10 @@ async function main() {
         cmdPhaseRemove(cwd, args[2], { force: forceFlag }, raw);
       } else if (subcommand === 'complete') {
         cmdPhaseComplete(cwd, args[2], raw);
+      } else if (subcommand === 'validate') {
+        cmdPhaseValidate(cwd, args[2], raw);
       } else {
-        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete');
+        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, validate');
       }
       break;
     }
