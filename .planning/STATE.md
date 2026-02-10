@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 3 of 5 (Workflow Simplification)
-Plan: 1 of 1 in current phase
+Plan: 2 of 2 in current phase
 Status: Complete
-Last activity: 2026-02-10 — Completed 03-01: Tombstone execution workflows
+Last activity: 2026-02-10 — Completed 03-02: Auto-advance phase completion
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 3.3 min
-- Total execution time: 0.35 hours
+- Total plans completed: 7
+- Average duration: 3.1 min
+- Total execution time: 0.37 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 01 | 3 | 12 min | 4 min |
 | 02 | 2 | 7 min | 3.5 min |
-| 03 | 1 | 2 min | 2 min |
+| 03 | 2 | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (4min), 02-01 (5min), 02-02 (2min), 03-01 (2min)
-- Trend: Execution velocity improving (Phase 3: 2 min avg)
+- Last 5 plans: 02-01 (5min), 02-02 (2min), 03-01 (2min), 03-02 (3min)
+- Trend: Execution velocity improving (Phase 3: 2.5 min avg)
 
 *Updated after each plan completion*
 
@@ -64,7 +64,11 @@ Recent decisions affecting current work:
 - [Phase 02]: Annotated tags over lightweight tags for milestone metadata storage
 - [Phase 02]: Best-effort tagging: milestone completion succeeds even if git tag creation fails
 - [Phase 02]: Branch verification before tagging (soft check - warns but doesn't block)
+- [Phase 03]: Validation is warning-only (allows override) - PMs may need to force-complete phases with incomplete planning
+- [Phase 03]: Auto-advance provides guidance not automatic execution - spawning plan-phase automatically would be over-engineering
 - [Phase 03]: Tombstone rather than delete execution files for helpful user redirects
+- [Phase 03]: Validation is warning-only (allows override) - PMs may need to force-complete phases with incomplete planning
+- [Phase 03]: Auto-advance provides guidance not automatic execution - spawning plan-phase automatically would be over-engineering
 
 ### Pending Todos
 
