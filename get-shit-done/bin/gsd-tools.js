@@ -477,6 +477,206 @@ function error(message) {
   process.exit(1);
 }
 
+// ─── PathResolver ─────────────────────────────────────────────────────────────
+
+/**
+ * PathResolver: Centralized path resolution for .planning/ directory structure
+ *
+ * Supports two modes:
+ * - Flat mode (backward compatible): .planning/{file}
+ * - Nested mode (multi-project): .planning/{project}/{version}/{file}
+ *
+ * Mode detection: Reads STATE.md for current_project/current_version fields.
+ *
+ * Usage:
+ *   const resolver = PathResolver.getInstance(cwd);
+ *   const statePath = resolver.resolve('STATE.md');
+ */
+class PathResolver {
+  constructor(cwd) {
+    this.cwd = cwd;
+    this.planningRoot = path.join(cwd, '.planning');
+    this.mode = this.detectMode();
+    this.currentProject = null;
+    this.currentVersion = null;
+
+    if (this.mode === 'nested') {
+      this.loadProjectContext();
+    }
+  }
+
+  /**
+   * Detect operating mode by checking STATE.md for project/version fields
+   * @returns {'flat'|'nested'}
+   */
+  detectMode() {
+    const statePath = path.join(this.planningRoot, 'STATE.md');
+
+    if (!fs.existsSync(statePath)) {
+      return 'flat';
+    }
+
+    try {
+      const content = fs.readFileSync(statePath, 'utf-8');
+
+      // Check for both current_project and current_version fields with non-empty values
+      const projectMatch = content.match(/^current_project:\s*(.+)$/m);
+      const versionMatch = content.match(/^current_version:\s*(.+)$/m);
+
+      if (projectMatch && versionMatch) {
+        const projectValue = projectMatch[1].trim();
+        const versionValue = versionMatch[1].trim();
+
+        // Must have actual values (not empty, not N/A, not -)
+        if (projectValue && versionValue &&
+            projectValue !== 'N/A' && projectValue !== '-' &&
+            versionValue !== 'N/A' && versionValue !== '-') {
+          return 'nested';
+        }
+      }
+
+      return 'flat';
+    } catch {
+      return 'flat';
+    }
+  }
+
+  /**
+   * Load current project context from STATE.md
+   */
+  loadProjectContext() {
+    const statePath = path.join(this.planningRoot, 'STATE.md');
+
+    try {
+      const content = fs.readFileSync(statePath, 'utf-8');
+
+      const projectMatch = content.match(/^current_project:\s*(.+)$/m);
+      const versionMatch = content.match(/^current_version:\s*(.+)$/m);
+
+      if (projectMatch) {
+        this.currentProject = projectMatch[1].trim();
+      }
+
+      if (versionMatch) {
+        this.currentVersion = versionMatch[1].trim();
+      }
+    } catch (err) {
+      // If we can't read STATE.md in nested mode, that's an error
+      throw new Error(`Failed to load project context from STATE.md: ${err.message}`);
+    }
+  }
+
+  /**
+   * Resolve a relative planning path to absolute path
+   * @param {string} relativePath - Path relative to planning root (e.g., 'STATE.md', 'phases/01-foundation')
+   * @returns {string} Absolute path
+   */
+  resolve(relativePath) {
+    // Global files always resolve to .planning root
+    const globalFiles = ['config.json'];
+    const isGlobal = globalFiles.includes(relativePath);
+
+    if (isGlobal) {
+      return path.join(this.planningRoot, relativePath);
+    }
+
+    // Flat mode: simple .planning/{relativePath}
+    if (this.mode === 'flat') {
+      return path.join(this.planningRoot, relativePath);
+    }
+
+    // Nested mode requires active project
+    if (!this.currentProject || !this.currentVersion) {
+      throw new Error('No active project. Run /gsd:switch-project or /gsd:new-project to select one.');
+    }
+
+    // PROJECT.md lives at project root, not in version folder
+    if (relativePath === 'PROJECT.md') {
+      return path.join(this.planningRoot, this.currentProject, 'PROJECT.md');
+    }
+
+    // Everything else goes in version folder
+    return path.join(this.planningRoot, this.currentProject, this.currentVersion, relativePath);
+  }
+
+  /**
+   * Get project root directory path
+   * @param {string} projectSlug - Project identifier
+   * @returns {string} Absolute path to project directory
+   */
+  projectRoot(projectSlug) {
+    return path.join(this.planningRoot, projectSlug);
+  }
+
+  /**
+   * Get version root directory path
+   * @param {string} projectSlug - Project identifier
+   * @param {string} version - Version identifier (e.g., 'v1')
+   * @returns {string} Absolute path to version directory
+   */
+  versionRoot(projectSlug, version) {
+    return path.join(this.planningRoot, projectSlug, version);
+  }
+
+  /**
+   * List all projects in .planning directory
+   * @returns {string[]} Array of project slugs
+   */
+  listProjects() {
+    if (!fs.existsSync(this.planningRoot)) {
+      return [];
+    }
+
+    try {
+      const entries = fs.readdirSync(this.planningRoot, { withFileTypes: true });
+
+      return entries
+        .filter(entry => entry.isDirectory())
+        .filter(entry => entry.name !== '_backup') // Exclude backup directory
+        .filter(entry => {
+          // Must contain PROJECT.md to be valid project
+          const projectMd = path.join(this.planningRoot, entry.name, 'PROJECT.md');
+          return fs.existsSync(projectMd);
+        })
+        .map(entry => entry.name);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Check if currently in nested mode
+   * @returns {boolean}
+   */
+  isNested() {
+    return this.mode === 'nested';
+  }
+
+  /**
+   * Get singleton instance for a given cwd
+   * @param {string} cwd - Working directory
+   * @returns {PathResolver}
+   */
+  static getInstance(cwd) {
+    if (!PathResolver._cache) {
+      PathResolver._cache = new Map();
+    }
+
+    if (!PathResolver._cache.has(cwd)) {
+      PathResolver._cache.set(cwd, new PathResolver(cwd));
+    }
+
+    return PathResolver._cache.get(cwd);
+  }
+
+  /**
+   * Clear singleton cache (for testing)
+   */
+  static clearCache() {
+    PathResolver._cache = new Map();
+  }
+}
+
 // ─── Commands ─────────────────────────────────────────────────────────────────
 
 function cmdGenerateSlug(text, raw) {
