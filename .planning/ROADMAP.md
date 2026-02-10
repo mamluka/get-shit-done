@@ -46,10 +46,11 @@ Plans:
   2. Completing a milestone creates annotated git tag `project-{name}-v{N}` on project branch
   3. Project names with spaces, special characters, or uppercase letters are automatically sanitized for safe git usage
   4. PM can see which branch they're on and switch between project branches
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Git sanitization and branch operations for project create/switch
+- [ ] 02-02-PLAN.md — Milestone tagging and git project status
 
 ### Phase 3: Workflow Simplification
 **Goal**: Planning-only workflow with execution removed and automatic phase progression
@@ -100,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Planning complete | - |
-| 2. Git Integration | 0/TBD | Not started | - |
+| 2. Git Integration | 0/2 | Planning complete | - |
 | 3. Workflow Simplification | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |
 | 5. Jira Integration | 0/TBD | Not started | - |
