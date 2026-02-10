@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** Phase 2 - Git Integration
+**Current focus:** Phase 3 - Workflow Simplification
 
 ## Current Position
 
-Phase: 2 of 5 (Git Integration)
-Plan: 2 of 2 in current phase
+Phase: 3 of 5 (Workflow Simplification)
+Plan: 1 of 1 in current phase
 Status: Complete
-Last activity: 2026-02-10 — Completed 02-02: Milestone tagging
+Last activity: 2026-02-10 — Completed 03-01: Tombstone execution workflows
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 3.6 min
-- Total execution time: 0.3 hours
+- Total plans completed: 6
+- Average duration: 3.3 min
+- Total execution time: 0.35 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 01 | 3 | 12 min | 4 min |
 | 02 | 2 | 7 min | 3.5 min |
+| 03 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (5min), 01-03 (4min), 02-01 (5min), 02-02 (2min)
-- Trend: Phase 2 showing faster execution (3.5 min avg)
+- Last 5 plans: 01-03 (4min), 02-01 (5min), 02-02 (2min), 03-01 (2min)
+- Trend: Execution velocity improving (Phase 3: 2 min avg)
 
 *Updated after each plan completion*
 
@@ -63,6 +64,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Annotated tags over lightweight tags for milestone metadata storage
 - [Phase 02]: Best-effort tagging: milestone completion succeeds even if git tag creation fails
 - [Phase 02]: Branch verification before tagging (soft check - warns but doesn't block)
+- [Phase 03]: Tombstone rather than delete execution files for helpful user redirects
 
 ### Pending Todos
 
@@ -81,8 +83,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 02-02 execution)
-Stopped at: Completed 02-02-PLAN.md (Milestone tagging)
+Last session: 2026-02-10 (plan 03-01 execution)
+Stopped at: Completed 03-01-PLAN.md (Tombstone execution workflows)
 Resume file: None
 
 ## Phase 1 Completion Notes
@@ -111,4 +113,16 @@ Phase 2 (Git Integration) is now complete. All git integration features are in p
 - Tag naming: project-{slug}-{version} with milestone metadata
 - Branch verification and error handling
 
-Next: Phase 3 will implement phase/plan auto-advance logic for workflow automation.
+## Phase 3 Completion Notes
+
+Phase 3 (Workflow Simplification) is now complete. All execution-related workflows have been tombstoned:
+
+**Plan 01 (Tombstone Execution Workflows):**
+- Tombstoned 2 execution commands (execute-phase, verify-work) with helpful redirects
+- Tombstoned 4 execution workflows (execute-phase, execute-plan, verify-phase, verify-work)
+- Tombstoned 2 execution agents (gsd-executor, gsd-verifier)
+- Tombstoned quick command and workflow
+- All tombstones include clear explanations and redirects to planning-only commands
+- Users invoking removed commands get helpful guidance instead of errors
+
+Next: Phase 4 will implement auto-advance and milestone completion workflows for planning-only operations.
