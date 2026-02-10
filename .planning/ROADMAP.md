@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Path abstraction and multi-project folder structure
 - [x] **Phase 2: Git Integration** - Branch-per-project with milestone tagging
-- [ ] **Phase 3: Workflow Simplification** - Remove execution, add auto-advance
+- [x] **Phase 3: Workflow Simplification** - Remove execution, add auto-advance
 - [ ] **Phase 4: UX Polish** - PM-friendly error messages and terminology
 - [ ] **Phase 5: Jira Integration** - Optional MCP validation with graceful degradation
 
@@ -65,9 +65,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Tombstone execution commands, workflows, and agents
-- [ ] 03-02-PLAN.md — Auto-advance phase completion with validation
-- [ ] 03-03-PLAN.md — Edit-phase command and cross-reference cleanup
+- [x] 03-01-PLAN.md — Tombstone execution commands, workflows, and agents
+- [x] 03-02-PLAN.md — Auto-advance phase completion with validation
+- [x] 03-03-PLAN.md — Edit-phase command and cross-reference cleanup
 
 ### Phase 4: UX Polish
 **Goal**: All user-facing messages use business language instead of developer terminology
@@ -105,10 +105,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-10 |
 | 2. Git Integration | 2/2 | ✓ Complete | 2026-02-10 |
-| 3. Workflow Simplification | 0/3 | Planning complete | - |
+| 3. Workflow Simplification | 3/3 | ✓ Complete | 2026-02-10 |
 | 4. UX Polish | 0/2 | Planning complete | - |
 | 5. Jira Integration | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-10 (Phase 2 complete)*
+*Last updated: 2026-02-10 (Phase 3 complete)*

@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** Phase 3 - Workflow Simplification
+**Current focus:** Phase 4 - UX Polish
 
 ## Current Position
 
@@ -90,8 +90,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 03-01 execution)
-Stopped at: Completed 03-01-PLAN.md (Tombstone execution workflows)
+Last session: 2026-02-10 (phase 03 execution)
+Stopped at: Completed Phase 3 (all 3 plans)
 Resume file: None
 
 ## Phase 1 Completion Notes
@@ -122,14 +122,25 @@ Phase 2 (Git Integration) is now complete. All git integration features are in p
 
 ## Phase 3 Completion Notes
 
-Phase 3 (Workflow Simplification) is now complete. All execution-related workflows have been tombstoned:
+Phase 3 (Workflow Simplification) is now complete. GSD is now planning-only:
 
 **Plan 01 (Tombstone Execution Workflows):**
 - Tombstoned 2 execution commands (execute-phase, verify-work) with helpful redirects
 - Tombstoned 4 execution workflows (execute-phase, execute-plan, verify-phase, verify-work)
 - Tombstoned 2 execution agents (gsd-executor, gsd-verifier)
-- Tombstoned quick command and workflow
+- Updated quick command to remove executor/verifier references
 - All tombstones include clear explanations and redirects to planning-only commands
-- Users invoking removed commands get helpful guidance instead of errors
 
-Next: Phase 4 will implement auto-advance and milestone completion workflows for planning-only operations.
+**Plan 02 (Auto-advance Phase Completion):**
+- New `/gsd:complete-phase` command and workflow
+- `validatePhaseComplete()` checks plans exist and requirements are mapped
+- Auto-advances to next phase guidance or prompts milestone completion
+- Validation is warning-only (allows PM override)
+
+**Plan 03 (Edit-phase and Cross-references):**
+- New `/gsd:edit-phase` command with artifact-aware routing (plan, research, context, roadmap)
+- Help workflow updated to document planning-only commands
+- Plan-phase next-steps reference complete-phase instead of execute-phase
+- gsd-tools.js gracefully handles removed workflow inits
+
+Next: Phase 4 will polish UX with PM-friendly error messages and terminology.
