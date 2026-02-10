@@ -77,10 +77,11 @@ Plans:
   1. Error messages use terms like "project header" instead of "frontmatter YAML" and "project workspace" instead of "git branch"
   2. Commands that reference removed execution features show clear redirects (e.g., "Use /gsd:plan-phase instead")
   3. PM reading any error message understands what went wrong, why it matters, and what to do next
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — Terminology dictionary and gsd-tools.js error message rewrites
+- [ ] 04-02-PLAN.md — Command descriptions and workflow routing to business language
 
 ### Phase 5: Jira Integration
 **Goal**: Optional Jira MCP integration that warns but doesn't block if unavailable
@@ -105,9 +106,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-10 |
 | 2. Git Integration | 0/2 | Planning complete | - |
 | 3. Workflow Simplification | 0/3 | Planning complete | - |
-| 4. UX Polish | 0/TBD | Not started | - |
+| 4. UX Polish | 0/2 | Planning complete | - |
 | 5. Jira Integration | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-10 (Phase 1 complete)*
+*Last updated: 2026-02-10 (Phase 4 planned)*
