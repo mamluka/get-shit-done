@@ -343,6 +343,53 @@ function switchToProjectBranch(cwd, projectSlug) {
   return { exitCode: 0, branch: branchName, switched: true };
 }
 
+/**
+ * Create an annotated git tag for a milestone on the project branch.
+ * @param {string} cwd - Working directory
+ * @param {string} projectSlug - Sanitized project name (already git-safe)
+ * @param {string} version - Milestone version string (e.g., "v1.0")
+ * @param {string} tagMessage - Tag annotation message
+ * @returns {object} Result with exitCode, tag name, or error
+ */
+function createMilestoneTag(cwd, projectSlug, version, tagMessage) {
+  const safeName = sanitizeForGit(projectSlug);
+  const tagName = `project-${safeName}-${version}`;
+
+  // Verify we're on a project branch
+  const currentBranch = getCurrentBranch(cwd);
+  if (!currentBranch) {
+    return { exitCode: 1, error: 'Detached HEAD state. Cannot create tag without being on a branch.' };
+  }
+
+  const expectedBranch = `project/${safeName}`;
+  if (currentBranch !== expectedBranch) {
+    // Warn but don't block -- PM might be on main or another branch
+    // This is a soft check: the tag will still be created on whatever branch they're on
+    // but we note the mismatch
+    return {
+      exitCode: 1,
+      error: `Not on project branch. Expected ${expectedBranch}, currently on ${currentBranch}. Switch to the project branch first with /gsd:switch-project.`,
+      expected_branch: expectedBranch,
+      current_branch: currentBranch,
+    };
+  }
+
+  // Check if tag already exists
+  const checkResult = execGit(cwd, ['tag', '-l', tagName]);
+  if (checkResult.exitCode === 0 && checkResult.stdout.trim() === tagName) {
+    return { exitCode: 1, error: `Tag ${tagName} already exists.`, tag: tagName };
+  }
+
+  // Create annotated tag (-a flag) with message (-m flag)
+  // Annotated tags store: tagger name, email, date, and message
+  const result = execGit(cwd, ['tag', '-a', tagName, '-m', tagMessage]);
+  if (result.exitCode !== 0) {
+    return { exitCode: result.exitCode, error: `Failed to create tag: ${result.stderr}`, tag: tagName };
+  }
+
+  return { exitCode: 0, tag: tagName, created: true, branch: currentBranch };
+}
+
 function normalizePhaseName(phase) {
   const match = phase.match(/^(\d+(?:\.\d+)?)/);
   if (!match) return phase;
@@ -3501,6 +3548,27 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
     fs.writeFileSync(statePath, stateContent, 'utf-8');
   }
 
+  // GIT-02: Create annotated tag on project branch
+  let gitTag = null;
+  let gitTagError = null;
+  try {
+    // Get project slug from active project or from STATE.md
+    const activeProject = getActiveProject(cwd);
+    if (activeProject) {
+      const tagMsg = `Milestone ${version}: ${milestoneName}\n\nPhases: ${phaseCount}, Plans: ${totalPlans}, Tasks: ${totalTasks}\nDate: ${today}`;
+      const tagResult = createMilestoneTag(cwd, activeProject, version, tagMsg);
+      if (tagResult.exitCode === 0) {
+        gitTag = tagResult.tag;
+      } else {
+        gitTagError = tagResult.error;
+      }
+    } else {
+      gitTagError = 'No active project. Tag creation skipped.';
+    }
+  } catch (err) {
+    gitTagError = `Tag creation failed: ${err.message}`;
+  }
+
   const result = {
     version,
     name: milestoneName,
@@ -3516,6 +3584,8 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
     },
     milestones_updated: true,
     state_updated: fs.existsSync(statePath),
+    git_tag: gitTag,           // e.g., "project-my-app-v1.0" or null
+    git_tag_error: gitTagError, // null if tag was created successfully
   };
 
   output(result, raw);
@@ -5541,8 +5611,31 @@ async function main() {
         } catch (err) {
           output({ error: err.message, original: args[2] }, raw);
         }
+      } else if (subcommand === 'status') {
+        const currentBranch = getCurrentBranch(cwd);
+        const isProjectBranch = currentBranch?.startsWith('project/') || false;
+        const projectName = isProjectBranch ? currentBranch.replace('project/', '') : null;
+        const projectBranches = listProjectBranches(cwd);
+
+        // Get tags for current project branch
+        let projectTags = [];
+        if (projectName) {
+          const tagResult = execGit(cwd, ['tag', '-l', `project-${projectName}-*`]);
+          if (tagResult.exitCode === 0 && tagResult.stdout.trim()) {
+            projectTags = tagResult.stdout.trim().split('\n').filter(Boolean);
+          }
+        }
+
+        output({
+          current_branch: currentBranch,
+          on_project_branch: isProjectBranch,
+          current_project: projectName,
+          available_projects: projectBranches.map(b => b.replace('project/', '')),
+          project_count: projectBranches.length,
+          tags: projectTags,
+        }, raw);
       } else {
-        error('Unknown git subcommand. Available: current-branch, project-branches, sanitize');
+        error('Unknown git subcommand. Available: current-branch, project-branches, sanitize, status');
       }
       break;
     }
