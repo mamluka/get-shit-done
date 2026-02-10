@@ -4177,12 +4177,20 @@ Version: v1.0
   // Create empty config.json
   fs.writeFileSync(path.join(v1Path, 'config.json'), '{}', 'utf-8');
 
+  // GIT-01: Create and switch to project branch
+  const branchResult = createAndSwitchBranch(cwd, slug);
+  // Branch creation is best-effort: project creation succeeds even if not in a git repo
+  const gitBranch = branchResult.exitCode === 0 ? branchResult.branch : null;
+  const gitError = branchResult.exitCode !== 0 ? branchResult.error : null;
+
   return {
     slug,
     friendlyName,
     description: description || 'No description provided',
     projectPath: path.relative(cwd, projectPath),
     created: true,
+    git_branch: gitBranch,        // null if git operation failed
+    git_error: gitError,          // null if git operation succeeded
   };
 }
 
@@ -4213,9 +4221,16 @@ function switchProjectInternal(cwd, projectSlug) {
   // Clear PathResolver cache so next call picks up new project
   PathResolver.clearCache();
 
+  // GIT: Switch to project's git branch
+  const branchResult = switchToProjectBranch(cwd, projectSlug);
+  const gitBranch = branchResult.exitCode === 0 ? branchResult.branch : null;
+  const gitError = branchResult.exitCode !== 0 ? branchResult.error : null;
+
   return {
     switched: true,
     project: projectSlug,
+    git_branch: gitBranch,
+    git_error: gitError,
   };
 }
 
@@ -4531,6 +4546,11 @@ function cmdInitExecutePhase(cwd, phase, includes, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   // Include file contents if requested via --include
@@ -4587,6 +4607,11 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   // Include file contents if requested via --include
@@ -4703,6 +4728,11 @@ function cmdInitNewProject(cwd, raw) {
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
 
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
+
     // Project management (for create-project flow merged into new-project)
     has_flat_structure: detectFlatStructure(cwd),
     existing_projects: listProjectsInternal(cwd),
@@ -4737,6 +4767,11 @@ function cmdInitNewMilestone(cwd, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -4788,6 +4823,11 @@ function cmdInitQuick(cwd, description, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -4819,6 +4859,11 @@ function cmdInitResume(cwd, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -4852,6 +4897,11 @@ function cmdInitVerifyWork(cwd, phase, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -4888,6 +4938,11 @@ function cmdInitPhaseOp(cwd, phase, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -4951,6 +5006,11 @@ function cmdInitTodos(cwd, area, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -5016,6 +5076,11 @@ function cmdInitMilestoneOp(cwd, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -5054,6 +5119,11 @@ function cmdInitMapCodebase(cwd, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   output(result, raw);
@@ -5151,6 +5221,11 @@ function cmdInitProgress(cwd, includes, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Git branch context
+    current_branch: getCurrentBranch(cwd),
+    on_project_branch: getCurrentBranch(cwd)?.startsWith('project/') || false,
+    project_branches: listProjectBranches(cwd),
   };
 
   // Include file contents if requested via --include
@@ -5450,6 +5525,25 @@ async function main() {
     case 'progress': {
       const subcommand = args[1] || 'json';
       cmdProgressRender(cwd, subcommand, raw);
+      break;
+    }
+
+    case 'git': {
+      const subcommand = args[1];
+      if (subcommand === 'current-branch') {
+        output({ branch: getCurrentBranch(cwd) }, raw);
+      } else if (subcommand === 'project-branches') {
+        output({ branches: listProjectBranches(cwd) }, raw);
+      } else if (subcommand === 'sanitize') {
+        try {
+          const sanitized = sanitizeForGit(args[2]);
+          output({ sanitized, original: args[2] }, raw);
+        } catch (err) {
+          output({ error: err.message, original: args[2] }, raw);
+        }
+      } else {
+        error('Unknown git subcommand. Available: current-branch, project-branches, sanitize');
+      }
       break;
     }
 
