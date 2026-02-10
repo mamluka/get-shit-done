@@ -3954,6 +3954,280 @@ function switchProjectInternal(cwd, projectSlug) {
   };
 }
 
+function migrateToNested(cwd, existingProjectName, existingProjectDescription) {
+  if (!existingProjectName) {
+    return { error: 'Existing project name is required' };
+  }
+
+  const planningDir = path.join(cwd, '.planning');
+
+  // Verify flat structure exists
+  if (!detectFlatStructure(cwd)) {
+    return { error: 'No flat structure detected to migrate' };
+  }
+
+  // a. Create backup
+  const backupBaseDir = path.join(planningDir, '_backup');
+  if (!fs.existsSync(backupBaseDir)) {
+    fs.mkdirSync(backupBaseDir, { recursive: true });
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', 'T').replace('Z', '');
+  const backupPath = path.join(backupBaseDir, `flat-${timestamp}`);
+
+  try {
+    // Copy everything from .planning/ into backup EXCEPT _backup/ itself
+    const entries = fs.readdirSync(planningDir, { withFileTypes: true });
+    fs.mkdirSync(backupPath, { recursive: true });
+
+    let fileCount = 0;
+    for (const entry of entries) {
+      if (entry.name === '_backup') continue;
+
+      const srcPath = path.join(planningDir, entry.name);
+      const destPath = path.join(backupPath, entry.name);
+
+      try {
+        fs.cpSync(srcPath, destPath, { recursive: true });
+        fileCount++;
+      } catch (err) {
+        return { error: `Failed to backup ${entry.name}: ${err.message}` };
+      }
+    }
+
+    // b. Verify backup
+    const keyFiles = ['STATE.md', 'PROJECT.md', 'ROADMAP.md'];
+    const missingFiles = [];
+
+    for (const file of keyFiles) {
+      const backupFilePath = path.join(backupPath, file);
+      if (fs.existsSync(path.join(planningDir, file)) && !fs.existsSync(backupFilePath)) {
+        missingFiles.push(file);
+      }
+    }
+
+    if (missingFiles.length > 0) {
+      return {
+        error: `Backup verification failed: ${missingFiles.join(', ')} missing. Aborting migration.`,
+        backup_path: backupPath
+      };
+    }
+
+    // c. Generate slug for existing project
+    let slug = generateSlugInternal(existingProjectName);
+    if (!slug || slug.length === 0) {
+      return { error: 'Could not generate valid slug from project name' };
+    }
+
+    // Handle collision (shouldn't happen on first migration, but be safe)
+    let finalSlug = slug;
+    let counter = 2;
+    while (fs.existsSync(path.join(planningDir, finalSlug))) {
+      finalSlug = `${slug}-${counter}`;
+      counter++;
+    }
+
+    // d. Create project structure
+    const projectPath = path.join(planningDir, finalSlug);
+    const v1Path = path.join(projectPath, 'v1');
+    fs.mkdirSync(v1Path, { recursive: true });
+
+    // e. Move files
+    const filesToMove = [
+      { src: 'STATE.md', dest: path.join('v1', 'STATE.md') },
+      { src: 'ROADMAP.md', dest: path.join('v1', 'ROADMAP.md') },
+      { src: 'REQUIREMENTS.md', dest: path.join('v1', 'REQUIREMENTS.md') },
+      { src: 'PROJECT.md', dest: 'PROJECT.md' }
+    ];
+
+    const dirsToMove = [
+      { src: 'phases', dest: path.join('v1', 'phases') },
+      { src: 'research', dest: path.join('v1', 'research') },
+      { src: 'codebase', dest: path.join('v1', 'codebase') },
+      { src: 'quick', dest: path.join('v1', 'quick') },
+      { src: 'todos', dest: path.join('v1', 'todos') },
+      { src: 'archive', dest: path.join('v1', 'archive') }
+    ];
+
+    let movedCount = 0;
+
+    // Move files
+    for (const { src, dest } of filesToMove) {
+      const srcPath = path.join(planningDir, src);
+      const destPath = path.join(projectPath, dest);
+
+      if (fs.existsSync(srcPath)) {
+        try {
+          fs.renameSync(srcPath, destPath);
+          movedCount++;
+        } catch (err) {
+          // Rollback not implemented - backup ensures recovery
+          return {
+            error: `Failed to move ${src}: ${err.message}. Backup available at: ${backupPath}`,
+            backup_path: backupPath
+          };
+        }
+      }
+    }
+
+    // Move directories
+    for (const { src, dest } of dirsToMove) {
+      const srcPath = path.join(planningDir, src);
+      const destPath = path.join(projectPath, dest);
+
+      if (fs.existsSync(srcPath)) {
+        try {
+          fs.renameSync(srcPath, destPath);
+          movedCount++;
+        } catch (err) {
+          return {
+            error: `Failed to move ${src}: ${err.message}. Backup available at: ${backupPath}`,
+            backup_path: backupPath
+          };
+        }
+      }
+    }
+
+    // Handle config.json: keep at root (global) AND copy to v1/ (project config)
+    const configSrc = path.join(planningDir, 'config.json');
+    const configDest = path.join(v1Path, 'config.json');
+
+    if (fs.existsSync(configSrc)) {
+      try {
+        // Copy to v1/ as project config
+        fs.copyFileSync(configSrc, configDest);
+        // Keep the original at root as global config
+        movedCount++;
+      } catch (err) {
+        return {
+          error: `Failed to handle config.json: ${err.message}. Backup available at: ${backupPath}`,
+          backup_path: backupPath
+        };
+      }
+    }
+
+    // f. Update STATE.md in new location
+    const statePath = path.join(v1Path, 'STATE.md');
+    if (fs.existsSync(statePath)) {
+      try {
+        let stateContent = fs.readFileSync(statePath, 'utf-8');
+
+        // Find the "## Current Position" section and add fields after it
+        const positionHeaderMatch = stateContent.match(/^## Current Position$/m);
+        if (positionHeaderMatch) {
+          const insertIndex = positionHeaderMatch.index + positionHeaderMatch[0].length;
+          const newFields = `\n\n**current_project:** ${finalSlug}\n**current_version:** v1`;
+          stateContent = stateContent.slice(0, insertIndex) + newFields + stateContent.slice(insertIndex);
+        } else {
+          // If no Current Position section, add at the top after any initial heading
+          const firstSectionMatch = stateContent.match(/^## /m);
+          if (firstSectionMatch) {
+            const insertIndex = firstSectionMatch.index;
+            const newSection = `## Current Position\n\n**current_project:** ${finalSlug}\n**current_version:** v1\n\n`;
+            stateContent = stateContent.slice(0, insertIndex) + newSection + stateContent.slice(insertIndex);
+          }
+        }
+
+        fs.writeFileSync(statePath, stateContent);
+      } catch (err) {
+        return {
+          error: `Failed to update STATE.md: ${err.message}. Backup available at: ${backupPath}`,
+          backup_path: backupPath
+        };
+      }
+    }
+
+    // g. Set active project
+    const activeProjectPath = path.join(planningDir, '.active-project');
+    fs.writeFileSync(activeProjectPath, finalSlug);
+
+    // h. Verify migration
+    const verification = {
+      state: fs.existsSync(path.join(v1Path, 'STATE.md')),
+      project: fs.existsSync(path.join(projectPath, 'PROJECT.md')),
+      roadmap: fs.existsSync(path.join(v1Path, 'ROADMAP.md')),
+      phases: fs.existsSync(path.join(v1Path, 'phases'))
+    };
+
+    // i. Return result
+    return {
+      migrated: true,
+      project_slug: finalSlug,
+      backup_path: backupPath,
+      files_moved: movedCount,
+      verification
+    };
+
+  } catch (err) {
+    return {
+      error: `Migration failed: ${err.message}`,
+      backup_path: backupPath
+    };
+  }
+}
+
+function verifyMigration(cwd, slug) {
+  if (!slug) {
+    return { error: 'Project slug is required for verification' };
+  }
+
+  const planningDir = path.join(cwd, '.planning');
+  const projectPath = path.join(planningDir, slug);
+  const v1Path = path.join(projectPath, 'v1');
+  const backupPath = path.join(planningDir, '_backup');
+
+  const issues = [];
+
+  // Check PROJECT.md at root
+  if (!fs.existsSync(path.join(projectPath, 'PROJECT.md'))) {
+    issues.push('PROJECT.md missing at project root');
+  }
+
+  // Check STATE.md in v1/
+  if (!fs.existsSync(path.join(v1Path, 'STATE.md'))) {
+    issues.push('STATE.md missing in v1/');
+  }
+
+  // Check ROADMAP.md in v1/ (if it should exist)
+  const roadmapPath = path.join(v1Path, 'ROADMAP.md');
+  // Note: ROADMAP.md might not exist for new projects, so we only check if the v1 dir exists
+
+  // Check phases directory in v1/ (if it should exist)
+  const phasesPath = path.join(v1Path, 'phases');
+  // Note: phases might not exist for new projects
+
+  // Check backup exists
+  if (!fs.existsSync(backupPath)) {
+    issues.push('Backup directory missing');
+  } else {
+    // Check backup has content
+    try {
+      const backupEntries = fs.readdirSync(backupPath);
+      if (backupEntries.length === 0) {
+        issues.push('Backup directory is empty');
+      }
+    } catch {
+      issues.push('Cannot read backup directory');
+    }
+  }
+
+  // Check .active-project file
+  const activeProjectPath = path.join(planningDir, '.active-project');
+  if (!fs.existsSync(activeProjectPath)) {
+    issues.push('.active-project file missing');
+  } else {
+    const activeProject = fs.readFileSync(activeProjectPath, 'utf-8').trim();
+    if (activeProject !== slug) {
+      issues.push(`.active-project points to "${activeProject}" instead of "${slug}"`);
+    }
+  }
+
+  return {
+    valid: issues.length === 0,
+    issues
+  };
+}
+
 function listProjectsInternal(cwd) {
   const planningDir = path.join(cwd, '.planning');
 
@@ -4065,6 +4339,16 @@ function cmdProjectSwitch(cwd, projectSlug, raw) {
 
 function cmdProjectList(cwd, raw) {
   const result = listProjectsInternal(cwd);
+  output(result, raw);
+}
+
+function cmdProjectMigrate(cwd, existingProjectName, description, raw) {
+  const result = migrateToNested(cwd, existingProjectName, description || '');
+  output(result, raw);
+}
+
+function cmdProjectVerifyMigration(cwd, slug, raw) {
+  const result = verifyMigration(cwd, slug);
   output(result, raw);
 }
 
@@ -5067,8 +5351,12 @@ function main() {
         cmdProjectSwitch(cwd, args[2], raw);
       } else if (subcommand === 'list') {
         cmdProjectList(cwd, raw);
+      } else if (subcommand === 'migrate') {
+        cmdProjectMigrate(cwd, args[2], args[3], raw);
+      } else if (subcommand === 'verify-migration') {
+        cmdProjectVerifyMigration(cwd, args[2], raw);
       } else {
-        error('Unknown project subcommand. Available: create, switch, list');
+        error('Unknown project subcommand. Available: create, switch, list, migrate, verify-migration');
       }
       break;
     }

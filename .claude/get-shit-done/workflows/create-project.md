@@ -47,13 +47,37 @@ If `has_flat_structure` AND `existing_projects.length === 0`:
 - This means flat `.planning/` structure exists with no projects yet
 - This is the first time multi-project is being used
 - Display: "I notice you have an existing project in `.planning/`. To support multiple projects, I'll need to move your existing work into a project folder."
+- Read `.planning/PROJECT.md` to extract the project name as a suggestion:
+  ```bash
+  EXISTING_NAME=$(grep -m 1 '^# ' .planning/PROJECT.md | sed 's/^# //')
+  ```
 - Use AskUserQuestion:
   - header: "Migrate Existing Project"
   - question: "I'll move your existing work into a project folder. What should I call it?"
   - input_type: "freeform"
-  - suggestion: (read from `.planning/PROJECT.md` title if available)
+  - suggestion: `${EXISTING_NAME}` (from PROJECT.md title if available)
   - capture_as: existingProjectName
-- NOTE: Migration workflow will be implemented in Plan 03. For now, display: "Migration will be available after the migration feature is implemented. For now, creating the new project alongside existing flat structure."
+- Use AskUserQuestion:
+  - header: "Confirm Migration"
+  - question: "I'll create a backup in `.planning/_backup/` before moving files. Proceed with migration?"
+  - options:
+    - "Yes — Migrate existing project"
+    - "No — Cancel"
+- If "Yes":
+  ```bash
+  MIGRATION_RESULT=$(node ./.claude/get-shit-done/bin/gsd-tools.js project migrate "${existingProjectName}" "")
+  ```
+- Parse JSON result for: `migrated`, `project_slug`, `backup_path`, `files_moved`, `verification`
+- If `migrated === true`:
+  - Display: "Migration complete! Existing project moved to `.planning/${project_slug}/`"
+  - Display: "Backup saved to: ${backup_path}"
+  - Display: "Files moved: ${files_moved}"
+- Verify migration:
+  ```bash
+  VERIFY_RESULT=$(node ./.claude/get-shit-done/bin/gsd-tools.js project verify-migration "${project_slug}")
+  ```
+- Parse verification result: if `valid === false`, display issues
+- If "No": Exit workflow (user doesn't want to migrate yet)
 
 ## 4. Create Project
 
