@@ -240,6 +240,109 @@ function execGit(cwd, args) {
   }
 }
 
+function sanitizeForGit(input) {
+  if (!input || typeof input !== 'string') {
+    throw new Error('Input required for git name sanitization');
+  }
+
+  // Start with standard slug generation (matches existing generateSlugInternal logic)
+  let sanitized = input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  // Git-specific rules per git-check-ref-format:
+  // Remove leading dots
+  if (sanitized.startsWith('.')) {
+    sanitized = sanitized.replace(/^\.+/, '');
+  }
+  // Replace double dots with single hyphen
+  sanitized = sanitized.replace(/\.\./g, '-');
+  // Remove .lock suffix
+  if (sanitized.endsWith('.lock')) {
+    sanitized = sanitized.slice(0, -5);
+  }
+  // Clean up any resulting leading/trailing hyphens
+  sanitized = sanitized.replace(/^-+|-+$/g, '');
+  // Collapse multiple hyphens
+  sanitized = sanitized.replace(/-{2,}/g, '-');
+
+  if (sanitized.length === 0) {
+    throw new Error('Sanitized name is empty after applying git safety rules');
+  }
+
+  // Final validation: must be lowercase alphanumeric with hyphens, no leading/trailing hyphens
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(sanitized)) {
+    throw new Error(`Sanitized name "${sanitized}" failed git safety validation`);
+  }
+
+  return sanitized;
+}
+
+function getCurrentBranch(cwd) {
+  const result = execGit(cwd, ['symbolic-ref', '--short', 'HEAD']);
+  if (result.exitCode !== 0) {
+    return null; // Detached HEAD or other error
+  }
+  return result.stdout.trim();
+}
+
+function listProjectBranches(cwd) {
+  const result = execGit(cwd, ['branch', '--list', 'project/*']);
+  if (result.exitCode !== 0) {
+    return [];
+  }
+  return result.stdout
+    .split('\n')
+    .map(line => line.replace(/^\*?\s+/, '').trim())
+    .filter(Boolean);
+}
+
+function createAndSwitchBranch(cwd, projectSlug) {
+  const safeName = sanitizeForGit(projectSlug);
+  const branchName = `project/${safeName}`;
+
+  // Check if branch already exists
+  const checkResult = execGit(cwd, ['rev-parse', '--verify', branchName]);
+  if (checkResult.exitCode === 0) {
+    return { exitCode: 1, error: `Branch ${branchName} already exists. Use project switch instead.` };
+  }
+
+  // Create and switch atomically
+  const result = execGit(cwd, ['checkout', '-b', branchName]);
+  if (result.exitCode !== 0) {
+    return { exitCode: result.exitCode, error: `Failed to create branch: ${result.stderr}` };
+  }
+
+  return { exitCode: 0, branch: branchName, created: true };
+}
+
+function switchToProjectBranch(cwd, projectSlug) {
+  const safeName = sanitizeForGit(projectSlug);
+  const branchName = `project/${safeName}`;
+
+  // Check for uncommitted changes
+  const statusResult = execGit(cwd, ['status', '--porcelain']);
+  if (statusResult.exitCode === 0 && statusResult.stdout.trim().length > 0) {
+    return { exitCode: 1, error: 'Uncommitted changes detected. Commit or stash before switching projects.' };
+  }
+
+  // Check branch exists
+  const checkResult = execGit(cwd, ['rev-parse', '--verify', branchName]);
+  if (checkResult.exitCode !== 0) {
+    return { exitCode: 1, error: `Branch ${branchName} does not exist.` };
+  }
+
+  // Switch branch
+  const result = execGit(cwd, ['checkout', branchName]);
+  if (result.exitCode !== 0) {
+    return { exitCode: result.exitCode, error: `Failed to switch to branch: ${result.stderr}` };
+  }
+
+  return { exitCode: 0, branch: branchName, switched: true };
+}
+
 function normalizePhaseName(phase) {
   const match = phase.match(/^(\d+(?:\.\d+)?)/);
   if (!match) return phase;
@@ -4339,14 +4442,10 @@ function verifyMigration(cwd, slug) {
 // ─── Project Init Commands ────────────────────────────────────────────────────
 
 function cmdInitCreateProject(cwd, raw) {
-  const planningDir = path.join(cwd, '.planning');
-  const config = loadConfig(cwd);
-
+  // Deprecated: create-project merged into new-project
   return output({
-    planning_exists: fs.existsSync(planningDir),
-    existing_projects: listProjectsInternal(cwd),
-    has_flat_structure: detectFlatStructure(cwd),
-    commit_docs: config.commit_docs,
+    error: 'create-project has been merged into new-project. Use /gsd:new-project instead.',
+    redirect: 'new-project',
   }, raw);
 }
 
@@ -4603,6 +4702,10 @@ function cmdInitNewProject(cwd, raw) {
     // Active project context
     active_project: getActiveProject(cwd),
     project_name: getActiveProjectName(cwd),
+
+    // Project management (for create-project flow merged into new-project)
+    has_flat_structure: detectFlatStructure(cwd),
+    existing_projects: listProjectsInternal(cwd),
   };
 
   output(result, raw);
@@ -5447,7 +5550,7 @@ async function main() {
           cmdInitListProjects(cwd, raw);
           break;
         default:
-          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress, create-project, switch-project, list-projects`);
+          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress, switch-project, list-projects`);
       }
       break;
     }
