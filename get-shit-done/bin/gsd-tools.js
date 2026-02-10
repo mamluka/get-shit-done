@@ -506,63 +506,84 @@ class PathResolver {
   }
 
   /**
-   * Detect operating mode by checking STATE.md for project/version fields
+   * Detect operating mode by checking for .active-project file (nested) or flat STATE.md
    * @returns {'flat'|'nested'}
    */
   detectMode() {
-    const statePath = path.join(this.planningRoot, 'STATE.md');
-
-    if (!fs.existsSync(statePath)) {
-      return 'flat';
-    }
-
-    try {
-      const content = fs.readFileSync(statePath, 'utf-8');
-
-      // Check for both current_project and current_version fields with non-empty values
-      const projectMatch = content.match(/^current_project:\s*(.+)$/m);
-      const versionMatch = content.match(/^current_version:\s*(.+)$/m);
-
-      if (projectMatch && versionMatch) {
-        const projectValue = projectMatch[1].trim();
-        const versionValue = versionMatch[1].trim();
-
-        // Must have actual values (not empty, not N/A, not -)
-        if (projectValue && versionValue &&
-            projectValue !== 'N/A' && projectValue !== '-' &&
-            versionValue !== 'N/A' && versionValue !== '-') {
+    // Check for .active-project file first - this is the primary indicator of nested mode
+    const activeProjectPath = path.join(this.planningRoot, '.active-project');
+    if (fs.existsSync(activeProjectPath)) {
+      try {
+        const content = fs.readFileSync(activeProjectPath, 'utf-8').trim();
+        if (content) {
           return 'nested';
         }
+      } catch {
+        // File exists but can't read - fall through
       }
-
-      return 'flat';
-    } catch {
-      return 'flat';
     }
+
+    // Fallback: check for nested project folders with PROJECT.md
+    try {
+      const entries = fs.readdirSync(this.planningRoot, { withFileTypes: true });
+      const hasNestedProjects = entries.some(entry => {
+        if (!entry.isDirectory()) return false;
+        const projectMd = path.join(this.planningRoot, entry.name, 'PROJECT.md');
+        return fs.existsSync(projectMd);
+      });
+      if (hasNestedProjects) {
+        return 'nested';
+      }
+    } catch {
+      // Can't read planning dir - fall through
+    }
+
+    return 'flat';
   }
 
   /**
-   * Load current project context from STATE.md
+   * Load current project context from .active-project file and project's STATE.md
    */
   loadProjectContext() {
-    const statePath = path.join(this.planningRoot, 'STATE.md');
+    // First check .active-project file for current project slug
+    const activeProjectPath = path.join(this.planningRoot, '.active-project');
 
     try {
-      const content = fs.readFileSync(statePath, 'utf-8');
-
-      const projectMatch = content.match(/^current_project:\s*(.+)$/m);
-      const versionMatch = content.match(/^current_version:\s*(.+)$/m);
-
-      if (projectMatch) {
-        this.currentProject = projectMatch[1].trim();
+      const activeSlug = fs.readFileSync(activeProjectPath, 'utf-8').trim();
+      if (!activeSlug) {
+        throw new Error('Active project file is empty');
       }
 
-      if (versionMatch) {
-        this.currentVersion = versionMatch[1].trim();
+      this.currentProject = activeSlug;
+
+      // Now read version from project's STATE.md
+      // Try version-specific STATE.md locations to find latest version
+      const projectDir = path.join(this.planningRoot, activeSlug);
+
+      // Find highest version number
+      let highestVersion = 'v1';
+      try {
+        const entries = fs.readdirSync(projectDir, { withFileTypes: true });
+        const versionDirs = entries
+          .filter(e => e.isDirectory() && /^v\d+$/.test(e.name))
+          .map(e => e.name)
+          .sort((a, b) => {
+            const numA = parseInt(a.substring(1), 10);
+            const numB = parseInt(b.substring(1), 10);
+            return numB - numA;
+          });
+        if (versionDirs.length > 0) {
+          highestVersion = versionDirs[0];
+        }
+      } catch {
+        // Default to v1
       }
+
+      this.currentVersion = highestVersion;
+
     } catch (err) {
-      // If we can't read STATE.md in nested mode, that's an error
-      throw new Error(`Failed to load project context from STATE.md: ${err.message}`);
+      // If we can't read .active-project in nested mode, that's an error
+      throw new Error(`Failed to load project context from .active-project: ${err.message}`);
     }
   }
 
@@ -3772,6 +3793,365 @@ function getMilestoneInfo(cwd) {
   }
 }
 
+// ─── Project Management Functions ─────────────────────────────────────────────
+
+/**
+ * Get active project slug from .planning/.active-project file
+ */
+function getActiveProject(cwd) {
+  const activeProjectPath = path.join(cwd, '.planning', '.active-project');
+  try {
+    return fs.readFileSync(activeProjectPath, 'utf-8').trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get active project friendly name from PROJECT.md
+ */
+function getActiveProjectName(cwd) {
+  const activeSlug = getActiveProject(cwd);
+  if (!activeSlug) return null;
+
+  const projectMdPath = path.join(cwd, '.planning', activeSlug, 'PROJECT.md');
+  try {
+    const content = fs.readFileSync(projectMdPath, 'utf-8');
+    const match = content.match(/^#\s+(.+)$/m);
+    return match ? match[1].trim() : activeSlug;
+  } catch {
+    return activeSlug;
+  }
+}
+
+/**
+ * Detect if project has flat structure (legacy single-project mode)
+ */
+function detectFlatStructure(cwd) {
+  const planningDir = path.join(cwd, '.planning');
+  const statePath = path.join(planningDir, 'STATE.md');
+  const activeProjectPath = path.join(planningDir, '.active-project');
+
+  // Flat structure: STATE.md exists at root, no .active-project, no nested projects
+  if (!fs.existsSync(statePath)) return false;
+  if (fs.existsSync(activeProjectPath)) return false;
+
+  // Check if any subdirectories with PROJECT.md exist
+  try {
+    const entries = fs.readdirSync(planningDir, { withFileTypes: true });
+    const hasNestedProjects = entries.some(entry => {
+      if (!entry.isDirectory()) return false;
+      const projectMd = path.join(planningDir, entry.name, 'PROJECT.md');
+      return fs.existsSync(projectMd);
+    });
+    return !hasNestedProjects;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * List all projects in .planning directory
+ */
+function listProjectsInternal(cwd) {
+  const planningDir = path.join(cwd, '.planning');
+  if (!fs.existsSync(planningDir)) return [];
+
+  const excludeDirs = new Set(['_backup', 'codebase', 'research', 'phases', 'quick', 'todos', 'archive']);
+  const activeProject = getActiveProject(cwd);
+
+  try {
+    const entries = fs.readdirSync(planningDir, { withFileTypes: true });
+    const projects = [];
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (excludeDirs.has(entry.name)) continue;
+
+      const projectMdPath = path.join(planningDir, entry.name, 'PROJECT.md');
+      if (!fs.existsSync(projectMdPath)) continue;
+
+      // Extract friendly name and description from PROJECT.md
+      let name = entry.name;
+      let description = '';
+      try {
+        const content = fs.readFileSync(projectMdPath, 'utf-8');
+        const nameMatch = content.match(/^#\s+(.+)$/m);
+        const descMatch = content.match(/\*\*Description:\*\*\s*(.+)$/m);
+        if (nameMatch) name = nameMatch[1].trim();
+        if (descMatch) description = descMatch[1].trim();
+      } catch {
+        // Use slug as name if can't read PROJECT.md
+      }
+
+      // Detect latest version by finding highest v{N} subfolder
+      let currentVersion = 'v1';
+      try {
+        const projectEntries = fs.readdirSync(path.join(planningDir, entry.name), { withFileTypes: true });
+        const versionDirs = projectEntries
+          .filter(e => e.isDirectory() && /^v\d+$/.test(e.name))
+          .map(e => e.name)
+          .sort((a, b) => {
+            const numA = parseInt(a.substring(1), 10);
+            const numB = parseInt(b.substring(1), 10);
+            return numB - numA;
+          });
+        if (versionDirs.length > 0) {
+          currentVersion = versionDirs[0];
+        }
+      } catch {
+        // Default to v1
+      }
+
+      projects.push({
+        slug: entry.name,
+        name,
+        description,
+        active: entry.name === activeProject,
+        currentVersion,
+        path: path.join('.planning', entry.name),
+      });
+    }
+
+    return projects;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Create a new project folder structure
+ */
+function createProjectInternal(cwd, friendlyName, description) {
+  if (!friendlyName) {
+    return { error: 'Project name is required' };
+  }
+
+  const planningDir = path.join(cwd, '.planning');
+
+  // Ensure .planning directory exists
+  if (!fs.existsSync(planningDir)) {
+    fs.mkdirSync(planningDir, { recursive: true });
+  }
+
+  // Generate slug with validation
+  let slug = generateSlugInternal(friendlyName);
+
+  // Validate slug
+  if (!slug || slug.length === 0) {
+    return { error: 'Could not generate valid slug from project name' };
+  }
+
+  // Truncate to 50 chars
+  if (slug.length > 50) {
+    slug = slug.substring(0, 50).replace(/-+$/, '');
+  }
+
+  // Reserved names
+  const reserved = ['_backup', 'codebase', 'research', 'phases', 'quick', 'todos', 'archive', 'config.json'];
+  if (reserved.includes(slug)) {
+    return { error: `"${slug}" is a reserved name. Please choose a different project name.` };
+  }
+
+  // Handle slug collisions
+  let finalSlug = slug;
+  let counter = 2;
+  while (fs.existsSync(path.join(planningDir, finalSlug))) {
+    finalSlug = `${slug}-${counter}`;
+    counter++;
+    if (counter > 100) {
+      return { error: 'Could not generate unique slug (too many conflicts)' };
+    }
+  }
+
+  slug = finalSlug;
+  const projectPath = path.join(planningDir, slug);
+  const v1Path = path.join(projectPath, 'v1');
+  const phasesPath = path.join(v1Path, 'phases');
+
+  // Create directory structure
+  fs.mkdirSync(v1Path, { recursive: true });
+  fs.mkdirSync(phasesPath, { recursive: true });
+
+  // Create PROJECT.md
+  const created = new Date().toISOString().split('T')[0];
+  const projectContent = `# ${friendlyName}
+
+**Created:** ${created}
+**Description:** ${description || 'No description provided'}
+
+## Status
+Active — Version 1
+
+## History
+- v1: Created ${created}
+`;
+
+  fs.writeFileSync(path.join(projectPath, 'PROJECT.md'), projectContent, 'utf-8');
+
+  // Create STATE.md with current_project and current_version fields
+  const stateContent = `# Project State
+
+## Project Reference
+
+See: .planning/${slug}/PROJECT.md (created ${created})
+
+**Core value:** [To be defined]
+**Current focus:** [To be defined]
+
+## Current Position
+
+Phase: N/A
+Plan: N/A
+Status: Initialized
+Last activity: ${created} — Project created
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: N/A
+- Total execution time: 0 hours
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+
+**Recent Trend:**
+- Last 5 plans: None yet
+- Trend: Project initialized
+
+*Updated after each plan completion*
+
+## Accumulated Context
+
+### Decisions
+
+No decisions yet.
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+None yet.
+
+## Session Continuity
+
+Last session: ${created} (project creation)
+Stopped at: Project initialized
+Resume file: None
+`;
+
+  fs.writeFileSync(path.join(v1Path, 'STATE.md'), stateContent, 'utf-8');
+
+  // Create empty ROADMAP.md
+  const roadmapContent = `# Roadmap
+
+Version: v1.0
+
+## Phases
+
+(To be defined)
+`;
+
+  fs.writeFileSync(path.join(v1Path, 'ROADMAP.md'), roadmapContent, 'utf-8');
+
+  // Create empty REQUIREMENTS.md
+  const requirementsContent = `# Requirements
+
+## v1 Requirements
+
+(To be defined)
+`;
+
+  fs.writeFileSync(path.join(v1Path, 'REQUIREMENTS.md'), requirementsContent, 'utf-8');
+
+  // Create empty config.json
+  fs.writeFileSync(path.join(v1Path, 'config.json'), '{}', 'utf-8');
+
+  return {
+    slug,
+    friendlyName,
+    description: description || 'No description provided',
+    projectPath: path.relative(cwd, projectPath),
+    created: true,
+  };
+}
+
+/**
+ * Switch active project
+ */
+function switchProjectInternal(cwd, projectSlug) {
+  if (!projectSlug) {
+    return { error: 'Project slug is required' };
+  }
+
+  const planningDir = path.join(cwd, '.planning');
+  const projectMdPath = path.join(planningDir, projectSlug, 'PROJECT.md');
+
+  // Validate project exists
+  if (!fs.existsSync(projectMdPath)) {
+    const available = listProjectsInternal(cwd);
+    return {
+      error: 'Project not found',
+      available: available.map(p => p.slug),
+    };
+  }
+
+  // Write .active-project file
+  const activeProjectPath = path.join(planningDir, '.active-project');
+  fs.writeFileSync(activeProjectPath, projectSlug, 'utf-8');
+
+  // Clear PathResolver cache so next call picks up new project
+  PathResolver.clearCache();
+
+  return {
+    switched: true,
+    project: projectSlug,
+  };
+}
+
+// ─── Project Init Commands ────────────────────────────────────────────────────
+
+function cmdInitCreateProject(cwd, raw) {
+  const planningDir = path.join(cwd, '.planning');
+  const config = loadConfig(cwd);
+
+  return output({
+    planning_exists: fs.existsSync(planningDir),
+    existing_projects: listProjectsInternal(cwd),
+    has_flat_structure: detectFlatStructure(cwd),
+    commit_docs: config.commit_docs,
+  }, raw);
+}
+
+function cmdInitSwitchProject(cwd, raw) {
+  const projects = listProjectsInternal(cwd);
+  const activeProject = getActiveProject(cwd);
+
+  return output({
+    projects,
+    active_project: activeProject,
+    has_projects: projects.length > 0,
+  }, raw);
+}
+
+function cmdInitListProjects(cwd, raw) {
+  const projects = listProjectsInternal(cwd);
+  const activeProject = getActiveProject(cwd);
+
+  return output({
+    projects,
+    active_project: activeProject,
+    project_count: projects.length,
+  }, raw);
+}
+
 function cmdInitExecutePhase(cwd, phase, includes, raw) {
   if (!phase) {
     error('phase required for init execute-phase');
@@ -3828,6 +4208,10 @@ function cmdInitExecutePhase(cwd, phase, includes, raw) {
     state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
     config_exists: fs.existsSync(resolvePlanning(cwd, 'config.json')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   // Include file contents if requested via --include
@@ -3880,6 +4264,10 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
     // Environment
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   // Include file contents if requested via --include
@@ -3991,6 +4379,10 @@ function cmdInitNewProject(cwd, raw) {
 
     // Enhanced search
     brave_search_available: hasBraveSearch,
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4018,6 +4410,10 @@ function cmdInitNewMilestone(cwd, raw) {
     project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
     state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4065,6 +4461,10 @@ function cmdInitQuick(cwd, description, raw) {
     // File existence
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4092,6 +4492,10 @@ function cmdInitResume(cwd, raw) {
 
     // Config
     commit_docs: config.commit_docs,
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4121,6 +4525,10 @@ function cmdInitVerifyWork(cwd, phase, raw) {
 
     // Existing artifacts
     has_verification: phaseInfo?.has_verification || false,
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4153,6 +4561,10 @@ function cmdInitPhaseOp(cwd, phase, raw) {
     // File existence
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4212,6 +4624,10 @@ function cmdInitTodos(cwd, area, raw) {
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
     todos_dir_exists: fs.existsSync(resolvePlanning(cwd, 'todos')),
     pending_dir_exists: fs.existsSync(path.join(resolvePlanning(cwd, 'todos'), 'pending')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4273,6 +4689,10 @@ function cmdInitMilestoneOp(cwd, raw) {
     state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
     archive_exists: fs.existsSync(resolvePlanning(cwd, 'archive')),
     phases_dir_exists: fs.existsSync(resolvePlanning(cwd, 'phases')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4307,6 +4727,10 @@ function cmdInitMapCodebase(cwd, raw) {
     // File existence
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
     codebase_dir_exists: fs.existsSync(resolvePlanning(cwd, 'codebase')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   output(result, raw);
@@ -4400,6 +4824,10 @@ function cmdInitProgress(cwd, includes, raw) {
     project_exists: fs.existsSync(resolvePlanning(cwd, 'PROJECT.md')),
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
     state_exists: fs.existsSync(resolvePlanning(cwd, 'STATE.md')),
+
+    // Active project context
+    active_project: getActiveProject(cwd),
+    project_name: getActiveProjectName(cwd),
   };
 
   // Include file contents if requested via --include
@@ -4724,6 +5152,24 @@ async function main() {
       break;
     }
 
+    case 'project': {
+      const subcommand = args[1];
+      if (subcommand === 'create') {
+        // args[2] = friendlyName, args[3] = description
+        const result = createProjectInternal(cwd, args[2], args[3]);
+        output(result, raw);
+      } else if (subcommand === 'switch') {
+        const result = switchProjectInternal(cwd, args[2]);
+        output(result, raw);
+      } else if (subcommand === 'list') {
+        const result = listProjectsInternal(cwd);
+        output(result, raw);
+      } else {
+        error('Unknown project subcommand. Available: create, switch, list');
+      }
+      break;
+    }
+
     case 'init': {
       const workflow = args[1];
       const includes = parseIncludeFlag(args);
@@ -4764,8 +5210,17 @@ async function main() {
         case 'progress':
           cmdInitProgress(cwd, includes, raw);
           break;
+        case 'create-project':
+          cmdInitCreateProject(cwd, raw);
+          break;
+        case 'switch-project':
+          cmdInitSwitchProject(cwd, raw);
+          break;
+        case 'list-projects':
+          cmdInitListProjects(cwd, raw);
+          break;
         default:
-          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress`);
+          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress, create-project, switch-project, list-projects`);
       }
       break;
     }
