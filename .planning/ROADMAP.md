@@ -30,10 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. PM with existing flat `.planning/` structure receives migration offer and can migrate without data loss
   4. All file operations automatically resolve to correct project/version paths without PM specifying paths
   5. Each project tracks its own milestone versions in `.planning/{project-name}/v{N}/` subfolders
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD (to be defined during phase planning)
+- [ ] 01-01-PLAN.md — PathResolver abstraction layer and hardcoded path refactor
+- [ ] 01-02-PLAN.md — Project create, switch, and list commands
+- [ ] 01-03-PLAN.md — Migration from flat to nested structure with backup
 
 ### Phase 2: Git Integration
 **Goal**: Each project operates on dedicated git branch with milestone tagging for version history
@@ -97,7 +99,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Planning complete | - |
 | 2. Git Integration | 0/TBD | Not started | - |
 | 3. Workflow Simplification | 0/TBD | Not started | - |
 | 4. UX Polish | 0/TBD | Not started | - |
