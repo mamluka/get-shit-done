@@ -62,10 +62,12 @@ Plans:
   3. Auto-advance validates complete plans and requirement coverage before advancing
   4. PM can run `/gsd:edit-phase {N}` to revise planning artifacts for any phase
   5. Completing the last phase prompts for milestone completion instead of trying to advance
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Tombstone execution commands, workflows, and agents
+- [ ] 03-02-PLAN.md — Auto-advance phase completion with validation
+- [ ] 03-03-PLAN.md — Edit-phase command and cross-reference cleanup
 
 ### Phase 4: UX Polish
 **Goal**: All user-facing messages use business language instead of developer terminology
@@ -102,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Planning complete | - |
 | 2. Git Integration | 0/2 | Planning complete | - |
-| 3. Workflow Simplification | 0/TBD | Not started | - |
+| 3. Workflow Simplification | 0/3 | Planning complete | - |
 | 4. UX Polish | 0/TBD | Not started | - |
 | 5. Jira Integration | 0/TBD | Not started | - |
 
