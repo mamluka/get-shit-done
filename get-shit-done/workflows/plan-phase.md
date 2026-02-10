@@ -180,7 +180,7 @@ IMPORTANT: If context exists below, it contains USER DECISIONS from /gsd:discuss
 </planning_context>
 
 <downstream_consumer>
-Output consumed by /gsd:execute-phase. Plans need:
+Output consumed by engineering team. Plans need:
 - Frontmatter (wave, depends_on, files_modified, autonomous)
 - Tasks in XML format
 - Verification criteria
@@ -344,17 +344,18 @@ Verification: {Passed | Passed with override | Skipped}
 
 ## ▶ Next Up
 
-**Execute Phase {X}** — run all {N} plans
+**Complete Phase {X}** — mark phase as complete and advance
 
-/gsd:execute-phase {X}
+/gsd:complete-phase {X}
 
-<sub>/clear first → fresh context window</sub>
+<sub>Plans ready for engineering handoff</sub>
 
 ───────────────────────────────────────────────────────────────
 
 **Also available:**
 - cat .planning/phases/{phase-dir}/*-PLAN.md — review plans
-- /gsd:plan-phase {X} --research — re-research first
+- /gsd:edit-phase {X} — revise planning artifacts
+- /gsd:plan-phase {X} --research — re-research and replan
 
 ───────────────────────────────────────────────────────────────
 </offer_next>

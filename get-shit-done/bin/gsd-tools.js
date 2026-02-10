@@ -125,13 +125,13 @@ const { execSync } = require('child_process');
 const MODEL_PROFILES = {
   'gsd-planner':              { quality: 'opus', balanced: 'opus',   budget: 'sonnet' },
   'gsd-roadmapper':           { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
-  'gsd-executor':             { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
+  // 'gsd-executor':             { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' }, // Removed: execution workflow deprecated
   'gsd-phase-researcher':     { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'gsd-project-researcher':   { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'gsd-research-synthesizer': { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'gsd-debugger':             { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
   'gsd-codebase-mapper':      { quality: 'sonnet', balanced: 'haiku', budget: 'haiku' },
-  'gsd-verifier':             { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  // 'gsd-verifier':             { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' }, // Removed: execution workflow deprecated
   'gsd-plan-checker':         { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'gsd-integration-checker':  { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
 };
@@ -5755,7 +5755,12 @@ async function main() {
       const includes = parseIncludeFlag(args);
       switch (workflow) {
         case 'execute-phase':
-          cmdInitExecutePhase(cwd, args[2], includes, raw);
+          if (raw) {
+            console.log(JSON.stringify({ error: "Workflow removed", message: "execute-phase workflow has been removed. GSD is now planning-only. Use /gsd:complete-phase to mark phases complete." }, null, 2));
+          } else {
+            console.log("⚠️  Workflow Removed\n\nThe execute-phase workflow has been removed. GSD is now planning-only.\n\nUse /gsd:complete-phase {N} to mark phases complete.");
+          }
+          process.exit(1);
           break;
         case 'plan-phase':
           cmdInitPlanPhase(cwd, args[2], includes, raw);
@@ -5773,7 +5778,12 @@ async function main() {
           cmdInitResume(cwd, raw);
           break;
         case 'verify-work':
-          cmdInitVerifyWork(cwd, args[2], raw);
+          if (raw) {
+            console.log(JSON.stringify({ error: "Workflow removed", message: "verify-work workflow has been removed. GSD is now planning-only. Plans are ready for engineering handoff." }, null, 2));
+          } else {
+            console.log("⚠️  Workflow Removed\n\nThe verify-work workflow has been removed. GSD is now planning-only.\n\nPlans are ready for engineering handoff after completion.");
+          }
+          process.exit(1);
           break;
         case 'phase-op':
           cmdInitPhaseOp(cwd, args[2], raw);
@@ -5800,7 +5810,7 @@ async function main() {
           cmdInitListProjects(cwd, raw);
           break;
         default:
-          error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress, switch-project, list-projects`);
+          error(`Unknown init workflow: ${workflow}\nAvailable: plan-phase, complete-phase, new-project, new-milestone, quick, resume, phase-op, todos, milestone-op, map-codebase, progress, switch-project, list-projects`);
       }
       break;
     }

@@ -11,7 +11,7 @@ Display the complete GSD command reference. Output ONLY the reference content. D
 
 1. `/gsd:new-project` - Initialize project (includes research, requirements, roadmap)
 2. `/gsd:plan-phase 1` - Create detailed plan for first phase
-3. `/gsd:execute-phase 1` - Execute the phase
+3. `/gsd:complete-phase 1` - Mark phase complete and auto-advance to next
 
 ## Staying Updated
 
@@ -24,7 +24,7 @@ npx get-shit-done-cc@latest
 ## Core Workflow
 
 ```
-/gsd:new-project → /gsd:plan-phase → /gsd:execute-phase → repeat
+/gsd:new-project → /gsd:plan-phase → /gsd:complete-phase → repeat
 ```
 
 ### Project Initialization
@@ -99,32 +99,32 @@ Create detailed execution plan for a specific phase.
 Usage: `/gsd:plan-phase 1`
 Result: Creates `.planning/phases/01-foundation/01-01-PLAN.md`
 
-### Execution
+### Phase Completion
 
-**`/gsd:execute-phase <phase-number>`**
-Execute all plans in a phase.
+**`/gsd:complete-phase <phase-number>`**
+Mark a phase as complete with validation and auto-advance to next phase.
 
-- Groups plans by wave (from frontmatter), executes waves sequentially
-- Plans within each wave run in parallel via Task tool
-- Verifies phase goal after all plans complete
-- Updates REQUIREMENTS.md, ROADMAP.md, STATE.md
+- Validates planning artifacts exist (plans, requirement mapping)
+- Displays warnings for incomplete artifacts (non-blocking)
+- Marks phase complete in ROADMAP.md and updates STATE.md
+- Auto-advances to next phase or prompts for milestone completion
+- Commits changes with proper tracking
 
-Usage: `/gsd:execute-phase 5`
+Usage: `/gsd:complete-phase 1`
 
-### Quick Mode
+### Editing
 
-**`/gsd:quick`**
-Execute small, ad-hoc tasks with GSD guarantees but skip optional agents.
+**`/gsd:edit-phase <phase-number> [artifact-type]`**
+Revise planning artifacts for any phase.
 
-Quick mode uses the same system with a shorter path:
-- Spawns planner + executor (skips researcher, checker, verifier)
-- Quick tasks live in `.planning/quick/` separate from planned phases
-- Updates STATE.md tracking (not ROADMAP.md)
+- Discovers available artifacts (plans, research, context, roadmap)
+- Routes to appropriate editing flow based on artifact type
+- Makes targeted edits preserving file structure
+- Commits changes with descriptive message
+- Allows iterating on planning artifacts after initial creation
 
-Use when you know exactly what to do and the task is small enough to not need research or verification.
-
-Usage: `/gsd:quick`
-Result: Creates `.planning/quick/NNN-slug/PLAN.md`, `.planning/quick/NNN-slug/SUMMARY.md`
+Usage: `/gsd:edit-phase 2`
+Usage: `/gsd:edit-phase 2 plan` - Edit plan directly
 
 ### Roadmap Management
 
@@ -255,18 +255,6 @@ List pending todos and select one to work on.
 
 Usage: `/gsd:check-todos`
 Usage: `/gsd:check-todos api`
-
-### User Acceptance Testing
-
-**`/gsd:verify-work [phase]`**
-Validate built features through conversational UAT.
-
-- Extracts testable deliverables from SUMMARY.md files
-- Presents tests one at a time (yes/no responses)
-- Automatically diagnoses failures and creates fix plans
-- Ready for re-execution if issues found
-
-Usage: `/gsd:verify-work 3`
 
 ### Milestone Auditing
 
@@ -418,7 +406,7 @@ Example config:
 /clear
 /gsd:plan-phase 1       # Create plans for first phase
 /clear
-/gsd:execute-phase 1    # Execute all plans in phase
+/gsd:complete-phase 1   # Mark phase complete and advance
 ```
 
 **Resuming work after a break:**
@@ -432,7 +420,7 @@ Example config:
 ```
 /gsd:insert-phase 5 "Critical security fix"
 /gsd:plan-phase 5.1
-/gsd:execute-phase 5.1
+/gsd:complete-phase 5.1
 ```
 
 **Completing a milestone:**
