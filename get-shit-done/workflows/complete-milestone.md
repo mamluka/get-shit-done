@@ -62,6 +62,21 @@ Includes:
 Total: {phase_count} phases, {total_plans} plans, all complete
 ```
 
+**Branch Check:**
+
+Before completing the milestone, verify git branch status:
+
+```bash
+BRANCH_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js git status --raw)
+```
+
+Parse the output. If `on_project_branch` is false:
+- Display: "Warning: You are not on a project branch (currently on {current_branch}). The milestone tag will not be created. Switch to the project branch with /gsd:switch-project if you want the tag."
+- Do NOT block completion -- this is informational only.
+
+If `on_project_branch` is true:
+- Display: "On project branch: {current_branch}"
+
 <config-check>
 
 ```bash
@@ -531,7 +546,18 @@ fi
 
 <step name="git_tag">
 
-Create git tag:
+**Tag (Automatic):**
+
+The project-specific milestone tag is created automatically during completion by `gsd-tools.js milestone complete`:
+- Tag name: `project-{slug}-{version}` (e.g., `project-mobile-app-v1.0`)
+- Type: Annotated tag with milestone metadata
+- Branch: Created on the current project branch
+
+If the tag creation fails (not on project branch, not in git repo, etc.), a warning is shown but the milestone is still marked complete.
+
+No manual `git tag` command is needed for the project-specific tag.
+
+**Optional: Create additional generic tag if desired:**
 
 ```bash
 git tag -a v[X.Y] -m "v[X.Y] [Name]
@@ -548,11 +574,11 @@ See .planning/MILESTONES.md for full details."
 
 Confirm: "Tagged: v[X.Y]"
 
-Ask: "Push tag to remote? (y/n)"
+Ask: "Push tags to remote? (y/n)"
 
 If yes:
 ```bash
-git push origin v[X.Y]
+git push origin --tags
 ```
 
 </step>
@@ -572,6 +598,8 @@ Confirm: "Committed: chore: complete v[X.Y] milestone"
 
 <step name="offer_next">
 
+After completion, display:
+
 ```
 ✅ Milestone v[X.Y] [Name] complete
 
@@ -584,7 +612,10 @@ Archived:
 - milestones/v[X.Y]-REQUIREMENTS.md
 
 Summary: .planning/MILESTONES.md
-Tag: v[X.Y]
+Tag: {git_tag} (on branch {current_branch})
+
+{If git_tag_error:}
+⚠️ Warning: Tag not created - {git_tag_error}
 
 ---
 
