@@ -1,42 +1,16 @@
 ---
 name: gsd:execute-phase
-description: Execute all plans in a phase with wave-based parallelization
-argument-hint: "<phase-number> [--gaps-only]"
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - Task
-  - TodoWrite
-  - AskUserQuestion
+description: "[REMOVED] Planning-only — this command has been removed"
 ---
-<objective>
-Execute all plans in a phase using wave-based parallel execution.
+# Command Removed: /gsd:execute-phase
 
-Orchestrator stays lean: discover plans, analyze dependencies, group into waves, spawn subagents, collect results. Each subagent loads the full execute-plan context and handles its own plan.
+This command was part of the execution workflow, which has been removed.
 
-Context budget: ~15% orchestrator, 100% fresh per subagent.
-</objective>
+**GSD is now planning-only.** Plans created with `/gsd:plan-phase` are implementation specifications for your engineering team, not executable instructions for Claude.
 
-<execution_context>
-@~/.claude/get-shit-done/workflows/execute-phase.md
-@~/.claude/get-shit-done/references/ui-brand.md
-</execution_context>
+## What to do instead
 
-<context>
-Phase: $ARGUMENTS
-
-**Flags:**
-- `--gaps-only` — Execute only gap closure plans (plans with `gap_closure: true` in frontmatter). Use after verify-work creates fix plans.
-
-@.planning/ROADMAP.md
-@.planning/STATE.md
-</context>
-
-<process>
-Execute the execute-phase workflow from @~/.claude/get-shit-done/workflows/execute-phase.md end-to-end.
-Preserve all workflow gates (wave execution, checkpoint handling, verification, state updates, routing).
-</process>
+- **Plan a phase:** `/gsd:plan-phase {N}`
+- **Mark phase complete:** `/gsd:complete-phase {N}` (auto-advances to next phase)
+- **Revise planning artifacts:** `/gsd:edit-phase {N}`
+- **View available commands:** `/gsd:help`
