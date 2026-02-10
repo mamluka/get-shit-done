@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-10 — Completed 01-01: Path abstraction foundation
+Last activity: 2026-02-10 — Completed 01-02: Project management commands
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 3 min
-- Total execution time: 0.05 hours
+- Total plans completed: 2
+- Average duration: 4 min
+- Total execution time: 0.13 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 1 | 3 min | 3 min |
+| 01 | 2 | 8 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min)
-- Trend: Starting phase 1
+- Last 5 plans: 01-01 (3min), 01-02 (5min)
+- Trend: Steady execution in phase 1
 
 *Updated after each plan completion*
 
@@ -49,6 +49,8 @@ Recent decisions affecting current work:
 - Auto-advance phases: Reduces friction for PMs — no need to remember next command
 - Jira MCP as optional prerequisite: PM teams likely use Jira; check availability without forcing it
 - [Phase 01]: PathResolver uses zero external dependencies and synchronous operations for consistency
+- [Phase 01]: Store active project in .planning/.active-project file for single source of truth
+- [Phase 01]: Prompt user before activating newly created project to respect user control
 
 ### Pending Todos
 
@@ -67,6 +69,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (plan 01-01 execution)
-Stopped at: Completed 01-01-PLAN.md (Path abstraction foundation)
+Last session: 2026-02-10 (plan 01-02 execution)
+Stopped at: Completed 01-02-PLAN.md (Project management commands)
 Resume file: None
