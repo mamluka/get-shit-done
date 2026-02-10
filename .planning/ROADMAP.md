@@ -13,7 +13,7 @@ Transform the existing GSD framework from a developer execution tool into a PM p
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Path abstraction and multi-project folder structure
-- [ ] **Phase 2: Git Integration** - Branch-per-project with milestone tagging
+- [x] **Phase 2: Git Integration** - Branch-per-project with milestone tagging
 - [ ] **Phase 3: Workflow Simplification** - Remove execution, add auto-advance
 - [ ] **Phase 4: UX Polish** - PM-friendly error messages and terminology
 - [ ] **Phase 5: Jira Integration** - Optional MCP validation with graceful degradation
@@ -49,8 +49,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Git sanitization and branch operations for project create/switch
-- [ ] 02-02-PLAN.md — Milestone tagging and git project status
+- [x] 02-01-PLAN.md — Git sanitization and branch operations for project create/switch
+- [x] 02-02-PLAN.md — Milestone tagging and git project status
 
 ### Phase 3: Workflow Simplification
 **Goal**: Planning-only workflow with execution removed and automatic phase progression
@@ -104,11 +104,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-10 |
-| 2. Git Integration | 0/2 | Planning complete | - |
+| 2. Git Integration | 2/2 | ✓ Complete | 2026-02-10 |
 | 3. Workflow Simplification | 0/3 | Planning complete | - |
 | 4. UX Polish | 0/2 | Planning complete | - |
 | 5. Jira Integration | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-10 (Phase 4 planned)*
+*Last updated: 2026-02-10 (Phase 2 complete)*
