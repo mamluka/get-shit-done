@@ -1489,6 +1489,95 @@ function install(isGlobal, runtime = 'claude') {
 }
 
 /**
+ * Prompt for optional Notion API key configuration
+ */
+function promptNotionKey(callback) {
+  // Check if we're in a GSD project (has .planning/ directory)
+  const planningDir = path.join(process.cwd(), '.planning');
+  if (!fs.existsSync(planningDir)) {
+    // Not in a project directory, skip silently
+    callback();
+    return;
+  }
+
+  if (!process.stdin.isTTY) {
+    // Non-interactive, skip
+    callback();
+    return;
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log(`\n  ${cyan}Notion Integration (optional)${reset}\n`);
+
+  rl.question(`  Would you like to configure Notion integration? ${dim}[y/N]${reset}: `, (answer) => {
+    const wantsNotion = answer.trim().toLowerCase() === 'y';
+
+    if (!wantsNotion) {
+      rl.close();
+      console.log(`  Skipped. You can add your Notion API key later to .planning/config.json\n`);
+      callback();
+      return;
+    }
+
+    // Prompt for API key with validation
+    const askForKey = (retriesLeft) => {
+      rl.question(`  Enter your Notion API key (from https://www.notion.so/my-integrations): `, (key) => {
+        const trimmedKey = key.trim();
+
+        // Validate key format (Notion uses secret_ or ntn_ prefix)
+        if (!trimmedKey.startsWith('secret_') && !trimmedKey.startsWith('ntn_')) {
+          if (retriesLeft > 0) {
+            console.log(`  ${yellow}⚠${reset} Invalid key format. Notion API keys start with 'secret_' or 'ntn_'`);
+            askForKey(retriesLeft - 1);
+          } else {
+            console.log(`  ${yellow}⚠${reset} Too many invalid attempts. Skipping Notion configuration.\n`);
+            rl.close();
+            callback();
+          }
+          return;
+        }
+
+        // Valid key, save to config
+        rl.close();
+
+        try {
+          const configPath = path.join(planningDir, 'config.json');
+          let config = {};
+
+          // Read existing config if present
+          if (fs.existsSync(configPath)) {
+            try {
+              config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            } catch (e) {
+              // Ignore parse errors, will overwrite
+            }
+          }
+
+          // Merge with notion section
+          config.notion = {
+            api_key: trimmedKey
+          };
+
+          // Write back to config
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+          console.log(`  ${green}✓${reset} Notion API key saved to .planning/config.json\n`);
+        } catch (e) {
+          console.log(`  ${yellow}⚠${reset} Failed to save config: ${e.message}\n`);
+        }
+
+        callback();
+      });
+    };
+
+    askForKey(2); // Allow 2 retries
+  });
+}
+
+/**
  * Apply statusline config, then print completion message
  */
 function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallStatusline, runtime = 'claude') {
@@ -1515,11 +1604,15 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
   if (runtime === 'gemini') program = 'Gemini';
 
   const command = isOpencode ? '/gsd-help' : '/gsd:help';
-  console.log(`
+
+  // Prompt for optional Notion configuration before final message
+  promptNotionKey(() => {
+    console.log(`
   ${green}Done!${reset} Launch ${program} and run ${cyan}${command}${reset}.
 
   ${cyan}Join the community:${reset} https://discord.gg/5JJgD5svVS
 `);
+  });
 }
 
 /**
