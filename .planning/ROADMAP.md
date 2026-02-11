@@ -117,7 +117,7 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 3. Workflow Simplification | v1.0 | 3/3 | Complete | 2026-02-10 |
 | 4. UX Polish | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 5. Jira Integration | v1.0 | 2/2 | Complete | 2026-02-11 |
-| 6. Foundation & SDK Setup | v1.1 | 0/2 | Planned | - |
+| 6. Foundation & SDK Setup | v1.1 | Complete    | 2026-02-11 | - |
 | 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 0/TBD | Not started | - |
 | 9. Image Handling | v1.1 | 0/TBD | Not started | - |
