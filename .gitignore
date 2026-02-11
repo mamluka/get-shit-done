@@ -18,3 +18,8 @@ animation/
 # Internal planning documents
 reports/
 RAILROAD_ARCHITECTURE.md
+/.idea/
+
+# Notion sync state (per-project, contains API-derived page IDs)
+.planning/config.json
+.planning/notion-sync.json

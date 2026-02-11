@@ -36,7 +36,10 @@
   "engines": {
     "node": ">=16.7.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@notionhq/client": "^5.9.0",
+    "@tryfabric/martian": "^1.2.4"
+  },
   "devDependencies": {
     "esbuild": "^0.24.0"
   },
