@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Git Integration** - Branch-per-project with milestone tagging
 - [x] **Phase 3: Workflow Simplification** - Remove execution, add auto-advance
 - [x] **Phase 4: UX Polish** - PM-friendly error messages and terminology
-- [ ] **Phase 5: Jira Integration** - Optional MCP validation with graceful degradation
+- [x] **Phase 5: Jira Integration** - Optional MCP validation with graceful degradation
 
 ## Phase Details
 
@@ -94,8 +94,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Jira MCP detection command and setup guide templates
-- [ ] 05-02-PLAN.md — New-project workflow integration with informational banner
+- [x] 05-01-PLAN.md — Jira MCP detection command and setup guide templates
+- [x] 05-02-PLAN.md — New-project workflow integration with informational banner
 
 ## Progress
 
@@ -108,8 +108,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Git Integration | 2/2 | ✓ Complete | 2026-02-10 |
 | 3. Workflow Simplification | 3/3 | ✓ Complete | 2026-02-10 |
 | 4. UX Polish | 2/2 | ✓ Complete | 2026-02-11 |
-| 5. Jira Integration | 0/2 | Planning complete | - |
+| 5. Jira Integration | 2/2 | ✓ Complete | 2026-02-11 |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 4 complete)*
+*Last updated: 2026-02-11 (Phase 5 complete)*
