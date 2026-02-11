@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 ## Current Position
 
 Phase: 4 of 5 (UX Polish)
-Plan: 2 of 2 in current phase
+Plan: 1 of 2 in current phase
 Status: Complete
-Last activity: 2026-02-11 — Completed 04-02: Business language updates
+Last activity: 2026-02-11 — Completed 04-01: PM-friendly error messages
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 9
-- Average duration: 2.9 min
-- Total execution time: 0.47 hours
+- Average duration: 3.2 min
+- Total execution time: 0.63 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [██████████] 100%
 | 01 | 3 | 12 min | 4 min |
 | 02 | 2 | 7 min | 3.5 min |
 | 03 | 3 | 9 min | 3 min |
-| 04 | 1 | 1 min | 1 min |
+| 04 | 1 | 9 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2min), 03-02 (3min), 03-03 (4min), 04-02 (1min)
-- Trend: Phase 4 in progress with excellent velocity
+- Last 5 plans: 03-01 (2min), 03-02 (3min), 03-03 (4min), 04-01 (9min)
+- Trend: Phase 4 plan 1 complete with comprehensive error message rewrite
 
 *Updated after each plan completion*
 | Phase 03 P03 | 4 | 2 tasks | 5 files |
@@ -74,9 +74,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Auto-advance provides guidance not automatic execution - spawning plan-phase automatically would be over-engineering
 - [Phase 03]: Edit-phase is a terminal orchestrator - directly edits files rather than spawning other orchestrators
 - [Phase 03]: Removed workflows return graceful JSON errors with helpful redirects instead of crashing
-- [Phase 04]: Use "planning tool" terminology in tombstones to set clear expectations
-- [Phase 04]: Replace "Error:" with "Problem:" prefix for consistency
-- [Phase 04]: Rename "Execution" to "Plan Processing" to avoid confusion with code execution
+- [Phase 04]: Use "Problem:" prefix instead of "Error:" for less alarming error messages
+- [Phase 04]: Technical details hidden by default, shown only when GSD_VERBOSE=true
+- [Phase 04]: All JSON error outputs include 'action' field for consuming workflows
+- [Phase 04]: Keep function names, variables, and code comments unchanged (only user-facing strings changed)
 
 ### Pending Todos
 
@@ -96,7 +97,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-11 (phase 04 execution)
-Stopped at: Completed 04-02-PLAN.md
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Completion Notes
