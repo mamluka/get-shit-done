@@ -39,7 +39,8 @@
   },
   "dependencies": {
     "@notionhq/client": "^5.9.0",
-    "@tryfabric/martian": "^1.2.4"
+    "@tryfabric/martian": "^1.2.4",
+    "mime-types": "^3.0.2"
   },
   "devDependencies": {
     "esbuild": "^0.24.0"
