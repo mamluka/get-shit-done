@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 7 of 10 (Markdown-to-Notion Conversion Pipeline)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-11 — Completed 07-01 (Preprocessing and Text Splitting)
+Last activity: 2026-02-11 — Completed 07-02 (Block Utilities & Chunker)
 
-Progress: [██████░░░░] 61% (v1.0 complete: 5/10 phases, 12/12 plans; v1.1: 2/2 Phase 6 plans, 1/3 Phase 7 plans)
+Progress: [██████░░░░] 62% (v1.0 complete: 5/10 phases, 12/12 plans; v1.1: 2/2 Phase 6 plans, 2/3 Phase 7 plans)
 
 ## Performance Metrics
 
@@ -36,6 +36,7 @@ Progress: [██████░░░░] 61% (v1.0 complete: 5/10 phases, 12/1
 | 5. Jira Integration | 2 | Complete | v1.0 |
 | Phase 06 P01 | 2m 50s | 3 tasks | 5 files |
 | Phase 07 P01 | 5m 32s | 2 tasks | 4 files |
+| Phase 07 P02 | 7m 54s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -54,6 +55,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 06-01]: Synchronous fs operations in sync-state.js to match codebase patterns
 - [Phase 07-01]: Used GFM alert syntax for custom XML tags - uppercase required for Martian compatibility
 - [Phase 07-01]: Character-level splitting as final fallback for text without spaces
+- [Phase 07-02]: Use └ prefix for demoted nested items to preserve visual context
+- [Phase 07-02]: Split at 1.5x maxPerChunk when no heading found to balance efficiency and section awareness
 
 ### Pending Todos
 
@@ -68,7 +71,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 07-01-PLAN.md
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
 
-**Next step:** Execute 07-02-PLAN.md (Block Post-Processing)
+**Next step:** Execute 07-03-PLAN.md (Converter Orchestrator)
