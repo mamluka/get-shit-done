@@ -8,6 +8,20 @@ A modification of the GSD (Get Shit Done) framework that transforms it from a de
 
 PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
 
+## Current Milestone: v1.1 Notion Integration
+
+**Goal:** Bridge planning artifacts in git with stakeholder collaboration in Notion — push specs, pull feedback.
+
+**Target features:**
+- Notion API key setup during npx install flow
+- Auto-prompt to upload planning docs after milestone completion
+- Parent/child page hierarchy mirroring .planning/ structure
+- Local image and external link handling in Notion pages
+- Page ID tracking (notion-sync.json per project) for incremental updates
+- CLI tool using @notionhq/client for all Notion operations
+- Sync command to push current .md files to Notion
+- Comments command to pull Notion feedback, save as .md, and triage
+
 ## Requirements
 
 ### Validated
@@ -34,6 +48,18 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 - ✓ Safe flat-to-nested migration with timestamped backup — v1.0
 
 ### Active
+
+- [ ] Notion API key collection during npx setup, saved to config
+- [ ] Post-milestone prompt to upload planning docs to Notion
+- [ ] Notion page creation with parent/child hierarchy matching .planning/ structure
+- [ ] Markdown-to-Notion block formatting (headings, tables, checkboxes, code blocks)
+- [ ] Local image upload and external link preservation in Notion pages
+- [ ] notion-sync.json per project folder for page ID tracking
+- [ ] CLI tool (notion-sync.js) using @notionhq/client for all Notion operations
+- [ ] `/gsd:sync-notion` command to push .md files to Notion (create or update)
+- [ ] `/gsd:notion-comments` command to pull comments, save as dated .md, triage by theme and phase
+
+### Deferred (from v1.0)
 
 - [ ] Dual-mode auto-detection for flat and nested folder structures
 - [ ] Switch-project command (`/gsd:switch-project {name}`)
@@ -70,7 +96,7 @@ Key patterns established:
 
 - **Codebase**: Must modify existing GSD framework (not fork/rewrite) — preserves update path
 - **Compatibility**: Changes should not break existing GSD installations that use execution
-- **Runtime**: Node.js >=16.7.0, zero external dependencies pattern must be maintained
+- **Runtime**: Node.js >=16.7.0, zero external dependencies except @notionhq/client for Notion integration
 - **Git**: Requires git — branch/tag strategy is core to the design
 
 ## Key Decisions
@@ -87,6 +113,9 @@ Key patterns established:
 | Warning-only validation | PMs may need to force-complete with incomplete planning | ✓ Good — flexibility without losing guardrails |
 | Tombstone vs delete for execution files | Helpful redirects for users who try old commands | ✓ Good — graceful transition |
 | "Problem:" prefix instead of "Error:" | Less alarming for PM audience | ✓ Good — consistent with business tone |
+| Allow @notionhq/client dependency | Notion API is complex; SDK significantly reduces code and maintenance vs raw HTTP | — Pending |
+| CLI tool over MCP for Notion | User explicitly chose .js CLI tool; MCP not available in all environments | — Pending |
+| Parent/child page hierarchy | Matches .planning/ folder structure; intuitive for stakeholders browsing Notion | — Pending |
 
 ---
-*Last updated: 2026-02-11 after v1.0 milestone*
+*Last updated: 2026-02-11 after v1.1 milestone started*
