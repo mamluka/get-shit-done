@@ -622,8 +622,11 @@ function output(result, raw, rawValue) {
   process.exit(0);
 }
 
-function error(message) {
-  process.stderr.write('Error: ' + message + '\n');
+function error(message, technicalDetails) {
+  process.stderr.write('Problem: ' + message + '\n');
+  if (technicalDetails && process.env.GSD_VERBOSE === 'true') {
+    process.stderr.write('\nTechnical details:\n' + technicalDetails + '\n');
+  }
   process.exit(1);
 }
 
