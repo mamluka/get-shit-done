@@ -35,8 +35,8 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Dependencies, config infrastructure & .gitignore security, install flow Notion prompt, notion-sync.json schema
-- [ ] 06-02-PLAN.md — CLI tool (notion-sync.js) & SDK client with auth-check command
+- [x] 06-01-PLAN.md — Dependencies, config infrastructure & .gitignore security, install flow Notion prompt, notion-sync.json schema
+- [x] 06-02-PLAN.md — CLI tool (notion-sync.js) & SDK client with auth-check command
 
 #### Phase 7: Markdown-to-Notion Conversion Pipeline
 **Goal**: Transform markdown files into Notion blocks with robust handling of character limits, payload sizes, and nesting constraints
@@ -52,9 +52,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — TDD: Preprocessor (custom XML tags, details/summary, unsupported HTML) and text splitter (2000-char sentence-boundary splitting)
-- [ ] 07-02-PLAN.md — TDD: Block post-processor (nesting flattener, toggle converter) and section-aware chunker (90-block batching)
-- [ ] 07-03-PLAN.md — Converter orchestrator (pipeline integration, conversion log, dry-run mode) and CLI convert subcommand
+- [x] 07-01-PLAN.md — TDD: Preprocessor (custom XML tags, details/summary, unsupported HTML) and text splitter (2000-char sentence-boundary splitting)
+- [x] 07-02-PLAN.md — TDD: Block post-processor (nesting flattener, toggle converter) and section-aware chunker (90-block batching)
+- [x] 07-03-PLAN.md — Converter orchestrator (pipeline integration, conversion log, dry-run mode) and CLI convert subcommand
 
 #### Phase 8: Page Hierarchy & Incremental Sync
 **Goal**: Create parent/child page relationships matching .planning/ structure and enable incremental updates without duplicates
@@ -118,12 +118,12 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 3. Workflow Simplification | v1.0 | 3/3 | Complete | 2026-02-10 |
 | 4. UX Polish | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 5. Jira Integration | v1.0 | 2/2 | Complete | 2026-02-11 |
-| 6. Foundation & SDK Setup | v1.1 | Complete    | 2026-02-11 | - |
-| 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 0/3 | Planned | - |
+| 6. Foundation & SDK Setup | v1.1 | 2/2 | Complete | 2026-02-11 |
+| 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 3/3 | Complete | 2026-02-11 |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 0/TBD | Not started | - |
 | 9. Image Handling | v1.1 | 0/TBD | Not started | - |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 7 planned: 3 plans in 2 waves)*
+*Last updated: 2026-02-11 (Phase 7 complete: 3/3 plans)*
