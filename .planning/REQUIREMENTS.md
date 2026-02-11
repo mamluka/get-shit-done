@@ -88,40 +88,47 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | — | Pending |
-| SETUP-02 | — | Pending |
-| SETUP-03 | — | Pending |
-| CONV-01 | — | Pending |
-| CONV-02 | — | Pending |
-| CONV-03 | — | Pending |
-| CONV-04 | — | Pending |
-| CONV-05 | — | Pending |
-| CONV-06 | — | Pending |
-| PAGE-01 | — | Pending |
-| PAGE-02 | — | Pending |
-| PAGE-03 | — | Pending |
-| PAGE-04 | — | Pending |
-| SYNC-01 | — | Pending |
-| SYNC-02 | — | Pending |
-| SYNC-03 | — | Pending |
-| SYNC-04 | — | Pending |
-| IMG-01 | — | Pending |
-| IMG-02 | — | Pending |
-| IMG-03 | — | Pending |
-| CMNT-01 | — | Pending |
-| CMNT-02 | — | Pending |
-| CMNT-03 | — | Pending |
-| CMNT-04 | — | Pending |
-| CMNT-05 | — | Pending |
-| WKFL-01 | — | Pending |
-| WKFL-02 | — | Pending |
-| WKFL-03 | — | Pending |
+| SETUP-01 | Phase 6 | Pending |
+| SETUP-02 | Phase 6 | Pending |
+| SETUP-03 | Phase 6 | Pending |
+| WKFL-03 | Phase 6 | Pending |
+| CONV-01 | Phase 7 | Pending |
+| CONV-02 | Phase 7 | Pending |
+| CONV-03 | Phase 7 | Pending |
+| CONV-04 | Phase 7 | Pending |
+| CONV-05 | Phase 7 | Pending |
+| CONV-06 | Phase 7 | Pending |
+| PAGE-01 | Phase 7 | Pending |
+| PAGE-02 | Phase 8 | Pending |
+| PAGE-03 | Phase 8 | Pending |
+| PAGE-04 | Phase 8 | Pending |
+| SYNC-01 | Phase 8 | Pending |
+| SYNC-02 | Phase 8 | Pending |
+| SYNC-03 | Phase 8 | Pending |
+| SYNC-04 | Phase 8 | Pending |
+| IMG-01 | Phase 9 | Pending |
+| IMG-02 | Phase 9 | Pending |
+| IMG-03 | Phase 9 | Pending |
+| CMNT-01 | Phase 10 | Pending |
+| CMNT-02 | Phase 10 | Pending |
+| CMNT-03 | Phase 10 | Pending |
+| CMNT-04 | Phase 10 | Pending |
+| CMNT-05 | Phase 10 | Pending |
+| WKFL-01 | Phase 10 | Pending |
+| WKFL-02 | Phase 10 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28/28 (100%)
+- Unmapped: 0
+
+**Phase breakdown:**
+- Phase 6 (Foundation & SDK Setup): 4 requirements
+- Phase 7 (Markdown-to-Notion Conversion Pipeline): 7 requirements
+- Phase 8 (Page Hierarchy & Incremental Sync): 8 requirements
+- Phase 9 (Image Handling): 3 requirements
+- Phase 10 (Workflow Integration & Comment Retrieval): 7 requirements
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after initial definition*
+*Last updated: 2026-02-11 (roadmap traceability added)*
