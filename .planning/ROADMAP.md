@@ -100,11 +100,11 @@ Plans:
   5. Themes map to affected roadmap phases (CMNT-03)
   6. Claude walks user through triage discussion for each theme interactively
   7. Triage results save as dated .md file in project folder for reference
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md — Comment retrieval module (lib/notion/comment-retriever.js) and CLI comments subcommand
+- [ ] 10-02-PLAN.md — Milestone workflow Notion sync prompt and interactive comment triage workflow (/gsd:notion-comments)
 
 ## Progress
 
