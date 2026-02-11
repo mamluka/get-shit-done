@@ -103,8 +103,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Comment retrieval module (lib/notion/comment-retriever.js) and CLI comments subcommand
-- [ ] 10-02-PLAN.md — Milestone workflow Notion sync prompt and interactive comment triage workflow (/gsd:notion-comments)
+- [x] 10-01-PLAN.md — Comment retrieval module (lib/notion/comment-retriever.js) and CLI comments subcommand
+- [x] 10-02-PLAN.md — Milestone workflow Notion sync prompt and interactive comment triage workflow (/gsd:notion-comments)
 
 ## Progress
 
@@ -123,8 +123,8 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 3/3 | Complete | 2026-02-11 |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 9. Image Handling | v1.1 | 2/2 | Complete | 2026-02-11 |
-| 10. Workflow Integration & Comment Retrieval | v1.1 | 0/TBD | Not started | - |
+| 10. Workflow Integration & Comment Retrieval | v1.1 | 2/2 | Complete | 2026-02-11 |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 9 complete: 2/2 plans)*
+*Last updated: 2026-02-11 (Phase 10 complete: 2/2 plans — v1.1 MILESTONE COMPLETE)*
