@@ -1,16 +1,25 @@
 ---
 name: gsd:execute-phase
-description: "[REMOVED] Planning-only — this command has been removed"
+description: "[PLANNING TOOL] Plans are specifications for your team, not automated execution"
 ---
-# Command Removed: /gsd:execute-phase
 
-This command was part of the execution workflow, which has been removed.
+# This Is a Planning Tool
 
-**GSD is now planning-only.** Plans created with `/gsd:plan-phase` are implementation specifications for your engineering team, not executable instructions for Claude.
+GSD helps you create detailed project plans. It does not execute code.
 
-## What to do instead
+## What To Do Instead
 
-- **Plan a phase:** `/gsd:plan-phase {N}`
-- **Mark phase complete:** `/gsd:complete-phase {N}` (auto-advances to next phase)
-- **Revise planning artifacts:** `/gsd:edit-phase {N}`
-- **View available commands:** `/gsd:help`
+The plans you create with GSD are specifications ready for your engineering team:
+
+- **To plan a phase:** `/gsd:plan-phase {N}`
+- **To review progress:** `/gsd:progress`
+- **To discuss approach:** `/gsd:discuss-phase {N}`
+- **To mark planning done:** `/gsd:complete-milestone`
+
+## Why This Changed
+
+GSD is now a planning-only tool. The plans you create (PLAN.md files) are detailed specifications that your engineering team can implement. This separation keeps planning focused and plans higher quality.
+
+---
+
+Run `/gsd:help` for all available commands.
