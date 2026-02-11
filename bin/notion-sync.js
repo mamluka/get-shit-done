@@ -277,14 +277,41 @@ async function handleSync(options) {
 
     // Step 6: Print summary
     console.log('');
+
+    // Prepare image summary if any images were processed
+    const totalImages = results.imagesUploaded + results.imagesCached + results.imagesFailed;
+    let imageSummary = '';
+    if (totalImages > 0) {
+      const imageParts = [];
+      if (results.imagesUploaded > 0) {
+        imageParts.push(`${results.imagesUploaded} ${dryRun ? 'would upload' : 'uploaded'}`);
+      }
+      if (results.imagesCached > 0) {
+        imageParts.push(`${results.imagesCached} cached`);
+      }
+      if (results.imagesFailed > 0) {
+        imageParts.push(`${results.imagesFailed} failed`);
+      }
+      imageSummary = `, ${totalImages} images (${imageParts.join(', ')})`;
+    }
+
     if (dryRun) {
-      console.log(`${cyan}[DRY RUN]${reset} Would sync ${results.total} files: ${results.created} new, ${results.updated} changed, ${results.skipped} unchanged`);
+      console.log(`${cyan}[DRY RUN]${reset} Would sync ${results.total} files: ${results.created} new, ${results.updated} changed, ${results.skipped} unchanged${imageSummary}`);
+
+      // Show image details if any
+      if (results.imageDetails.filter(img => img.status === 'would_upload').length > 0) {
+        console.log(`\n${cyan}[DRY RUN]${reset} Would upload ${results.imagesUploaded} images:`);
+        for (const img of results.imageDetails.filter(img => img.status === 'would_upload')) {
+          const sizeKB = (img.size / 1024).toFixed(1);
+          console.log(`  ${img.file} (${sizeKB} KB)`);
+        }
+      }
     } else {
       if (results.errors > 0) {
-        console.log(`${yellow}✓ Sync complete with warnings:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)`);
+        console.log(`${yellow}✓ Sync complete with warnings:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)${imageSummary}`);
         process.exit(0); // Partial success
       } else {
-        console.log(`${green}✓ Sync complete:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)`);
+        console.log(`${green}✓ Sync complete:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)${imageSummary}`);
         process.exit(0);
       }
     }
