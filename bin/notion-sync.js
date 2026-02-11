@@ -9,6 +9,8 @@
 
 const { createNotionClient, validateAuth } = require('../lib/notion/client.js');
 const { convertFile, convertDirectory } = require('../lib/notion/converter.js');
+const { syncProject } = require('../lib/notion/sync-orchestrator.js');
+const { loadSyncState, saveSyncState } = require('../lib/notion/sync-state.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,10 +32,13 @@ ${cyan}Usage:${reset} node bin/notion-sync.js <command> [options]
 ${cyan}Commands:${reset}
   ${green}auth-check${reset}        Verify Notion API key is valid
   ${green}convert [path]${reset}    Convert .planning/ markdown to Notion blocks
+  ${green}sync${reset}              Push .planning/ markdown to Notion pages
   ${green}help${reset}              Show this help message
 
 ${cyan}Options:${reset}
   ${yellow}--cwd <path>${reset}      Working directory (default: process.cwd())
+  ${yellow}--parent-page <id>${reset} Notion parent page ID (for sync command)
+  ${yellow}--project <slug>${reset}  Project slug for sync-state tracking (default: 'default')
   ${yellow}--dry-run${reset}         Preview conversion without side effects
 
 ${dim}Examples:${reset}
@@ -42,6 +47,8 @@ ${dim}Examples:${reset}
   ${dim}node bin/notion-sync.js convert                          # Convert all .planning/ files${reset}
   ${dim}node bin/notion-sync.js convert .planning/ROADMAP.md     # Convert single file${reset}
   ${dim}node bin/notion-sync.js convert --dry-run                # Preview without side effects${reset}
+  ${dim}node bin/notion-sync.js sync --parent-page <page-id>     # Sync all files to Notion${reset}
+  ${dim}node bin/notion-sync.js sync --dry-run                   # Preview what would sync${reset}
 `);
 }
 
@@ -199,6 +206,96 @@ function printDryRunResult(fileResults) {
 }
 
 /**
+ * Handle sync subcommand
+ */
+async function handleSync(options) {
+  const { cwd, parentPage, projectSlug, dryRun } = options;
+
+  try {
+    // Step 1: Load sync state to check for workspace_page_id
+    const syncState = loadSyncState(cwd);
+
+    // Step 2: Determine parent page ID
+    let parentPageId = parentPage || syncState.workspace_page_id;
+
+    if (!parentPageId) {
+      console.error(`${red}✗ Error:${reset} No parent page ID specified.`);
+      console.error(`${dim}Use --parent-page <id> or set workspace_page_id in .planning/notion-sync.json${reset}`);
+      process.exit(1);
+    }
+
+    // Step 3: Save workspace_page_id if provided via CLI (for future runs)
+    if (parentPage && parentPage !== syncState.workspace_page_id) {
+      syncState.workspace_page_id = parentPage;
+      saveSyncState(cwd, syncState);
+      console.log(`${dim}Saved parent page ID to notion-sync.json for future runs${reset}`);
+    }
+
+    // Step 4: Create Notion client (skip if dry-run)
+    const notion = dryRun ? null : createNotionClient(cwd);
+
+    // Step 5: Call syncProject with progress callback
+    console.log(`${cyan}${dryRun ? '[DRY RUN] ' : ''}Syncing .planning/ to Notion...${reset}\n`);
+
+    const results = await syncProject(notion, {
+      cwd,
+      projectSlug,
+      parentPageId,
+      dryRun,
+      onProgress: (event) => {
+        const { file, status, index, total, error } = event;
+        const progress = `(${index}/${total})`;
+
+        let icon, color;
+        switch (status) {
+          case 'creating':
+            icon = '●';
+            color = green;
+            break;
+          case 'updating':
+            icon = '◐';
+            color = yellow;
+            break;
+          case 'skipped':
+            icon = '○';
+            color = dim;
+            break;
+          case 'error':
+            icon = '✗';
+            color = red;
+            break;
+          default:
+            icon = '?';
+            color = reset;
+        }
+
+        const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+        const errorNote = error ? ` — ${error}` : '';
+        console.log(`${color}${icon} ${statusText.padEnd(9)} ${file} ${progress}${errorNote}${reset}`);
+      }
+    });
+
+    // Step 6: Print summary
+    console.log('');
+    if (dryRun) {
+      console.log(`${cyan}[DRY RUN]${reset} Would sync ${results.total} files: ${results.created} new, ${results.updated} changed, ${results.skipped} unchanged`);
+    } else {
+      if (results.errors > 0) {
+        console.log(`${yellow}✓ Sync complete with warnings:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)`);
+        process.exit(0); // Partial success
+      } else {
+        console.log(`${green}✓ Sync complete:${reset} ${results.created} created, ${results.updated} updated, ${results.skipped} skipped, ${results.errors} errors (${results.total} total)`);
+        process.exit(0);
+      }
+    }
+
+  } catch (error) {
+    console.error(`${red}✗ Sync error:${reset} ${error.message}`);
+    process.exit(1);
+  }
+}
+
+/**
  * Main entry point
  */
 async function main() {
@@ -212,8 +309,16 @@ async function main() {
   // Extract --dry-run flag
   const dryRun = args.includes('--dry-run');
 
+  // Extract --parent-page flag
+  const parentPageIndex = args.indexOf('--parent-page');
+  const parentPage = parentPageIndex !== -1 && args[parentPageIndex + 1] ? args[parentPageIndex + 1] : null;
+
+  // Extract --project flag
+  const projectIndex = args.indexOf('--project');
+  const projectSlug = projectIndex !== -1 && args[projectIndex + 1] ? args[projectIndex + 1] : 'default';
+
   // Find the command (first non-flag argument)
-  const command = args.find(arg => !arg.startsWith('--') && arg !== cwd);
+  const command = args.find(arg => !arg.startsWith('--') && arg !== cwd && arg !== parentPage && arg !== projectSlug);
 
   // Route to subcommand handlers
   if (!command || command === 'help') {
@@ -233,6 +338,11 @@ async function main() {
     const targetPath = pathArg || '.planning/';
 
     await handleConvert(targetPath, { cwd, dryRun });
+    return;
+  }
+
+  if (command === 'sync') {
+    await handleSync({ cwd, parentPage, projectSlug, dryRun });
     return;
   }
 
