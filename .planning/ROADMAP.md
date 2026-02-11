@@ -67,11 +67,11 @@ Plans:
   4. Sync creates new pages for unmapped files and updates existing pages for previously synced files
   5. notion-sync.json tracks file-to-page-ID mappings and persists across sync runs
   6. Hash-based change detection skips unchanged files (improves performance, reduces API calls)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Hierarchy builder, change detector, and page manager foundation modules
+- [ ] 08-02-PLAN.md — Sync orchestrator and CLI sync subcommand with progress indicators
 
 #### Phase 9: Image Handling
 **Goal**: Support both external image URLs and local image files in markdown documents synced to Notion
