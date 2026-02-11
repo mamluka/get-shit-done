@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** Phase 4 - UX Polish
+**Current focus:** Phase 5 - Jira Integration
 
 ## Current Position
 
-Phase: 4 of 5 (UX Polish)
-Plan: 1 of 2 in current phase
-Status: Complete
-Last activity: 2026-02-11 — Completed 04-01: PM-friendly error messages
+Phase: 5 of 5 (Jira Integration)
+Plan: 2 of 2 in current phase
+Status: In Progress
+Last activity: 2026-02-11 — Completed 05-01: Jira MCP Detection Infrastructure
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 3.2 min
-- Total execution time: 0.63 hours
+- Total plans completed: 10
+- Average duration: 3.1 min
+- Total execution time: 0.68 hours
 
 **By Phase:**
 
@@ -31,14 +31,16 @@ Progress: [█████████░] 90%
 | 02 | 2 | 7 min | 3.5 min |
 | 03 | 3 | 9 min | 3 min |
 | 04 | 1 | 9 min | 9 min |
+| 05 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2min), 03-02 (3min), 03-03 (4min), 04-01 (9min)
-- Trend: Phase 4 plan 1 complete with comprehensive error message rewrite
+- Last 5 plans: 03-02 (3min), 03-03 (4min), 04-01 (9min), 05-01 (2min)
+- Trend: Phase 5 plan 1 complete with Jira MCP detection infrastructure
 
 *Updated after each plan completion*
 | Phase 03 P03 | 4 | 2 tasks | 5 files |
 | Phase 04 P02 | 1 | 2 tasks | 5 files |
+| Phase 05 P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -78,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Technical details hidden by default, shown only when GSD_VERBOSE=true
 - [Phase 04]: All JSON error outputs include 'action' field for consuming workflows
 - [Phase 04]: Keep function names, variables, and code comments unchanged (only user-facing strings changed)
+- [Phase 05]: Use execSync with 5s timeout for MCP detection to prevent workflow hangs
+- [Phase 05]: Case-insensitive keyword matching (jira OR atlassian) handles custom server names
+- [Phase 05]: Two separate Jira setup guides (Cloud vs Server/DC) for different authentication methods
 
 ### Pending Todos
 
@@ -96,8 +101,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (phase 04 execution)
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-02-11 (phase 05 execution)
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 ## Phase 1 Completion Notes
