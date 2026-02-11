@@ -49,11 +49,12 @@ Plans:
   4. Documents exceeding 2000 chars per block chunk automatically without truncation
   5. Large documents (>900 blocks) split into create + append operations without payload errors
   6. Deeply nested markdown (3+ levels) flattens or splits across requests without API errors
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — TDD: Preprocessor (custom XML tags, details/summary, unsupported HTML) and text splitter (2000-char sentence-boundary splitting)
+- [ ] 07-02-PLAN.md — TDD: Block post-processor (nesting flattener, toggle converter) and section-aware chunker (90-block batching)
+- [ ] 07-03-PLAN.md — Converter orchestrator (pipeline integration, conversion log, dry-run mode) and CLI convert subcommand
 
 #### Phase 8: Page Hierarchy & Incremental Sync
 **Goal**: Create parent/child page relationships matching .planning/ structure and enable incremental updates without duplicates
@@ -118,11 +119,11 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 4. UX Polish | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 5. Jira Integration | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 6. Foundation & SDK Setup | v1.1 | Complete    | 2026-02-11 | - |
-| 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 0/TBD | Not started | - |
+| 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 0/3 | Planned | - |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 0/TBD | Not started | - |
 | 9. Image Handling | v1.1 | 0/TBD | Not started | - |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 6 planned: 2 plans in 2 waves)*
+*Last updated: 2026-02-11 (Phase 7 planned: 3 plans in 2 waves)*
