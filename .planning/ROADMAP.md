@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Path abstraction and multi-project folder structure
 - [x] **Phase 2: Git Integration** - Branch-per-project with milestone tagging
 - [x] **Phase 3: Workflow Simplification** - Remove execution, add auto-advance
-- [ ] **Phase 4: UX Polish** - PM-friendly error messages and terminology
+- [x] **Phase 4: UX Polish** - PM-friendly error messages and terminology
 - [ ] **Phase 5: Jira Integration** - Optional MCP validation with graceful degradation
 
 ## Phase Details
@@ -80,8 +80,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Terminology dictionary and gsd-tools.js error message rewrites
-- [ ] 04-02-PLAN.md — Command descriptions and workflow routing to business language
+- [x] 04-01-PLAN.md — Terminology dictionary and gsd-tools.js error message rewrites
+- [x] 04-02-PLAN.md — Command descriptions and workflow routing to business language
 
 ### Phase 5: Jira Integration
 **Goal**: Optional Jira MCP integration that warns but doesn't block if unavailable
@@ -107,9 +107,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-10 |
 | 2. Git Integration | 2/2 | ✓ Complete | 2026-02-10 |
 | 3. Workflow Simplification | 3/3 | ✓ Complete | 2026-02-10 |
-| 4. UX Polish | 0/2 | Planning complete | - |
+| 4. UX Polish | 2/2 | ✓ Complete | 2026-02-11 |
 | 5. Jira Integration | 0/2 | Planning complete | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-10 (Phase 5 planning complete)*
+*Last updated: 2026-02-11 (Phase 4 complete)*
