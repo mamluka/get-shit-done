@@ -4864,6 +4864,9 @@ function cmdInitNewProject(cwd, raw) {
   const braveKeyFile = path.join(homedir, '.gsd', 'brave_api_key');
   const hasBraveSearch = !!(process.env.BRAVE_API_KEY || fs.existsSync(braveKeyFile));
 
+  // Detect Jira MCP availability
+  const jiraMcpStatus = checkJiraMcp();
+
   // Detect existing code
   let hasCode = false;
   let hasPackageFile = false;
@@ -4907,6 +4910,9 @@ function cmdInitNewProject(cwd, raw) {
 
     // Enhanced search
     brave_search_available: hasBraveSearch,
+
+    // Jira MCP integration
+    jira_mcp: jiraMcpStatus,
 
     // Active project context
     active_project: getActiveProject(cwd),
