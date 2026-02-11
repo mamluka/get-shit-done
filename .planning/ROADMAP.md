@@ -82,10 +82,11 @@ Plans:
   2. Local image files referenced in markdown upload to Notion and display correctly
   3. Image block IDs are tracked in notion-sync.json to prevent duplicate uploads
   4. Image references update correctly when pages are re-synced
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
+- [ ] 09-01-PLAN.md — TDD: Image uploader module (extraction, path resolution, validation, deduplication, block injection)
+- [ ] 09-02-PLAN.md — Integration: Wire image handling into converter pipeline, sync orchestrator, and CLI
 
 #### Phase 10: Workflow Integration & Comment Retrieval
 **Goal**: Integrate Notion sync into milestone workflow and enable bidirectional feedback via comment retrieval
