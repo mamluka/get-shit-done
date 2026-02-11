@@ -32,11 +32,11 @@
   3. Rate limiting prevents API throttling during batch operations (respects 3 req/sec limit with retry logic)
   4. Token never appears in git commits (environment variable-only, .gitignore enforced)
   5. notion-sync.json schema is defined and can track page IDs per project
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Dependencies, config infrastructure & .gitignore security, install flow Notion prompt, notion-sync.json schema
+- [ ] 06-02-PLAN.md — CLI tool (notion-sync.js) & SDK client with auth-check command
 
 #### Phase 7: Markdown-to-Notion Conversion Pipeline
 **Goal**: Transform markdown files into Notion blocks with robust handling of character limits, payload sizes, and nesting constraints
@@ -117,7 +117,7 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 3. Workflow Simplification | v1.0 | 3/3 | Complete | 2026-02-10 |
 | 4. UX Polish | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 5. Jira Integration | v1.0 | 2/2 | Complete | 2026-02-11 |
-| 6. Foundation & SDK Setup | v1.1 | 0/TBD | Not started | - |
+| 6. Foundation & SDK Setup | v1.1 | 0/2 | Planned | - |
 | 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 0/TBD | Not started | - |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 0/TBD | Not started | - |
 | 9. Image Handling | v1.1 | 0/TBD | Not started | - |
@@ -125,4 +125,4 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (v1.1 milestone phases added)*
+*Last updated: 2026-02-11 (Phase 6 planned: 2 plans in 2 waves)*
