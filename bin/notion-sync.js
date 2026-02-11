@@ -11,6 +11,7 @@ const { createNotionClient, validateAuth } = require('../lib/notion/client.js');
 const { convertFile, convertDirectory } = require('../lib/notion/converter.js');
 const { syncProject } = require('../lib/notion/sync-orchestrator.js');
 const { loadSyncState, saveSyncState } = require('../lib/notion/sync-state.js');
+const { retrieveComments, extractCommentText } = require('../lib/notion/comment-retriever.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -33,6 +34,7 @@ ${cyan}Commands:${reset}
   ${green}auth-check${reset}        Verify Notion API key is valid
   ${green}convert [path]${reset}    Convert .planning/ markdown to Notion blocks
   ${green}sync${reset}              Push .planning/ markdown to Notion pages
+  ${green}comments${reset}          Fetch unresolved comments from synced Notion pages
   ${green}help${reset}              Show this help message
 
 ${cyan}Options:${reset}
@@ -49,6 +51,8 @@ ${dim}Examples:${reset}
   ${dim}node bin/notion-sync.js convert --dry-run                # Preview without side effects${reset}
   ${dim}node bin/notion-sync.js sync --parent-page <page-id>     # Sync all files to Notion${reset}
   ${dim}node bin/notion-sync.js sync --dry-run                   # Preview what would sync${reset}
+  ${dim}node bin/notion-sync.js comments                         # Fetch all comments${reset}
+  ${dim}node bin/notion-sync.js comments --project my-project    # Fetch for specific project${reset}
 `);
 }
 
@@ -202,6 +206,74 @@ function printDryRunResult(fileResults) {
       .join(', ');
 
     console.log(`  ${dim}${typesList}${reset}\n`);
+  }
+}
+
+/**
+ * Handle comments subcommand
+ */
+async function handleComments(options) {
+  const { cwd, projectSlug } = options;
+
+  try {
+    // Create Notion client
+    const notion = createNotionClient(cwd);
+
+    // Print header
+    console.log(`${cyan}Fetching comments from synced Notion pages...${reset}\n`);
+
+    // Retrieve comments with progress callback
+    const result = await retrieveComments(notion, {
+      cwd,
+      projectSlug,
+      onProgress: (event) => {
+        const { pageFile, status, index, total, commentCount, error } = event;
+        const progress = `(${index}/${total})`;
+
+        if (status === 'fetched') {
+          console.log(`${green}● Fetched  ${pageFile} — ${commentCount} comments ${progress}${reset}`);
+        } else if (status === 'skipped') {
+          console.log(`${dim}○ Skipped  ${pageFile} — ${error} ${progress}${reset}`);
+        } else if (status === 'error') {
+          console.log(`${red}✗ Error    ${pageFile} — ${error} ${progress}${reset}`);
+        }
+      }
+    });
+
+    // Print summary
+    console.log(`\n${green}✓ Found ${result.comments.length} comments across ${result.pages} pages (${result.skipped} skipped, ${result.errors.length} errors)${reset}`);
+
+    // If no comments found, exit early
+    if (result.comments.length === 0) {
+      console.log(`${dim}No unresolved comments found on synced pages.${reset}`);
+      process.exit(0);
+    }
+
+    // Output structured JSON for downstream consumption
+    const output = {
+      total: result.comments.length,
+      pages: result.pages,
+      comments: result.comments.map(c => ({
+        id: c.id,
+        discussion_id: c.discussion_id,
+        text: extractCommentText(c),
+        created_time: c.created_time,
+        created_by: c.created_by?.name || c.created_by?.id || 'Unknown',
+        source_file: c.filePath,
+        source_page_title: c.pageTitle || null
+      }))
+    };
+
+    console.log('\n---COMMENTS_JSON_START---');
+    console.log(JSON.stringify(output, null, 2));
+    console.log('---COMMENTS_JSON_END---');
+
+    process.exit(0);
+
+  } catch (error) {
+    // Config loading or auth errors
+    console.error(`${red}✗ Error:${reset} ${error.message}`);
+    process.exit(1);
   }
 }
 
@@ -370,6 +442,11 @@ async function main() {
 
   if (command === 'sync') {
     await handleSync({ cwd, parentPage, projectSlug, dryRun });
+    return;
+  }
+
+  if (command === 'comments') {
+    await handleComments({ cwd, projectSlug });
     return;
   }
 
