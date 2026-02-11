@@ -583,6 +583,65 @@ git push origin --tags
 
 </step>
 
+<step name="prompt_notion_sync">
+
+Check if Notion integration is configured:
+
+```bash
+node -e "
+const fs = require('fs');
+const configPath = require('path').join(process.cwd(), '.planning', 'config.json');
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
+  console.log(JSON.stringify({ configured: hasKey }));
+} catch (e) {
+  console.log(JSON.stringify({ configured: false }));
+}
+"
+```
+
+**If Notion is NOT configured:** Skip this step silently. Do not prompt.
+
+**If Notion IS configured:**
+
+Present to user:
+
+```
+## Upload Planning Docs to Notion?
+
+Your milestone planning docs are finalized and ready to share with stakeholders.
+
+This will push all .planning/ markdown files to your Notion workspace:
+- New files will create new pages
+- Changed files will update existing pages
+- Unchanged files will be skipped
+
+Sync to Notion? (yes / skip)
+```
+
+AskUserQuestion and wait for response.
+
+**If user says "yes" (or equivalent affirmative):**
+
+Run the sync automatically:
+
+```bash
+node bin/notion-sync.js sync --cwd "$(pwd)"
+```
+
+Report the sync results to the user (created/updated/skipped counts from CLI output).
+
+If sync errors occur, report them but do NOT fail the milestone completion. The sync is a best-effort convenience — the milestone is already tagged and archived.
+
+**If user says "skip" (or equivalent negative):**
+
+Print: `Skipped Notion sync. You can sync manually later with /gsd:sync-notion`
+
+Continue to next step.
+
+</step>
+
 <step name="git_commit_milestone">
 
 Commit milestone completion.
