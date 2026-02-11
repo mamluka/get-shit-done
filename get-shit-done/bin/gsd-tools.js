@@ -22,6 +22,7 @@
  *   list-todos [area]                  Count and enumerate pending todos
  *   verify-path-exists <path>          Check file/directory existence
  *   config-ensure-section              Initialize .planning/config.json
+ *   check-jira-mcp                     Check if Jira MCP server is configured
  *   history-digest                     Aggregate all SUMMARY.md data
  *   summary-extract <path> [--fields]  Extract structured data from SUMMARY.md
  *   state-snapshot                     Structured parse of STATE.md
@@ -388,6 +389,55 @@ function createMilestoneTag(cwd, projectSlug, version, tagMessage) {
   }
 
   return { exitCode: 0, tag: tagName, created: true, branch: currentBranch };
+}
+
+/**
+ * Check if a Jira MCP server is configured.
+ * Executes `claude mcp list` and searches for Jira-related server names.
+ * @returns {object} Result with available (boolean), serverName (string|null), message (string), optional reason
+ */
+function checkJiraMcp() {
+  try {
+    const output = execSync('claude mcp list 2>&1', {
+      encoding: 'utf8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    // Parse output looking for Jira-related servers
+    // CLI output: one server per line
+    const lines = output.split('\n').filter(l => l.trim());
+    const jiraServer = lines.find(line => {
+      const lower = line.toLowerCase();
+      return lower.includes('jira') || lower.includes('atlassian');
+    });
+
+    if (jiraServer) {
+      // Extract server name (format varies: "server-name (type)" or just "server-name")
+      const match = jiraServer.match(/^([^\(]+)/);
+      const serverName = match ? match[1].trim() : jiraServer.trim();
+
+      return {
+        available: true,
+        serverName,
+        message: 'Jira integration detected: ' + serverName
+      };
+    }
+
+    return {
+      available: false,
+      serverName: null,
+      message: 'No Jira integration configured'
+    };
+  } catch (err) {
+    // Claude CLI not available, command failed, or timeout
+    return {
+      available: false,
+      serverName: null,
+      message: 'Jira integration check skipped',
+      reason: err.code === 'ETIMEDOUT' ? 'Check timed out' : 'Claude CLI not available'
+    };
+  }
 }
 
 function normalizePhaseName(phase) {
@@ -5579,6 +5629,12 @@ async function main() {
 
     case 'config-set': {
       cmdConfigSet(cwd, args[1], args[2], raw);
+      break;
+    }
+
+    case 'check-jira-mcp': {
+      const result = checkJiraMcp();
+      output(result, raw);
       break;
     }
 
