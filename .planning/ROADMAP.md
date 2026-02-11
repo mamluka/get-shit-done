@@ -70,8 +70,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Hierarchy builder, change detector, and page manager foundation modules
-- [ ] 08-02-PLAN.md — Sync orchestrator and CLI sync subcommand with progress indicators
+- [x] 08-01-PLAN.md — Hierarchy builder, change detector, and page manager foundation modules
+- [x] 08-02-PLAN.md — Sync orchestrator and CLI sync subcommand with progress indicators
 
 #### Phase 9: Image Handling
 **Goal**: Support both external image URLs and local image files in markdown documents synced to Notion
@@ -120,10 +120,10 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 5. Jira Integration | v1.0 | 2/2 | Complete | 2026-02-11 |
 | 6. Foundation & SDK Setup | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 3/3 | Complete | 2026-02-11 |
-| 8. Page Hierarchy & Incremental Sync | v1.1 | 0/TBD | Not started | - |
+| 8. Page Hierarchy & Incremental Sync | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 9. Image Handling | v1.1 | 0/TBD | Not started | - |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 7 complete: 3/3 plans)*
+*Last updated: 2026-02-11 (Phase 8 complete: 2/2 plans)*
