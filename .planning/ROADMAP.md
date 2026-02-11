@@ -85,8 +85,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — TDD: Image uploader module (extraction, path resolution, validation, deduplication, block injection)
-- [ ] 09-02-PLAN.md — Integration: Wire image handling into converter pipeline, sync orchestrator, and CLI
+- [x] 09-01-PLAN.md — TDD: Image uploader module (extraction, path resolution, validation, deduplication, block injection)
+- [x] 09-02-PLAN.md — Integration: Wire image handling into converter pipeline, sync orchestrator, and CLI
 
 #### Phase 10: Workflow Integration & Comment Retrieval
 **Goal**: Integrate Notion sync into milestone workflow and enable bidirectional feedback via comment retrieval
@@ -122,9 +122,9 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10
 | 6. Foundation & SDK Setup | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 7. Markdown-to-Notion Conversion Pipeline | v1.1 | 3/3 | Complete | 2026-02-11 |
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 2/2 | Complete | 2026-02-11 |
-| 9. Image Handling | v1.1 | 0/TBD | Not started | - |
+| 9. Image Handling | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-11 (Phase 8 complete: 2/2 plans)*
+*Last updated: 2026-02-11 (Phase 9 complete: 2/2 plans)*
