@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-10)
 
 ## Current Position
 
-Phase: 3 of 5 (Workflow Simplification)
-Plan: 3 of 3 in current phase
+Phase: 4 of 5 (UX Polish)
+Plan: 2 of 2 in current phase
 Status: Complete
-Last activity: 2026-02-10 — Completed 03-03: Edit phase and cross-reference updates
+Last activity: 2026-02-11 — Completed 04-02: Business language updates
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 3.1 min
-- Total execution time: 0.44 hours
+- Total plans completed: 9
+- Average duration: 2.9 min
+- Total execution time: 0.47 hours
 
 **By Phase:**
 
@@ -30,13 +30,15 @@ Progress: [██████████] 100%
 | 01 | 3 | 12 min | 4 min |
 | 02 | 2 | 7 min | 3.5 min |
 | 03 | 3 | 9 min | 3 min |
+| 04 | 1 | 1 min | 1 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (2min), 03-01 (2min), 03-02 (3min), 03-03 (4min)
-- Trend: Phase 3 complete with 3 min avg velocity
+- Last 5 plans: 03-01 (2min), 03-02 (3min), 03-03 (4min), 04-02 (1min)
+- Trend: Phase 4 in progress with excellent velocity
 
 *Updated after each plan completion*
 | Phase 03 P03 | 4 | 2 tasks | 5 files |
+| Phase 04 P02 | 1 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Auto-advance provides guidance not automatic execution - spawning plan-phase automatically would be over-engineering
 - [Phase 03]: Edit-phase is a terminal orchestrator - directly edits files rather than spawning other orchestrators
 - [Phase 03]: Removed workflows return graceful JSON errors with helpful redirects instead of crashing
+- [Phase 04]: Use "planning tool" terminology in tombstones to set clear expectations
+- [Phase 04]: Replace "Error:" with "Problem:" prefix for consistency
+- [Phase 04]: Rename "Execution" to "Plan Processing" to avoid confusion with code execution
 
 ### Pending Todos
 
@@ -90,8 +95,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (phase 03 execution)
-Stopped at: Completed Phase 3 (all 3 plans)
+Last session: 2026-02-11 (phase 04 execution)
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
 
 ## Phase 1 Completion Notes
