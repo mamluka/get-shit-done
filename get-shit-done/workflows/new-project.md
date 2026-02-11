@@ -14,8 +14,8 @@ Check if `--auto` flag is present in $ARGUMENTS.
 **If auto mode:**
 - Skip brownfield mapping offer (assume greenfield)
 - Skip deep questioning (extract context from provided document)
-- Config questions still required (Step 5)
-- After config: run Steps 6-9 automatically with smart defaults:
+- Config questions still required (Step 6)
+- After config: run Steps 7-10 automatically with smart defaults:
   - Research: Always yes
   - Requirements: Include all table stakes + features from provided document
   - Requirements approval: Auto-approve
@@ -25,7 +25,7 @@ Check if `--auto` flag is present in $ARGUMENTS.
 Auto mode requires an idea document via @ reference (e.g., `/gsd:new-project --auto @prd.md`). If no document provided, error:
 
 ```
-Error: --auto requires an idea document via @ reference.
+Problem: --auto requires an idea document via @ reference.
 
 Usage: /gsd:new-project --auto @your-idea.md
 
@@ -43,18 +43,94 @@ The document should describe what you want to build.
 INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init new-project)
 ```
 
-Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `project_exists`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`.
-
-**If `project_exists` is true:** Error — project already initialized. Use `/gsd:progress`.
+Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`, `has_flat_structure`, `existing_projects`.
 
 **If `has_git` is false:** Initialize git:
 ```bash
 git init
 ```
 
-## 2. Brownfield Offer
+## 2. Create Project
 
-**If auto mode:** Skip to Step 4 (assume greenfield, synthesize PROJECT.md from provided document).
+This step creates the project folder structure and activates the project before any questioning begins.
+
+**2a. Migration check:**
+
+If `has_flat_structure` is true AND `existing_projects` is empty (flat `.planning/` with no project folders):
+
+Read existing PROJECT.md to suggest a name:
+```bash
+cat .planning/PROJECT.md 2>/dev/null | head -5
+```
+
+Display: "I notice you have an existing project in `.planning/`. To support multiple projects, I need to move your existing work into a project folder."
+
+Use AskUserQuestion:
+- header: "Migrate"
+- question: "I'll move your existing work into a project folder. OK?"
+- options:
+  - "Yes" — Proceed with migration
+  - "No" — Cancel (migration required before creating new projects)
+
+If "No": Display error and exit.
+
+If "Yes": Ask inline (freeform): "What should I call this existing project?" (suggest name from PROJECT.md title if detected)
+
+Execute migration:
+```bash
+MIGRATE_RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js project migrate "{existingProjectName}" "{description}" --raw)
+```
+
+Parse result and display migration summary. If error, display and exit.
+
+**2b. Collect project details:**
+
+Ask inline (freeform): "What's the name of this project?"
+
+Wait for response. Accept friendly names with spaces.
+
+Preview the auto-generated slug:
+```bash
+SLUG=$(node ~/.claude/get-shit-done/bin/gsd-tools.js generate-slug "{name}")
+```
+
+Display: `Folder name will be: {slug}`
+
+Ask inline (freeform): "Brief description (one line — helps when listing projects):"
+
+Wait for response.
+
+**2c. Create project folder:**
+
+```bash
+CREATE_RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js project create "{name}" "{description}" --raw)
+```
+
+Parse result JSON for: `slug`, `friendlyName`, `projectPath`, `created`, `error`.
+
+If `error`: Display error and exit.
+
+**2d. Auto-activate project:**
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js project switch "{slug}" --raw
+```
+
+Display:
+```
+Project created:
+  Name: {friendlyName}
+  Folder: .planning/{slug}/
+  Version: v1
+
+All GSD commands now target this project.
+```
+
+**If auto mode:** For step 2b, extract project name and description from the provided document instead of asking interactively.
+
+## 3. Brownfield Offer
+
+**If auto mode:** Skip to Step 5 (assume greenfield, synthesize PROJECT.md from provided document).
 
 **If `needs_codebase_map` is true** (from init — existing code detected but no codebase map):
 
@@ -71,11 +147,11 @@ Run `/gsd:map-codebase` first, then return to `/gsd:new-project`
 ```
 Exit command.
 
-**If "Skip mapping" OR `needs_codebase_map` is false:** Continue to Step 3.
+**If "Skip mapping" OR `needs_codebase_map` is false:** Continue to Step 4.
 
-## 3. Deep Questioning
+## 4. Deep Questioning
 
-**If auto mode:** Skip. Extract project context from provided document instead and proceed to Step 4.
+**If auto mode:** Skip. Extract project context from provided document instead and proceed to Step 5.
 
 **Display stage banner:**
 
@@ -129,7 +205,7 @@ If "Keep exploring" — ask what they want to add, or identify gaps and probe na
 
 Loop until "Create PROJECT.md" selected.
 
-## 4. Write PROJECT.md
+## 5. Write PROJECT.md
 
 **If auto mode:** Synthesize from provided document. No "Ready?" gate was shown — proceed directly to commit.
 
@@ -215,7 +291,7 @@ mkdir -p .planning
 node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: initialize project" --files .planning/PROJECT.md
 ```
 
-## 5. Workflow Preferences
+## 6. Workflow Preferences
 
 **Round 1 — Core workflow settings (4 questions):**
 
@@ -241,8 +317,8 @@ questions: [
     ]
   },
   {
-    header: "Execution",
-    question: "Run plans in parallel?",
+    header: "Plan Processing",
+    question: "Process plans in parallel?",
     multiSelect: false,
     options: [
       { label: "Parallel (Recommended)", description: "Independent plans run simultaneously" },
@@ -269,7 +345,7 @@ These spawn additional agents during planning/execution. They add tokens and tim
 |-------|--------------|--------------|
 | **Researcher** | Before planning each phase | Investigates domain, finds patterns, surfaces gotchas |
 | **Plan Checker** | After plan is created | Verifies plan actually achieves the phase goal |
-| **Verifier** | After phase execution | Confirms must-haves were delivered |
+| **Verifier** | After phase planning is complete | Confirms must-haves were delivered |
 
 All recommended for important projects. Skip for quick experiments.
 
@@ -347,11 +423,11 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: add project config"
 
 **Note:** Run `/gsd:settings` anytime to update these preferences.
 
-## 5.5. Resolve Model Profile
+## 6.5. Resolve Model Profile
 
 Use models from init: `researcher_model`, `synthesizer_model`, `roadmapper_model`.
 
-## 6. Research Decision
+## 7. Research Decision
 
 **If auto mode:** Default to "Research first" without asking.
 
@@ -596,9 +672,9 @@ Display research complete banner and key findings:
 Files: `.planning/research/`
 ```
 
-**If "Skip research":** Continue to Step 7.
+**If "Skip research":** Continue to Step 8.
 
-## 7. Define Requirements
+## 8. Define Requirements
 
 Display stage banner:
 ```
@@ -743,7 +819,7 @@ If "adjust": Return to scoping.
 node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
 ```
 
-## 8. Create Roadmap
+## 9. Create Roadmap
 
 Display stage banner:
 ```
@@ -876,7 +952,7 @@ Use AskUserQuestion:
 node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
 ```
 
-## 9. Done
+## 10. Done
 
 Present completion with next steps:
 
@@ -937,6 +1013,9 @@ Present completion with next steps:
 
 - [ ] .planning/ directory created
 - [ ] Git repo initialized
+- [ ] Migration handled (if flat structure detected)
+- [ ] Project folder created at .planning/{slug}/v1/
+- [ ] Project auto-activated (.active-project written)
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)
 - [ ] PROJECT.md captures full context → **committed**
