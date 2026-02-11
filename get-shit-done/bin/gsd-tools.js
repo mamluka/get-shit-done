@@ -704,7 +704,7 @@ class PathResolver {
     try {
       const activeSlug = fs.readFileSync(activeProjectPath, 'utf-8').trim();
       if (!activeSlug) {
-        throw new Error('Active project file is empty');
+        throw new Error('The current project is not set up correctly. Run /gsd:list-projects to see available projects, then /gsd:switch-project {name}');
       }
 
       this.currentProject = activeSlug;
@@ -736,7 +736,7 @@ class PathResolver {
 
     } catch (err) {
       // If we can't read .active-project in nested mode, that's an error
-      throw new Error(`Failed to load project context from .active-project: ${err.message}`);
+      throw new Error(`Couldn't read current project settings. The project file may be corrupted. Run /gsd:list-projects to choose a project`);
     }
   }
 
@@ -761,7 +761,7 @@ class PathResolver {
 
     // Nested mode requires active project
     if (!this.currentProject || !this.currentVersion) {
-      throw new Error('No active project. Run /gsd:switch-project or /gsd:new-project to select one.');
+      throw new Error('No project is currently active. Choose a project with /gsd:switch-project {name} or create one with /gsd:new-project');
     }
 
     // PROJECT.md lives at project root, not in version folder
@@ -865,7 +865,7 @@ function resolvePlanning(cwd, relativePath) {
 
 function cmdGenerateSlug(text, raw) {
   if (!text) {
-    error('text required for slug generation');
+    error('Please provide a name to generate a project identifier');
   }
 
   const slug = text
@@ -936,7 +936,7 @@ function cmdListTodos(cwd, area, raw) {
 
 function cmdVerifyPathExists(cwd, targetPath, raw) {
   if (!targetPath) {
-    error('path required for verification');
+    error('Please specify which folder to check');
   }
 
   const fullPath = path.isAbsolute(targetPath) ? targetPath : path.join(cwd, targetPath);
@@ -962,7 +962,7 @@ function cmdConfigEnsureSection(cwd, raw) {
       fs.mkdirSync(planningDir, { recursive: true });
     }
   } catch (err) {
-    error('Failed to create .planning directory: ' + err.message);
+    error('Couldn\'t create the planning folder. Check folder permissions and try again.', err.message);
   }
 
   // Check if config already exists
@@ -999,7 +999,7 @@ function cmdConfigEnsureSection(cwd, raw) {
     const result = { created: true, path: '.planning/config.json' };
     output(result, raw, 'created');
   } catch (err) {
-    error('Failed to create config.json: ' + err.message);
+    error('Couldn\'t save project settings. Check folder permissions and try again.', err.message);
   }
 }
 
@@ -1007,7 +1007,7 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
   const configPath = resolvePlanning(cwd, 'config.json');
 
   if (!keyPath) {
-    error('Usage: config-set <key.path> <value>');
+    error('Please provide a setting name and value (e.g., config-set mode yolo)');
   }
 
   // Parse value (handle booleans and numbers)
@@ -1023,7 +1023,7 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
       config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
     }
   } catch (err) {
-    error('Failed to read config.json: ' + err.message);
+    error('Couldn\'t read project settings. The config file may be corrupted.', err.message);
   }
 
   // Set nested value using dot notation (e.g., "workflow.research")
@@ -1044,7 +1044,7 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
     const result = { updated: true, key: keyPath, value: parsedValue };
     output(result, raw, `${keyPath}=${parsedValue}`);
   } catch (err) {
-    error('Failed to write config.json: ' + err.message);
+    error('Couldn\'t save project settings. Check folder permissions and try again.', err.message);
   }
 }
 
@@ -1129,7 +1129,7 @@ function cmdHistoryDigest(cwd, raw) {
 
     output(digest, raw);
   } catch (e) {
-    error('Failed to generate history digest: ' + e.message);
+    error('Couldn\'t read project history. Check that summary files are properly formatted.', e.message);
   }
 }
 
@@ -1201,7 +1201,7 @@ function cmdPhasesList(cwd, options, raw) {
     // Default: list directories
     output({ directories: dirs, count: dirs.length }, raw, dirs.join('\n'));
   } catch (e) {
-    error('Failed to list phases: ' + e.message);
+    error('Couldn\'t list phases. Check that the phases folder exists.', e.message);
   }
 }
 
@@ -1259,7 +1259,7 @@ function cmdRoadmapGetPhase(cwd, phaseNum, raw) {
       section
     );
   } catch (e) {
-    error('Failed to read ROADMAP.md: ' + e.message);
+    error('Couldn\'t read the roadmap. Check that ROADMAP.md exists in the planning folder.', e.message);
   }
 }
 
@@ -1328,7 +1328,7 @@ function cmdPhaseNextDecimal(cwd, basePhase, raw) {
       nextDecimal
     );
   } catch (e) {
-    error('Failed to calculate next decimal phase: ' + e.message);
+    error('Couldn\'t determine the next phase number. Check that phase folders are numbered correctly.', e.message);
   }
 }
 
@@ -1408,7 +1408,7 @@ function cmdStateGet(cwd, section, raw) {
 
     output({ error: `Section or field "${section}" not found` }, raw, '');
   } catch {
-    error('STATE.md not found');
+    error('Project state file not found. Run /gsd:new-project to set up a project');
   }
 }
 
@@ -1436,13 +1436,13 @@ function cmdStatePatch(cwd, patches, raw) {
 
     output(results, raw, results.updated.length > 0 ? 'true' : 'false');
   } catch {
-    error('STATE.md not found');
+    error('Project state file not found. Run /gsd:new-project to set up a project');
   }
 }
 
 function cmdStateUpdate(cwd, field, value) {
   if (!field || value === undefined) {
-    error('field and value required for state update');
+    error('Please specify what to update and the new value');
   }
 
   const statePath = resolvePlanning(cwd, 'STATE.md');
@@ -1458,7 +1458,7 @@ function cmdStateUpdate(cwd, field, value) {
       output({ updated: false, reason: `Field "${field}" not found in STATE.md` });
     }
   } catch {
-    output({ updated: false, reason: 'STATE.md not found' });
+    output({ updated: false, reason: 'Project state file not found', action: 'Run /gsd:new-project to set up a project' });
   }
 }
 
@@ -1481,7 +1481,7 @@ function stateReplaceField(content, fieldName, newValue) {
 
 function cmdStateAdvancePlan(cwd, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const currentPlan = parseInt(stateExtractField(content, 'Current Plan'), 10);
@@ -1489,7 +1489,7 @@ function cmdStateAdvancePlan(cwd, raw) {
   const today = new Date().toISOString().split('T')[0];
 
   if (isNaN(currentPlan) || isNaN(totalPlans)) {
-    output({ error: 'Cannot parse Current Plan or Total Plans in Phase from STATE.md' }, raw);
+    output({ error: 'Could not read current progress from project state', action: 'Check that STATE.md has a valid "Plan: X of Y" line' }, raw);
     return;
   }
 
@@ -1510,7 +1510,7 @@ function cmdStateAdvancePlan(cwd, raw) {
 
 function cmdStateRecordMetric(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const { phase, plan, duration, tasks, files } = options;
@@ -1545,7 +1545,7 @@ function cmdStateRecordMetric(cwd, options, raw) {
 
 function cmdStateUpdateProgress(cwd, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
 
@@ -1582,7 +1582,7 @@ function cmdStateUpdateProgress(cwd, raw) {
 
 function cmdStateAddDecision(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
 
   const { phase, summary, rationale } = options;
   if (!summary) { output({ error: 'summary required' }, raw); return; }
@@ -1609,7 +1609,7 @@ function cmdStateAddDecision(cwd, options, raw) {
 
 function cmdStateAddBlocker(cwd, text, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1632,7 +1632,7 @@ function cmdStateAddBlocker(cwd, text, raw) {
 
 function cmdStateResolveBlocker(cwd, text, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1664,7 +1664,7 @@ function cmdStateResolveBlocker(cwd, text, raw) {
 
 function cmdStateRecordSession(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'STATE.md not found' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const now = new Date().toISOString();
@@ -1699,7 +1699,7 @@ function cmdStateRecordSession(cwd, options, raw) {
 
 function cmdResolveModel(cwd, agentType, raw) {
   if (!agentType) {
-    error('agent-type required');
+    error('Please specify which agent type to use');
   }
 
   const config = loadConfig(cwd);
@@ -1719,7 +1719,7 @@ function cmdResolveModel(cwd, agentType, raw) {
 
 function cmdFindPhase(cwd, phase, raw) {
   if (!phase) {
-    error('phase identifier required');
+    error('Please specify which phase (e.g., 1 or 01-foundation)');
   }
 
   const phasesDir = resolvePlanning(cwd, 'phases');
@@ -1763,7 +1763,7 @@ function cmdFindPhase(cwd, phase, raw) {
 
 function cmdCommit(cwd, message, files, raw, amend) {
   if (!message && !amend) {
-    error('commit message required');
+    error('Please provide a description of what changed');
   }
 
   const config = loadConfig(cwd);
@@ -1811,7 +1811,7 @@ function cmdCommit(cwd, message, files, raw, amend) {
 
 function cmdVerifySummary(cwd, summaryPath, checkFileCount, raw) {
   if (!summaryPath) {
-    error('summary-path required');
+    error('Please specify the summary file location');
   }
 
   const fullPath = path.join(cwd, summaryPath);
@@ -1907,7 +1907,7 @@ function cmdVerifySummary(cwd, summaryPath, checkFileCount, raw) {
 
 function cmdTemplateSelect(cwd, planPath, raw) {
   if (!planPath) {
-    error('plan-path required');
+    error('Please specify the plan file location');
   }
 
   try {
@@ -1952,8 +1952,8 @@ function cmdTemplateSelect(cwd, planPath, raw) {
 }
 
 function cmdTemplateFill(cwd, templateType, options, raw) {
-  if (!templateType) { error('template type required: summary, plan, or verification'); }
-  if (!options.phase) { error('--phase required'); }
+  if (!templateType) { error('Please specify the template type: summary, plan, or verification'); }
+  if (!options.phase) { error('Please specify which phase this template is for'); }
 
   const phaseInfo = findPhaseInternal(cwd, options.phase);
   if (!phaseInfo || !phaseInfo.found) { output({ error: 'Phase not found', phase: options.phase }, raw); return; }
@@ -2100,7 +2100,7 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
       break;
     }
     default:
-      error(`Unknown template type: ${templateType}. Available: summary, plan, verification`);
+      error(`Template type "${templateType}" not recognized. Available types: summary, plan, verification`);
       return;
   }
 
@@ -2119,7 +2119,7 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
 
 function cmdPhasePlanIndex(cwd, phase, raw) {
   if (!phase) {
-    error('phase required for phase-plan-index');
+    error('Please specify which phase to index');
   }
 
   const phasesDir = resolvePlanning(cwd, 'phases');
@@ -2328,7 +2328,7 @@ function cmdStateSnapshot(cwd, raw) {
 
 function cmdSummaryExtract(cwd, summaryPath, fields, raw) {
   if (!summaryPath) {
-    error('summary-path required for summary-extract');
+    error('Please specify which summary file to read');
   }
 
   const fullPath = path.join(cwd, summaryPath);
@@ -2448,7 +2448,7 @@ async function cmdWebsearch(query, options, raw) {
 // ─── Frontmatter CRUD ────────────────────────────────────────────────────────
 
 function cmdFrontmatterGet(cwd, filePath, field, raw) {
-  if (!filePath) { error('file path required'); }
+  if (!filePath) { error('Please specify which file to read'); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
@@ -2463,7 +2463,7 @@ function cmdFrontmatterGet(cwd, filePath, field, raw) {
 }
 
 function cmdFrontmatterSet(cwd, filePath, field, value, raw) {
-  if (!filePath || !field || value === undefined) { error('file, field, and value required'); }
+  if (!filePath || !field || value === undefined) { error('Please specify the file, field name, and new value'); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   if (!fs.existsSync(fullPath)) { output({ error: 'File not found', path: filePath }, raw); return; }
   const content = fs.readFileSync(fullPath, 'utf-8');
@@ -2477,13 +2477,13 @@ function cmdFrontmatterSet(cwd, filePath, field, value, raw) {
 }
 
 function cmdFrontmatterMerge(cwd, filePath, data, raw) {
-  if (!filePath || !data) { error('file and data required'); }
+  if (!filePath || !data) { error('Please specify the file and the data to merge'); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   if (!fs.existsSync(fullPath)) { output({ error: 'File not found', path: filePath }, raw); return; }
   const content = fs.readFileSync(fullPath, 'utf-8');
   const fm = extractFrontmatter(content);
   let mergeData;
-  try { mergeData = JSON.parse(data); } catch { error('Invalid JSON for --data'); return; }
+  try { mergeData = JSON.parse(data); } catch { error('The provided data is not in the correct format. Please check the JSON syntax'); return; }
   Object.assign(fm, mergeData);
   const newContent = spliceFrontmatter(content, fm);
   fs.writeFileSync(fullPath, newContent, 'utf-8');
@@ -2497,9 +2497,9 @@ const FRONTMATTER_SCHEMAS = {
 };
 
 function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
-  if (!filePath || !schemaName) { error('file and schema required'); }
+  if (!filePath || !schemaName) { error('Please specify the file and which schema to check against'); }
   const schema = FRONTMATTER_SCHEMAS[schemaName];
-  if (!schema) { error(`Unknown schema: ${schemaName}. Available: ${Object.keys(FRONTMATTER_SCHEMAS).join(', ')}`); }
+  if (!schema) { error(`Schema "${schemaName}" not recognized. Available: ${Object.keys(FRONTMATTER_SCHEMAS).join(', ')}`); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
@@ -2512,7 +2512,7 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
 // ─── Verification Suite ──────────────────────────────────────────────────────
 
 function cmdVerifyPlanStructure(cwd, filePath, raw) {
-  if (!filePath) { error('file path required'); }
+  if (!filePath) { error('Please specify which file to read'); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
@@ -2524,7 +2524,7 @@ function cmdVerifyPlanStructure(cwd, filePath, raw) {
   // Check required frontmatter fields
   const required = ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves'];
   for (const field of required) {
-    if (fm[field] === undefined) errors.push(`Missing required frontmatter field: ${field}`);
+    if (fm[field] === undefined) errors.push(`The project header is missing the '${field}' field`);
   }
 
   // Parse and check task elements
@@ -2540,8 +2540,8 @@ function cmdVerifyPlanStructure(cwd, filePath, raw) {
     const hasVerify = /<verify>/.test(taskContent);
     const hasDone = /<done>/.test(taskContent);
 
-    if (!nameMatch) errors.push('Task missing <name> element');
-    if (!hasAction) errors.push(`Task '${taskName}' missing <action>`);
+    if (!nameMatch) errors.push('A task is missing its name');
+    if (!hasAction) errors.push(`Task '${taskName}' is missing its action steps`);
     if (!hasVerify) warnings.push(`Task '${taskName}' missing <verify>`);
     if (!hasDone) warnings.push(`Task '${taskName}' missing <done>`);
     if (!hasFiles) warnings.push(`Task '${taskName}' missing <files>`);
@@ -2559,7 +2559,7 @@ function cmdVerifyPlanStructure(cwd, filePath, raw) {
   // Autonomous/checkpoint consistency
   const hasCheckpoints = /<task\s+type=["']?checkpoint/.test(content);
   if (hasCheckpoints && fm.autonomous !== 'false' && fm.autonomous !== false) {
-    errors.push('Has checkpoint tasks but autonomous is not false');
+    errors.push('Plan has review checkpoints but is marked as fully automatic. Set autonomous to false');
   }
 
   output({
@@ -2573,7 +2573,7 @@ function cmdVerifyPlanStructure(cwd, filePath, raw) {
 }
 
 function cmdVerifyPhaseCompleteness(cwd, phase, raw) {
-  if (!phase) { error('phase required'); }
+  if (!phase) { error('Please specify which phase to check'); }
   const phaseInfo = findPhaseInternal(cwd, phase);
   if (!phaseInfo || !phaseInfo.found) {
     output({ error: 'Phase not found', phase }, raw);
@@ -2620,7 +2620,7 @@ function cmdVerifyPhaseCompleteness(cwd, phase, raw) {
 }
 
 function cmdVerifyReferences(cwd, filePath, raw) {
-  if (!filePath) { error('file path required'); }
+  if (!filePath) { error('Please specify which file to read'); }
   const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
@@ -2687,7 +2687,7 @@ function cmdVerifyCommits(cwd, hashes, raw) {
 }
 
 function cmdVerifyArtifacts(cwd, planFilePath, raw) {
-  if (!planFilePath) { error('plan file path required'); }
+  if (!planFilePath) { error('Please specify the plan file location'); }
   const fullPath = path.isAbsolute(planFilePath) ? planFilePath : path.join(cwd, planFilePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: planFilePath }, raw); return; }
@@ -2742,7 +2742,7 @@ function cmdVerifyArtifacts(cwd, planFilePath, raw) {
 }
 
 function cmdVerifyKeyLinks(cwd, planFilePath, raw) {
-  if (!planFilePath) { error('plan file path required'); }
+  if (!planFilePath) { error('Please specify the plan file location'); }
   const fullPath = path.isAbsolute(planFilePath) ? planFilePath : path.join(cwd, planFilePath);
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: planFilePath }, raw); return; }
@@ -2923,12 +2923,12 @@ function cmdRoadmapAnalyze(cwd, raw) {
 
 function cmdPhaseAdd(cwd, description, raw) {
   if (!description) {
-    error('description required for phase add');
+    error('Please provide a description for the new phase');
   }
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
-    error('ROADMAP.md not found');
+    error('Roadmap not found. Run /gsd:new-project to set up a project first');
   }
 
   const content = fs.readFileSync(roadmapPath, 'utf-8');
@@ -2980,12 +2980,12 @@ function cmdPhaseAdd(cwd, description, raw) {
 
 function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   if (!afterPhase || !description) {
-    error('after-phase and description required for phase insert');
+    error('Please specify which phase to insert after and provide a description');
   }
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
-    error('ROADMAP.md not found');
+    error('Roadmap not found. Run /gsd:new-project to set up a project first');
   }
 
   const content = fs.readFileSync(roadmapPath, 'utf-8');
@@ -2995,7 +2995,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   const afterPhaseEscaped = afterPhase.replace(/\./g, '\\.');
   const targetPattern = new RegExp(`###\\s*Phase\\s+${afterPhaseEscaped}:`, 'i');
   if (!targetPattern.test(content)) {
-    error(`Phase ${afterPhase} not found in ROADMAP.md`);
+    error(`Phase ${afterPhase} doesn't exist in the roadmap. Check /gsd:progress for current phases`);
   }
 
   // Calculate next decimal using existing logic
@@ -3028,7 +3028,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   const headerPattern = new RegExp(`(###\\s*Phase\\s+${afterPhaseEscaped}:[^\\n]*\\n)`, 'i');
   const headerMatch = content.match(headerPattern);
   if (!headerMatch) {
-    error(`Could not find Phase ${afterPhase} header`);
+    error(`Couldn't locate Phase ${afterPhase} in the roadmap. The roadmap structure may need repair`);
   }
 
   const headerIdx = content.indexOf(headerMatch[0]);
@@ -3060,7 +3060,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
 
 function cmdPhaseRemove(cwd, targetPhase, options, raw) {
   if (!targetPhase) {
-    error('phase number required for phase remove');
+    error('Please specify which phase number to remove');
   }
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
@@ -3068,7 +3068,7 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
   const force = options.force || false;
 
   if (!fs.existsSync(roadmapPath)) {
-    error('ROADMAP.md not found');
+    error('Roadmap not found. Run /gsd:new-project to set up a project first');
   }
 
   // Normalize the target
@@ -3089,7 +3089,7 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
     const files = fs.readdirSync(targetPath);
     const summaries = files.filter(f => f.endsWith('-SUMMARY.md') || f === 'SUMMARY.md');
     if (summaries.length > 0) {
-      error(`Phase ${targetPhase} has ${summaries.length} executed plan(s). Use --force to remove anyway.`);
+      error(`Phase ${targetPhase} has ${summaries.length} completed plan(s). Use --force to remove anyway.`);
     }
   }
 
@@ -3317,7 +3317,7 @@ function validatePhaseComplete(cwd, phaseNum) {
 
   if (!phaseInfo || !phaseInfo.found) {
     result.valid = false;
-    result.errors.push(`Phase ${phaseNum} not found`);
+    result.errors.push(`Phase ${phaseNum} doesn't exist in the roadmap`);
     return result;
   }
 
@@ -3369,7 +3369,7 @@ function cmdPhaseValidate(cwd, phaseNum, raw) {
 
 function cmdPhaseComplete(cwd, phaseNum, raw) {
   if (!phaseNum) {
-    error('phase number required for phase complete');
+    error('Please specify which phase number to mark as complete');
   }
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
@@ -3381,7 +3381,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
   // Verify phase info
   const phaseInfo = findPhaseInternal(cwd, phaseNum);
   if (!phaseInfo) {
-    error(`Phase ${phaseNum} not found`);
+    error(`Phase ${phaseNum} doesn't exist in the roadmap. Run /gsd:progress to see current phases`);
   }
 
   const planCount = phaseInfo.plans.length;
@@ -3516,7 +3516,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
 
 function cmdMilestoneComplete(cwd, version, options, raw) {
   if (!version) {
-    error('version required for milestone complete (e.g., v1.0)');
+    error('Please specify the milestone version (e.g., v1.0)');
   }
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
@@ -3855,7 +3855,7 @@ function cmdProgressRender(cwd, format, raw) {
 
 function cmdTodoComplete(cwd, filename, raw) {
   if (!filename) {
-    error('filename required for todo complete');
+    error('Please specify which todo to mark as complete');
   }
 
   const pendingDir = path.join(resolvePlanning(cwd, 'todos'), 'pending');
@@ -3863,7 +3863,7 @@ function cmdTodoComplete(cwd, filename, raw) {
   const sourcePath = path.join(pendingDir, filename);
 
   if (!fs.existsSync(sourcePath)) {
-    error(`Todo not found: ${filename}`);
+    error(`Couldn't find todo "${filename}". Run /gsd:check-todos to see available todos`);
   }
 
   // Ensure completed directory exists
@@ -3892,7 +3892,7 @@ function cmdScaffold(cwd, type, options, raw) {
   const phaseDir = phaseInfo ? path.join(cwd, phaseInfo.directory) : null;
 
   if (phase && !phaseDir && type !== 'phase-dir') {
-    error(`Phase ${phase} directory not found`);
+    error(`Phase ${phase} folder not found. Check that the phase exists in the roadmap`);
   }
 
   let filePath, content;
@@ -3915,7 +3915,7 @@ function cmdScaffold(cwd, type, options, raw) {
     }
     case 'phase-dir': {
       if (!phase || !name) {
-        error('phase and name required for phase-dir scaffold');
+        error('Please specify the phase number and name for the new phase folder');
       }
       const slug = generateSlugInternal(name);
       const dirName = `${padded}-${slug}`;
@@ -3927,7 +3927,7 @@ function cmdScaffold(cwd, type, options, raw) {
       return;
     }
     default:
-      error(`Unknown scaffold type: ${type}. Available: context, uat, verification, phase-dir`);
+      error(`Scaffold type "${type}" not recognized. Available: context, uat, verification, phase-dir`);
   }
 
   if (fs.existsSync(filePath)) {
@@ -4622,7 +4622,7 @@ function cmdInitListProjects(cwd, raw) {
 
 function cmdInitExecutePhase(cwd, phase, includes, raw) {
   if (!phase) {
-    error('phase required for init execute-phase');
+    error('Please specify which phase to initialize');
   }
 
   const config = loadConfig(cwd);
@@ -4703,7 +4703,7 @@ function cmdInitExecutePhase(cwd, phase, includes, raw) {
 
 function cmdInitPlanPhase(cwd, phase, includes, raw) {
   if (!phase) {
-    error('phase required for init plan-phase');
+    error('Please specify which phase to plan');
   }
 
   const config = loadConfig(cwd);
@@ -5005,7 +5005,7 @@ function cmdInitResume(cwd, raw) {
 
 function cmdInitVerifyWork(cwd, phase, raw) {
   if (!phase) {
-    error('phase required for init verify-work');
+    error('Please specify which phase to verify');
   }
 
   const config = loadConfig(cwd);
@@ -5505,7 +5505,7 @@ async function main() {
           fields: fieldsIdx !== -1 ? JSON.parse(args[fieldsIdx + 1]) : {},
         }, raw);
       } else {
-        error('Unknown template subcommand. Available: select, fill');
+        error('Template command not recognized. Available: select, fill');
       }
       break;
     }
@@ -5527,7 +5527,7 @@ async function main() {
         const schemaIdx = args.indexOf('--schema');
         cmdFrontmatterValidate(cwd, file, schemaIdx !== -1 ? args[schemaIdx + 1] : null, raw);
       } else {
-        error('Unknown frontmatter subcommand. Available: get, set, merge, validate');
+        error('Command not recognized. Available: get, set, merge, validate');
       }
       break;
     }
@@ -5547,7 +5547,7 @@ async function main() {
       } else if (subcommand === 'key-links') {
         cmdVerifyKeyLinks(cwd, args[2], raw);
       } else {
-        error('Unknown verify subcommand. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links');
+        error('Verify command not recognized. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links');
       }
       break;
     }
@@ -5598,7 +5598,7 @@ async function main() {
         };
         cmdPhasesList(cwd, options, raw);
       } else {
-        error('Unknown phases subcommand. Available: list');
+        error('Phases command not recognized. Available: list');
       }
       break;
     }
@@ -5610,7 +5610,7 @@ async function main() {
       } else if (subcommand === 'analyze') {
         cmdRoadmapAnalyze(cwd, raw);
       } else {
-        error('Unknown roadmap subcommand. Available: get-phase, analyze');
+        error('Roadmap command not recognized. Available: get-phase, analyze');
       }
       break;
     }
@@ -5631,7 +5631,7 @@ async function main() {
       } else if (subcommand === 'validate') {
         cmdPhaseValidate(cwd, args[2], raw);
       } else {
-        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, validate');
+        error('Phase command not recognized. Available: next-decimal, add, insert, remove, complete, validate');
       }
       break;
     }
@@ -5643,7 +5643,7 @@ async function main() {
         const milestoneName = nameIndex !== -1 ? args.slice(nameIndex + 1).join(' ') : null;
         cmdMilestoneComplete(cwd, args[2], { name: milestoneName }, raw);
       } else {
-        error('Unknown milestone subcommand. Available: complete');
+        error('Milestone command not recognized. Available: complete');
       }
       break;
     }
@@ -5653,7 +5653,7 @@ async function main() {
       if (subcommand === 'consistency') {
         cmdValidateConsistency(cwd, raw);
       } else {
-        error('Unknown validate subcommand. Available: consistency');
+        error('Validate command not recognized. Available: consistency');
       }
       break;
     }
@@ -5701,7 +5701,7 @@ async function main() {
           tags: projectTags,
         }, raw);
       } else {
-        error('Unknown git subcommand. Available: current-branch, project-branches, sanitize, status');
+        error('Git command not recognized. Available: current-branch, project-branches, sanitize, status');
       }
       break;
     }
@@ -5711,7 +5711,7 @@ async function main() {
       if (subcommand === 'complete') {
         cmdTodoComplete(cwd, args[2], raw);
       } else {
-        error('Unknown todo subcommand. Available: complete');
+        error('Todo command not recognized. Available: complete');
       }
       break;
     }
@@ -5748,7 +5748,7 @@ async function main() {
         const result = verifyMigration(cwd, args[2]);
         output(result, raw);
       } else {
-        error('Unknown project subcommand. Available: create, switch, list, migrate, verify-migration');
+        error('Project command not recognized. Available: create, switch, list, migrate, verify-migration');
       }
       break;
     }
