@@ -1,231 +1,251 @@
 # Feature Research
 
-**Domain:** PM Planning Tool (AI-assisted, markdown-based)
-**Researched:** 2026-02-10
-**Confidence:** MEDIUM (WebSearch verified with multiple sources, patterns confirmed across PM tools and AI workflows)
+**Domain:** Notion Integration for PM Planning Tool (GSD)
+**Researched:** 2026-02-11
+**Confidence:** MEDIUM-HIGH
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features PMs assume exist. Missing these = product feels incomplete or PMs leave.
+Features users assume exist. Missing these = product feels incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Project structure visualization | PMs need to see phases, milestones, dependencies at a glance | LOW | Already exists via ROADMAP.md - just needs folder-per-project |
-| Edit existing plans | Plans change constantly - inability to edit is a dealbreaker | MEDIUM | Core differentiator from current GSD. Needs phase-level edit, not just append |
-| Git integration | PMs expect version control for planning docs, branching for scenarios | LOW | Already exists - ensure commit_docs: true |
-| Markdown-native format | PMs using Claude expect markdown; visual tools add friction | LOW | Already native - competitive advantage |
-| Phase dependencies | "Phase 3 requires Phase 1 complete" - table stakes for sequencing | MEDIUM | Implicit in current roadmap; may need explicit dependency field |
-| Progress tracking | "Where are we?" is asked daily | LOW | Already exists via STATE.md and /gsd:progress |
-| Task breakdown | High-level phases → atomic tasks PMs can assign to eng teams | LOW | Already exists via plan creation |
-| Requirements traceability | "Which requirement does Phase 5 address?" must be answerable | LOW | Already exists via phase-requirement mapping |
-| Multiple concurrent projects | PMs manage 3-5 initiatives; switching context must be painless | HIGH | **Critical gap** - current GSD assumes single project per repo |
-| Search/filter capabilities | "Show me all auth-related phases" or "What's in v2 scope?" | MEDIUM | Missing - grows important as projects scale |
-| Jira integration check | PMs live in Jira; validation that specs match tickets is essential | MEDIUM | Mentioned in context - MCP integration likely exists |
-| Export functionality | Stakeholders want PDF/slides; PMs need formatted output | LOW | Markdown → PDF is standard; may need template |
+| Push markdown files to Notion as pages | Core value proposition — stakeholders expect to view planning docs in Notion | MEDIUM | Requires markdown-to-blocks conversion; character limits (2000 chars/rich text element) require chunking; GFM tables/headings/lists/code blocks all need proper block mapping |
+| Preserve folder hierarchy as parent/child pages | Planning docs already organized in `.planning/` structure; users expect same organization in Notion | MEDIUM | Notion API supports parent page IDs for child pages; requires recursive directory traversal and page creation order (parents before children) |
+| Update existing pages (not just create) | After initial sync, users expect incremental updates without duplicates | MEDIUM | Requires tracking page IDs in `notion-sync.json` per project; compare local vs remote content to detect changes; API supports `pages.update()` but cannot change parent |
+| Handle basic markdown formatting | Tables, headings, lists, bold/italic, code blocks are used throughout planning docs | MEDIUM-HIGH | Notion uses blocks + rich text, not raw markdown; libraries like Martian exist but GSD requires zero dependencies (except @notionhq/client); custom parser needed |
+| Show sync status/progress | Users need feedback during multi-file upload (20+ .md files in typical project) | LOW | Console progress indicators; existing GSD patterns use color-coded output (green/yellow/dim) |
+| Graceful error handling | API failures (rate limits, auth errors, network issues) shouldn't break workflow | LOW-MEDIUM | Follow GSD pattern: warning-only, best-effort; log errors but don't block; retry logic for transient failures |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set an AI-assisted PM planning tool apart. Not expected, but highly valued.
+Features that set the product apart. Not required, but valuable.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| AI-powered phase generation | PM describes goal → AI generates realistic phase breakdown | LOW | Already exists via /gsd:new-project - core value prop |
-| Automatic research synthesis | AI researches domain, identifies pitfalls, recommends stack | MEDIUM | Already exists via research agents - huge time saver |
-| Context-aware questioning | AI asks smart follow-ups based on project type (vs generic form) | LOW | Already exists - quality of questions is differentiator |
-| Phase-specific context capture | Capture implementation preferences *before* planning (discuss-phase) | LOW | Already exists - prevents "build wrong thing" waste |
-| Consistency validation | Check new phases against existing project decisions/conventions | MEDIUM | Plan-checker does some of this; expand to PM-level concerns |
-| Requirements gap detection | "Your roadmap doesn't address requirement #3" | MEDIUM | Audit-milestone does this; surface earlier in flow |
-| Scenario branching | "What if we prioritize mobile-first?" → fork planning branch | MEDIUM | Git branching exists; needs PM-friendly UX |
-| Auto-advancing phase flow | Complete Phase 1 → auto-surfaces Phase 2 - no "what next?" | LOW | Mentioned in context - reduces cognitive load |
-| Complexity estimation | AI flags "Phase 3 looks ambitious - consider splitting" | MEDIUM | Currently implicit; explicit scoring would help prioritization |
-| Assumption surfacing | "This plan assumes authentication exists" - catch early | LOW | /gsd:list-phase-assumptions exists - underutilized gem |
-| Cross-project learning | "We solved similar auth flows in Project X" | HIGH | Requires multi-project awareness + pattern matching |
-| Stakeholder view generation | Auto-generate exec summary from technical roadmap | LOW | Templates + Claude = easy win for PM communication |
-| Real-time collaboration hints | "Sarah edited Phase 3 context 2min ago" | MEDIUM | Git-based; needs file watching + notification layer |
+| Pull comments as structured feedback | Stakeholders comment in Notion; PMs triage feedback by phase/theme back in CLI | HIGH | Notion Comments API lists open comments by page; requires mapping page IDs → local files → phases; group by discussion_id; convert to markdown format; Cannot retrieve resolved comments or start new threads via API |
+| Image handling (local + external) | Planning docs may include architecture diagrams, screenshots, mockups | HIGH | Notion File Upload API (new in 2025) supports <20MB files; files expire in 1 hour if not attached; must upload first, then attach to block; external URLs work indefinitely; local images require upload + URL replacement |
+| Smart change detection | Only sync modified files to reduce API calls and preserve Notion edit history | MEDIUM | Compare file mtimes or git commit hashes vs last sync timestamp in notion-sync.json; skip unchanged files; Notion doesn't expose last_edited_time for integrations reliably |
+| Preserve internal links between docs | Planning docs link to each other (e.g., PLAN.md → REQUIREMENTS.md); preserve as Notion page links | MEDIUM-HIGH | Requires tracking all page IDs; parse markdown links; convert relative paths to Notion page mentions or links; NotionRepoSync addresses this problem |
+| Post-milestone auto-prompt | After `/gsd:complete-milestone`, suggest pushing to Notion | LOW | Fits existing GSD auto-advance pattern; simple console prompt with Y/N; calls `/gsd:sync-notion` if accepted |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem good but create problems. Deliberately NOT build.
+Features that seem good but create problems.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real-time collaborative editing | "Like Google Docs for planning" | Markdown + Git = conflict hell; AI regeneration breaks sync | Git branching for scenarios; async review via PRs |
-| Gantt chart visualization | PMs trained on MS Project want visual timelines | Adds UI complexity; phase durations are estimates anyway; visual tools exist | Export markdown to tools that do this (Linear, Jira) |
-| Time tracking per phase | "How long did research take?" | GSD is AI-orchestrated - times aren't meaningful for humans; adds noise | Git commit timestamps if truly needed |
-| Approval workflows | "Manager must approve Phase 3 before planning" | Slows AI-assisted flow; PMs want speed over governance theater | PR review if needed; trust-based model default |
-| Story points estimation | "Assign points to phases" | Story points are for sprint planning, not product roadmaps; false precision | Complexity flags (LOW/MEDIUM/HIGH) sufficient |
-| Drag-and-drop phase reordering | Visual UX for sequencing | Markdown is source of truth; GUI adds sync complexity | Edit ROADMAP.md directly; decimal phase insertion exists |
-| Built-in communication (chat/comments) | "Discuss within the tool" | Reinventing Slack; context scattered; PMs have comms tools | Link to Slack/Discord threads in STATE.md |
-| Custom field proliferation | "Add Priority, Owner, Tags, Status, Risk..." | Each field = decision fatigue; markdown loses readability | Use consistent YAML frontmatter; keep minimal |
-| Automated Jira ticket creation | "Generate Jira tickets from phases" | One-way sync creates divergence; Jira is eng's territory | Manual copy when ready; MCP integration for validation only |
-| Multi-user permissions | "Only PMs can edit roadmap, eng read-only" | Git handles this; adds auth complexity; trust-based better | Use Git branch permissions if truly needed |
-| Historical "what-if" analysis | "Show me what the roadmap looked like 2 weeks ago" | Git history does this; building UI redundant | `git log`, `git diff` - teach PMs git basics |
+| Bidirectional sync (Notion → markdown) | "Let stakeholders edit in Notion and pull changes back" | Divergence nightmare: Notion blocks ≠ markdown; conflict resolution unclear; users edit both places → data loss; requires real-time webhook monitoring | One-way push only; use comments feature to pull feedback, not content edits |
+| Real-time auto-sync on file save | "Always keep Notion up-to-date" | Rate limiting (3 req/sec Notion API); excessive API calls for draft edits; users lose control of what's published; sync becomes invisible/magical | Manual `/gsd:sync-notion` command; optional post-milestone prompt |
+| Syncing all project files (code, tests, etc.) | "Upload everything to Notion" | Notion is a documentation tool, not a code repository; code blocks have 2000 char limits (chunking is ugly); file hierarchy becomes unmanageable | Sync only `.planning/` directory; code stays in git |
+| Full markdown spec support | "Support every markdown extension" | Notion doesn't support footnotes, nested tables, LaTeX, custom HTML; conversion requires lossy transformations; maintenance burden for edge cases | Support GFM subset that maps cleanly to Notion blocks: headings (1-3), lists, tables, code blocks, bold/italic/strikethrough, links, images |
+| Template-based page creation | "Use Notion templates for each page type" | GSD already has markdown templates; two template systems create confusion; Notion templates require database setup (overkill for simple pages); templates complicate sync logic | Direct block conversion from markdown; formatting consistency via existing .md templates |
 
 ## Feature Dependencies
 
 ```
-Multiple concurrent projects (folder-per-project)
-    └──requires──> Project switching mechanism
-                       └──requires──> Project state isolation
+[Basic markdown-to-Notion conversion]
+    └──requires──> [Block parser (headings, lists, tables, code)]
+                       └──requires──> [Rich text formatter (bold, italic, links)]
 
-Edit capability
-    └──requires──> Phase state validation (can't edit executed phases)
-                       └──requires──> State machine per phase
+[Update existing pages]
+    └──requires──> [Page ID tracking (notion-sync.json)]
+                       └──requires──> [Initial page creation]
 
-Jira MCP integration
-    └──enhances──> Requirements traceability
-    └──enhances──> Export functionality
+[Pull comments]
+    └──requires──> [Page ID tracking]
+    └──requires──> [Phase-to-file mapping]
 
-Auto-advancing phase flow
-    └──requires──> Phase completion detection
-    └──conflicts──> Manual phase-jumping (decide: linear vs random access)
+[Image handling]
+    ├──enhances──> [Basic markdown conversion]
+    └──requires──> [File upload API integration]
 
-Scenario branching (git branches)
-    └──enhances──> Requirements gap detection (compare branches)
-    └──conflicts──> Real-time collaboration (merge conflicts)
+[Internal link preservation]
+    ├──requires──> [Page ID tracking for all docs]
+    └──enhances──> [Basic markdown conversion]
 
-Complexity estimation
-    └──requires──> Phase size heuristics (files, scope, dependencies)
-    └──enhances──> Phase breakdown recommendations
+[Smart change detection]
+    ├──requires──> [Last sync timestamp in notion-sync.json]
+    └──enhances──> [Update existing pages]
 
-Search/filter capabilities
-    └──requires──> Structured metadata in planning files
-    └──enhances──> Multi-project navigation
+[Post-milestone prompt]
+    └──requires──> [Basic sync command]
 ```
 
 ### Dependency Notes
 
-- **Folder-per-project is foundational:** Current GSD assumes `.planning/` at repo root. PMs need `projects/{name}/.planning/`. This unblocks multi-project support, search, and cross-project learning.
-- **Edit capability requires state tracking:** Can't edit Phase 3 if execution already started. Need clear phase lifecycle (draft → planned → executing → complete).
-- **Auto-advancing conflicts with flexibility:** If flow auto-advances Phase 1 → Phase 2, does PM lose ability to jump to Phase 5? Decide: guided rail vs open exploration.
-- **Git branching enables scenarios:** "What if we build iOS-first?" → branch, replan, compare. Powerful for PMs exploring options.
+- **Block parser requires Rich text formatter:** Notion blocks contain rich text arrays; must convert inline markdown (bold, italic, links) within paragraph/heading/list blocks
+- **All features require Page ID tracking:** Without mapping local files → Notion page IDs, cannot update, pull comments, or link between pages
+- **Image handling enhances conversion:** Images are optional; basic conversion should work without them
+- **Internal links require complete page tracking:** Can't convert `[link](REQUIREMENTS.md)` to Notion page link without knowing REQUIREMENTS.md's page ID
 
 ## MVP Definition
 
-### Launch With (v1 - Planning Tool for PMs)
+### Launch With (v1.1)
 
-Minimum viable product — what PMs need to validate GSD as a planning-only tool.
+Minimum viable product — what's needed to validate Notion integration.
 
-- [ ] **Folder-per-project structure** — PMs manage multiple initiatives; switching must be seamless
-- [ ] **Edit phase capability** — Plans change; inability to revise = dealbreaker
-- [ ] **Git branching for scenarios** — "Explore mobile-first approach" without destroying current plan
-- [ ] **Auto-advancing phase flow** — Reduce "what next?" cognitive load
-- [ ] **Jira MCP validation** — Check if planning aligns with existing tickets (validation only, not creation)
-- [ ] **Disable code execution** — Planning tool shouldn't run `/gsd:execute-phase`; clarify with warnings
-- [ ] **Stakeholder export template** — Generate exec-friendly summary from ROADMAP.md + REQUIREMENTS.md
+- [x] **Notion API key collection during setup** — Required for any integration; save to config.json alongside existing Jira/Brave keys
+- [x] **Basic page creation from markdown** — Core value: get planning docs into Notion
+  - Support: headings (H1-H3), paragraphs, lists (ordered, unordered, checkboxes), tables, code blocks, basic formatting (bold, italic, strikethrough, inline code, links)
+  - Skip: images (defer), internal links (defer), custom blocks
+- [x] **Parent/child hierarchy matching .planning/ structure** — Stakeholders expect organized navigation
+  - Root pages for: PROJECT.md, REQUIREMENTS.md, ROADMAP.md, STATE.md
+  - Parent/child for phases: `phases/01-foundation/` → Notion parent page "Phase 01: Foundation" → child pages for PLAN.md, SUMMARY.md
+- [x] **Page ID tracking via notion-sync.json** — Essential for updates; store as `.planning/{project}/notion-sync.json`
+- [x] **Update existing pages** — Prevent duplicates on re-sync; use stored page IDs to update instead of create
+- [x] **CLI command `/gsd:sync-notion`** — Manual trigger for pushing docs; follows existing command patterns
+- [x] **External image links** — Support `![alt](https://...)` for already-hosted images; skip local images for v1.1
 
-### Add After Validation (v1.x)
+### Add After Validation (v1.2)
 
-Features to add once PMs are actively using it and provide feedback.
+Features to add once core sync is working.
 
-- [ ] **Complexity estimation** — AI flags "Phase 4 looks too big" during roadmap creation
-- [ ] **Cross-project search** — "Show me all phases related to authentication" across projects
-- [ ] **Assumption surfacing UI** — Make `/gsd:list-phase-assumptions` more prominent in flow
-- [ ] **Requirements gap early warning** — Surface audit-milestone logic during roadmap creation
-- [ ] **Phase dependency visualization** — See which phases block others (DOT graph export?)
+- [ ] **Pull comments from Notion** — `/gsd:notion-comments` command; retrieve open comments via API; group by discussion_id; save to `.planning/feedback/YYYY-MM-DD-comments.md` with page links and themes
+- [ ] **Post-milestone auto-prompt** — After `/gsd:complete-milestone`, ask "Upload planning docs to Notion? (Y/n)"; reduce friction for regular syncing
+- [ ] **Smart change detection** — Track last sync timestamp per file in notion-sync.json; compare vs file mtime or git commit; skip unchanged files
+- [ ] **Local image upload** — Use Notion File Upload API for `![alt](./diagrams/arch.png)`; upload to Notion, replace with hosted URL, attach to page within 1 hour expiry window
 
-### Future Consideration (v2+)
+### Future Consideration (v2.0+)
 
-Features to defer until product-market fit with PM teams is established.
+Features to defer until Notion integration is proven.
 
-- [ ] **Cross-project learning** — "We solved similar SSO in Project X; review that research?"
-- [ ] **Real-time collaboration hints** — File watching + notifications when team edits planning docs
-- [ ] **Custom report templates** — Beyond exec summary; board decks, sprint handoffs, etc.
-- [ ] **Integration with PM tools** — Linear, Asana, Monday.com (beyond Jira)
+- [ ] **Internal link preservation** — Convert `[link](REQUIREMENTS.md)` to Notion page mentions; requires full page ID map and markdown link parsing
+- [ ] **Selective sync (filter by path)** — Only sync specific phases or files; useful for large projects
+- [ ] **Notion workspace/database selection** — Let user choose target location instead of default workspace
+- [ ] **Sync delete detection** — Remove Notion pages when local files deleted; dangerous without confirmation
+- [ ] **Emoji/icon support** — Set page icons based on frontmatter or content type
+- [ ] **Callout block support** — Convert GFM alerts `> [!NOTE]` to Notion callouts
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Folder-per-project structure | HIGH | HIGH | P1 |
-| Edit phase capability | HIGH | MEDIUM | P1 |
-| Git branching for scenarios | MEDIUM | LOW | P1 |
-| Auto-advancing phase flow | MEDIUM | LOW | P1 |
-| Jira MCP validation | HIGH | MEDIUM | P1 |
-| Disable code execution | HIGH | LOW | P1 |
-| Stakeholder export | MEDIUM | LOW | P1 |
-| Complexity estimation | MEDIUM | MEDIUM | P2 |
-| Cross-project search | MEDIUM | MEDIUM | P2 |
-| Requirements gap early warning | MEDIUM | LOW | P2 |
-| Phase dependency visualization | LOW | MEDIUM | P2 |
-| Cross-project learning | MEDIUM | HIGH | P3 |
-| Real-time collaboration hints | LOW | MEDIUM | P3 |
-| Custom report templates | LOW | LOW | P3 |
+| Basic markdown conversion | HIGH | HIGH | P1 |
+| Page hierarchy (parent/child) | HIGH | MEDIUM | P1 |
+| Page ID tracking | HIGH | LOW | P1 |
+| Update existing pages | HIGH | MEDIUM | P1 |
+| External image links | MEDIUM | LOW | P1 |
+| CLI sync command | HIGH | LOW | P1 |
+| Pull comments | HIGH | HIGH | P2 |
+| Post-milestone prompt | MEDIUM | LOW | P2 |
+| Smart change detection | MEDIUM | MEDIUM | P2 |
+| Local image upload | MEDIUM | HIGH | P2 |
+| Internal link preservation | LOW | HIGH | P3 |
+| Selective sync filtering | LOW | MEDIUM | P3 |
+| Workspace selection | LOW | LOW | P3 |
+| Sync delete detection | LOW | MEDIUM | P3 |
+| Emoji/icon support | LOW | LOW | P3 |
 
 **Priority key:**
-- P1: Must have for PM planning tool launch
-- P2: Should have, add when PMs validate core workflow
-- P3: Nice to have, future consideration after adoption
+- P1: Must have for v1.1 launch — core sync functionality
+- P2: Should have for v1.2 — enhances workflow but not blocking
+- P3: Nice to have for v2.0+ — future improvements after validation
 
 ## Competitor Feature Analysis
 
-| Feature | Jira/Linear (PM SaaS) | GitHub Issues (Git-native) | Our Approach (AI + Markdown + Git) |
-|---------|----------------------|---------------------------|-------------------------------------|
-| Project structure | Custom fields, boards, swimlanes | Labels, milestones, projects | Folder-per-project + phase-based roadmap |
-| Planning workflow | Manual ticket creation → manual sequencing | Manual issue creation → manual milestones | AI-generated phase breakdown from description |
-| Research | None (PMs research externally) | None | AI researchers investigate domain automatically |
-| Context capture | Comments, descriptions (unstructured) | Issue descriptions, PR reviews | Structured CONTEXT.md per phase before planning |
-| Change management | Edit tickets freely, history tracked | Edit issues freely, history tracked | Edit phases (draft/planned only); git tracks changes |
-| Collaboration | Real-time comments, @mentions | Async comments, PR reviews | Git-native; PRs for scenario branches |
-| Traceability | Custom linking, automation rules | References in markdown, project views | Phase-requirement mapping + Jira validation |
-| Export | PDF, CSV, API, integrations | Markdown export, API | Markdown native; templates for stakeholder formats |
-| Complexity | High learning curve; power = complexity | Medium; git familiarity required | Low for PMs (natural language input); git optional |
-| AI assistance | Add-ons (ChatGPT plugins) | Copilot suggestions (code-focused) | Native; AI orchestrates entire planning flow |
+| Feature | NotionRepoSync | notion-sync (startnext) | Martian | Our Approach (GSD) |
+|---------|---------------|-------------------------|---------|-------------------|
+| Markdown conversion | Custom parser | Custom parser | Unified AST → Notion blocks | Custom parser (zero deps except @notionhq/client) |
+| Update strategy | Recreate pages | Detect changes, update existing | Not handled (library only) | Track page IDs in notion-sync.json, use pages.update() |
+| Image handling | Not mentioned | Upload to Dropbox, replace with external URLs | Extract inline images → separate blocks | v1.1: external only; v1.2: Notion File Upload API |
+| Internal links | YES — main differentiator | Dynamic page links | Not handled | Defer to v2.0 (requires full page ID map) |
+| Comments | No | No | No | v1.2: Pull comments via API, save as feedback .md |
+| Hierarchy | Repo structure → page tree | Nested dirs → subpages | Not handled | .planning/ structure → parent/child pages |
+| PM-specific | No (dev-focused docs) | No (generic docs) | No (library for any use) | YES — integrates with milestone workflow, post-milestone prompt |
 
-**Key differentiation:**
-- **Jira/Linear:** Powerful but manual. PMs spend hours sequencing, writing specs, updating fields. No AI planning assistance.
-- **GitHub Issues:** Developer-centric. PMs feel lost without boards/sprints. Better than Jira for eng, worse for PM planning.
-- **GSD for PMs:** AI does research + phase generation + task breakdown. PMs guide via natural language. Markdown native (no UI lock-in). Git branching for scenarios (explore without destroying).
+## Notion API Capabilities vs GSD Needs
+
+### What Notion API Supports Well
+
+| API Feature | GSD Use Case |
+|-------------|-------------|
+| Create page with parent_id | Match .planning/ folder hierarchy |
+| Update page properties/content | Incremental sync without duplicates |
+| Append blocks to page | Add content to existing pages |
+| File upload (<20MB) | Local images in planning docs |
+| External file URLs (never expire) | Architecture diagrams from Figma/Miro |
+| Retrieve comments (open only) | Pull stakeholder feedback |
+| Rich text formatting | Bold, italic, strikethrough, links in markdown |
+| Blocks: heading, paragraph, bulleted_list, numbered_list, to_do, code, table | All common markdown elements |
+
+### What Notion API Doesn't Support
+
+| Limitation | GSD Impact | Mitigation |
+|------------|-----------|------------|
+| Cannot change page parent after creation | Cannot move pages between phases | Create correct hierarchy initially; document in error messages |
+| Cannot retrieve resolved comments | Miss completed feedback threads | Document limitation; only show open comments |
+| Cannot start new discussion threads | Can't programmatically add inline comments | Only retrieve existing comments; stakeholders add via UI |
+| Rich text max 2000 chars/element | Long paragraphs in planning docs | Chunk into multiple rich text elements (Martian pattern) |
+| Headers limited to H1-H3 | Markdown supports H1-H6 | Downgrade H4+ to H3 (acceptable loss for planning docs) |
+| File URLs expire after 1 hour if not attached | Must upload and attach immediately | Upload → create block → attach in single operation |
+| No markdown input (blocks/rich text only) | Must parse and convert | Build custom parser (unavoidable) |
+| Rate limit: 3 req/sec | Syncing 50 pages = 17+ seconds minimum | Show progress indicator; batch operations where possible |
+
+## Implementation Complexity Breakdown
+
+### Low Complexity (1-2 days)
+- Notion API key setup in config.json
+- External image link support (passthrough URLs)
+- CLI command scaffolding (`/gsd:sync-notion`)
+- Post-milestone prompt
+- Page ID tracking (simple JSON file)
+
+### Medium Complexity (3-5 days)
+- Basic markdown parser (headings, paragraphs, lists)
+- Parent/child hierarchy creation (recursive page creation)
+- Update existing pages (load page IDs, call update API)
+- Smart change detection (mtime or git hash comparison)
+- Progress indicators and error handling
+
+### High Complexity (5-10 days)
+- Full markdown-to-blocks conversion (tables, code blocks, rich text chunking)
+- Pull comments feature (API retrieval, grouping, markdown generation)
+- Local image upload (File Upload API, expiry handling, URL replacement)
+- Internal link preservation (link parsing, page ID mapping, mention creation)
+
+## Dependencies on Existing GSD Features
+
+| Notion Feature | GSD Feature Required | Reason |
+|---------------|---------------------|--------|
+| All features | PathResolver | Multi-project support; must resolve `.planning/{project}/notion-sync.json` paths |
+| Sync command | Config system | Store Notion API key in config.json |
+| Post-milestone prompt | Auto-advance pattern | Reuse existing workflow interruption mechanism |
+| Page hierarchy | Multi-project folder structure | .planning/ organization defines Notion hierarchy |
+| Comments triage | Phase numbering logic | Map comments back to phase/plan files |
+| Smart change detection | Git integration | Use git commit hashes to detect changes |
+| All features | gsd-tools.js patterns | Follow existing conventions for config, state, JSON operations |
 
 ## Sources
 
-### General PM Planning Tools
-- [Best 21 Project Management Software to Compare in 2026](https://www.wrike.com/project-management-guide/faq/what-are-project-management-tools/)
-- [40 Best Project Management Software Picked For 2026](https://thedigitalprojectmanager.com/tools/best-project-management-software/)
-- [Essential project management software features in 2026](https://www.goodday.work/blog/project-management-software-features/)
-- [Ultimate guide to project management software in 2026 | Teamwork.com](https://www.teamwork.com/blog/project-management-software-buyers-guide/)
+**Notion API Official Documentation:**
+- [Create a page](https://developers.notion.com/reference/post-page) — Parent relationships, properties, content blocks
+- [Update page properties](https://developers.notion.com/reference/patch-page) — What can/cannot be updated
+- [Working with comments](https://developers.notion.com/guides/data-apis/working-with-comments) — Retrieve open comments, limitations
+- [Uploading small files](https://developers.notion.com/docs/uploading-small-files) — File Upload API (2025)
+- [File object](https://developers.notion.com/reference/file-object) — External vs uploaded files
 
-### AI-Assisted Project Planning
-- [The 10 Best AI Project Management Tools for 2026 by Forecast](https://www.forecast.app/blog/10-best-ai-project-management-software)
-- [The 6 best AI project management tools in 2026](https://zapier.com/blog/best-ai-project-management-tools/)
-- [10 Best AI Project Management Tools & Software in 2026](https://clickup.com/blog/ai-project-management-tools/)
-- [How AI is transforming project management in 2026 | TechTarget](https://www.techtarget.com/searchenterpriseai/feature/How-AI-is-transforming-project-management)
+**Notion Integration Libraries:**
+- [Martian](https://github.com/tryfabric/martian) — Markdown to Notion blocks conversion patterns
+- [notion-sync (startnext)](https://github.com/startnext/notion-sync) — Update strategy, hierarchy preservation
+- [NotionRepoSync](https://github.com/sourcegraph/notionreposync) — Internal link handling
 
-### Product Manager Workflows
-- [Product management trends 2026: 10 future predictions - Airtable](https://www.airtable.com/articles/product-management-trends)
-- [The AI Product Management Workflows Every PM Needs In 2026 | Productside](https://productside.com/the-ai-product-management-workflows-2026/)
-- [What Every Product Manager Should Prepare for in 2026 | by Enrique Somoza | Bootcamp | Medium](https://medium.com/design-bootcamp/what-every-product-manager-should-prepare-for-in-2026-ec810c33c675)
+**Markdown-to-Notion Patterns:**
+- [Markdown to Notion Blocks](https://brittonhayes.dev/notes/markdown-to-notion-blocks/) — Character limits, chunking challenges
+- [Building a Notion to Markdown tool is annoying actually](https://altf4.blog/blog/2024-02-25-building-a-notion-to-markdown-tool-is-annoying-actually) — API structure challenges
+- [Using Markdown in Notion Without Losing Formatting](https://www.goinsight.ai/blog/markdown-to-notion/) — Conversion limitations
 
-### Markdown/Git-Based Planning
-- [GitHub - MrLesk/Backlog.md: A tool for managing project collaboration between humans and AI Agents](https://github.com/MrLesk/Backlog.md)
-- [Markdown Projects – File based project management for AI agents](https://www.markdownprojects.com/)
-- [Show HN: Markdown Projects – File based project management for AI agents | Hacker News](https://news.ycombinator.com/item?id=46943135)
-- [GitHub - BaldissaraMatheus/Tasks.md: A self-hosted, Markdown file based task management board](https://github.com/BaldissaraMatheus/Tasks.md)
-- [Managing IT Projects in a Text Mode | by Pixers | Medium](https://medium.com/pixers-stories/managing-it-projects-in-a-text-mode-and-more-374cd497309d)
+**Community Tools:**
+- [Mk Notes](https://mk-notes.io/) — User expectations for sync tools
+- [mdsync](https://github.com/alasdairpan/mdsync) — One-way sync patterns
 
-### Jira Integration
-- [23 Best Jira-Integrated Project Management Software 2026](https://thedigitalprojectmanager.com/tools/best-project-management-software-jira-integration/)
-- [How to connect Jira MCP and Claude Code for effortless project management - Composio](https://composio.dev/blog/jira-mcp-server)
-- [Claude AI Jira integration](https://www.eesel.ai/blog/claude-ai-jira-integration)
-
-### Git-Based Project Planning
-- [GitHub Issues · Project planning for developers](https://github.com/features/issues)
-- [Can GitHub Be Used for Project Management?](https://www.dartai.com/blog/can-github-be-used-for-project-management)
-- [The Planning Repo Pattern | by jason poley | Medium](https://medium.com/@jbpoley/the-planning-repo-pattern-160ee57adcaf)
-
-### Hybrid Planning Approaches
-- [Hybrid Project Management: Blend Agile And Waterfall Effectively](https://monday.com/blog/project-management/hybrid-project-management/)
-- [What Is Hybrid Project Management? | TeamGantt](https://www.teamgantt.com/waterfall-agile-guide/hybrid-approach)
-- [Hybrid Project Management: The Ultimate Guide | SixSigma.us](https://www.6sigma.us/project-management/hybrid-project-management/)
-
-### AI Project Planning Pitfalls
-- [Why Most AI Projects Fail: 10 Mistakes to Avoid | PMI Blog](https://www.pmi.org/blog/why-most-ai-projects-fail)
-- [Why AI Projects Fail Due To Unstructured Execution](https://smartdev.com/why-ai-projects-fail-to-scale-and-how-to-fix-execution-before-its-too-late/)
-- [Why Most AI Projects Fail: The Real Challenges Behind Implementation - Scalo](https://www.scalosoft.com/blog/why-most-ai-projects-fail-the-real-challenges-behind-implementation/)
+**Notion API Guides:**
+- [Working with page content](https://developers.notion.com/docs/working-with-page-content) — Page ID tracking
+- [Notion API Guide (Whalesync)](https://www.whalesync.com/blog/notion-api-guide-) — Page ID structure, webhook patterns
+- [Notion File Upload (Notion Mastery)](https://notionmastery.com/uploading-files-via-notions-api/) — Upload API constraints
 
 ---
-*Feature research for: AI-assisted, markdown-based PM planning tool (GSD framework adaptation)*
-*Researched: 2026-02-10*
-*Confidence: MEDIUM - patterns confirmed across 25+ sources covering PM tools, AI workflows, markdown planning, and git-based collaboration*
+*Feature research for: Notion Integration (GSD for PMs)*
+*Researched: 2026-02-11*
