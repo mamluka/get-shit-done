@@ -43,12 +43,54 @@ The document should describe what you want to build.
 INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init new-project)
 ```
 
-Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`, `has_flat_structure`, `existing_projects`.
+Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`, `has_flat_structure`, `existing_projects`, `jira_mcp`.
 
 **If `has_git` is false:** Initialize git:
 ```bash
 git init
 ```
+
+## 1.5. Jira Integration Check
+
+**Non-blocking check — project creation always proceeds regardless of result.**
+
+Read `jira_mcp` from init JSON (parsed in Step 1).
+
+**If `jira_mcp.available` is false:**
+
+Display informational banner:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ JIRA INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Jira integration is not currently set up.
+
+This is optional — all planning features work without it.
+When configured, it enables ticket lookup and validation.
+
+Setup guides:
+  Atlassian Cloud: .claude/get-shit-done/templates/mcp-setup/jira-rovo.md
+  Jira Server/DC:  .claude/get-shit-done/templates/mcp-setup/jira-community.md
+
+Continuing with project setup...
+```
+
+Do NOT ask the user to set up Jira now. Do NOT pause for input. Display the banner and continue immediately to Step 2.
+
+**If `jira_mcp.available` is true:**
+
+No banner needed. Silently store availability for future features:
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira_mcp_available true
+node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira_mcp_server "${jira_mcp.serverName}"
+```
+
+These config-set calls use the existing `config-set` subcommand (line 5577 of gsd-tools.js) to persist MCP status in config.json. If config.json doesn't exist yet (first-time setup), config-set creates it.
+
+Continue to Step 2.
 
 ## 2. Create Project
 
