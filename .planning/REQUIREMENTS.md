@@ -15,8 +15,8 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 ### Planning Workflow
 
-- [ ] **PLAN-01**: plan-phase auto-advance loop runs discuss-phase before planning each phase when CONTEXT.md is missing
-- [ ] **PLAN-02**: discuss-phase runs full interactive flow (AskUserQuestion prompts for decisions, discretion areas) before proceeding to planning
+- [x] **PLAN-01**: plan-phase auto-advance loop runs discuss-phase before planning each phase when CONTEXT.md is missing
+- [x] **PLAN-02**: discuss-phase runs full interactive flow (AskUserQuestion prompts for decisions, discretion areas) before proceeding to planning
 - [ ] **PLAN-03**: After all phases are planned, user is prompted "Sync to Notion?" before displaying completion
 
 ### Notion Config
@@ -60,8 +60,8 @@ Requirements for v1.2 Streamlined Workflow milestone.
 | NOTION-01 | Phase 12 | Complete |
 | NOTION-02 | Phase 12 | Complete |
 | NOTION-03 | Phase 12 | Complete |
-| PLAN-01 | Phase 13 | Pending |
-| PLAN-02 | Phase 13 | Pending |
+| PLAN-01 | Phase 13 | Complete |
+| PLAN-02 | Phase 13 | Complete |
 | PLAN-03 | Phase 14 | Pending |
 | NOTION-04 | Phase 14 | Pending |
 
@@ -78,4 +78,4 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 (roadmap traceability added)*
+*Last updated: 2026-02-12 (Phase 13 complete — PLAN-01, PLAN-02)*
