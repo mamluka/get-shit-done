@@ -41,18 +41,22 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 - ✓ CLI tool (notion-sync.js) using @notionhq/client for all Notion operations — v1.1
 - ✓ `/gsd:sync-notion` command to push .md files to Notion (create or update) — v1.1
 - ✓ `/gsd:notion-comments` command to pull comments, save as dated .md, triage by theme and phase — v1.1
+- ✓ Quick settings "Apply recommended?" shortcut during new-project — v1.2
+- ✓ Auto-discuss before planning (full interactive discussion per phase) — v1.2
+- ✓ Notion sync prompt after all phases planned with auth pre-check — v1.2
+- ✓ Notion parent page URL collection during install with format detection — v1.2
 
 ### Active
 
-#### Current Milestone: v1.2 Streamlined Workflow
+#### Current Milestone: v1.3 Comment-Driven Planning
 
-**Goal:** Streamline the new-project-to-Notion workflow — fewer questions at setup, integrated discussion before planning, and automatic Notion sync at the end.
+**Goal:** Transform the notion-comments workflow from a passive triage tool into an active planning driver — Claude interprets comments, recommends planning changes, and can auto-incorporate feedback into phases.
 
 **Target features:**
-- Quick settings setup with "Apply recommended?" shortcut
-- Auto-discuss before planning (full interactive discussion per phase)
-- Notion sync prompt after all phases planned
-- Notion parent page URL collection during install
+- Comment understanding presentation (Claude interprets what each comment means)
+- Long output overflow to .md file when too verbose for conversation
+- Intelligent phase integration (decide: update existing phases vs create new phases)
+- User choice: discuss changes interactively or let Claude auto-incorporate
 
 ### Deferred
 
@@ -82,7 +86,7 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ## Context
 
-Shipped v1.1 with 27,410 LOC JavaScript total. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). 10 phases and 23 plans shipped across 2 milestones.
+Shipped v1.2 with 27 plans across 14 phases over 3 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration.
 
 Tech stack: Node.js, @notionhq/client, @tryfabric/martian, mime-types, git-backed planning artifacts.
 
@@ -129,4 +133,4 @@ Key patterns established:
 | Error accumulation pattern | Conversion errors become warnings, never lose content | ✓ Good — partial success preferred over batch failure |
 
 ---
-*Last updated: 2026-02-12 after v1.2 milestone start*
+*Last updated: 2026-02-12 after v1.3 milestone start*

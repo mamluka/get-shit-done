@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.2 Streamlined Workflow — Phase 14 (Notion Sync Integration)
+**Current focus:** v1.3 Comment-Driven Planning — Not started (defining requirements)
 
 ## Current Position
 
-Phase: 14 of 14 (Notion Sync Integration)
-Plan: 1 of 1 complete
-Status: Phase 14 verified and complete. All v1.2 phases done.
-Last activity: 2026-02-12 — Phase 14 verified, all must-haves passed
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-12 — Milestone v1.3 started
 
 Progress: [██████████████] 100% (27/27 plans complete across all milestones)
 
@@ -103,7 +103,7 @@ No current blockers — all patterns validated via existing code and research.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Phase 14 verified and complete
+Stopped at: Milestone v1.3 requirements definition
 Resume file: None
 
-**Next step:** `/gsd:complete-milestone` to mark v1.2 as shipped and archive
+**Next step:** Define requirements, then `/gsd:plan-phase 15` to start execution
