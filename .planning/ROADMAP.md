@@ -108,10 +108,10 @@ Plans:
   4. Sync results are displayed (files created/updated/skipped/failed) before showing final completion message
   5. If Notion is not configured, prompt is skipped and user proceeds to completion message without interruption
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 14-01: TBD
+- [ ] 14-01-PLAN.md — Add Notion sync prompt step 14e to plan-phase workflow with auth pre-check
 
 ## Progress
 
@@ -130,8 +130,8 @@ Plans:
 | 11. Quick Settings Shortcut | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 12. Notion Parent Page Configuration | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 13. Auto-Discuss Before Planning | v1.2 | 1/1 | Complete | 2026-02-12 |
-| 14. Notion Sync Integration | v1.2 | 0/TBD | Not started | - |
+| 14. Notion Sync Integration | v1.2 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-12 (Phase 13 complete)*
+*Last updated: 2026-02-12 (Phase 14 planned)*
