@@ -14,7 +14,7 @@ Retrieve unresolved comments from synced Notion pages, identify themes across al
 Fetch all unresolved comments from synced Notion pages:
 
 ```bash
-node bin/notion-sync.js comments --cwd "$(pwd)"
+node ~/.claude/get-shit-done/bin/notion-sync.js comments --cwd "$(pwd)"
 ```
 
 Parse the JSON output between `---COMMENTS_JSON_START---` and `---COMMENTS_JSON_END---` markers.
@@ -32,6 +32,75 @@ Nothing to triage. You're all clear!
 Exit workflow.
 
 If comments found, continue to next step.
+
+</step>
+
+<step name="interpret_comments">
+
+After fetching comments, provide a plain-language interpretation of each comment grouped by source file (Notion page).
+
+**Grouping:** Use the `source_page_title` field from the JSON output to group comments. If `source_page_title` is null, fall back to the `source_file` path. Each group represents one Notion page.
+
+**Interpretation format:** For each comment in each group, create an interpretation block with:
+
+```
+> "{original comment text}" — {created_by}, {created_time formatted as YYYY-MM-DD}
+>
+> **Intent:** {Claude's plain-language interpretation of what the commenter means and what they're asking for}
+```
+
+**Output structure:**
+
+```markdown
+## Comment Interpretation
+
+Found {N} comments across {M} pages.
+
+### {Page Title 1}
+
+> "{comment text}" — Author, 2026-02-12
+>
+> **Intent:** The commenter is asking for...
+
+> "{comment text}" — Author, 2026-02-12
+>
+> **Intent:** The commenter wants to...
+
+### {Page Title 2}
+
+...
+```
+
+**Output routing:** After composing the full interpretation output:
+
+1. **Estimate token count:** Count total characters in the interpretation text and divide by 4 (1 token ≈ 4 characters).
+
+2. **Route based on length:**
+   - **If estimated tokens < 1500:** Present the interpretation directly in the conversation (inline). No file is created.
+   - **If estimated tokens >= 1500:** Save the interpretation to `.planning/notion-comments-{YYYY-MM-DD}.md` (using today's date in ISO 8601 format). If the file already exists for today, append a counter (e.g., `notion-comments-2026-02-12-2.md`). Tell the user: "Comment interpretation saved to `.planning/notion-comments-{date}.md` — read the file for full details." Then present a brief summary inline: total comment count, page count, and a one-line-per-page overview (page title + comment count).
+
+**File format when saving:**
+
+```markdown
+# Notion Comment Interpretation — {YYYY-MM-DD}
+
+**Source:** {N} comments from {M} pages
+**Generated:** {YYYY-MM-DD}
+
+## {Page Title 1}
+
+> "{comment text}" — Author, 2026-02-12
+>
+> **Intent:** The commenter is asking for...
+
+## {Page Title 2}
+
+...
+```
+
+**Note:** This interpretation output is separate from the triage results saved by the `save_results` step later in the workflow. The interpretation file provides raw understanding; the triage file records user decisions.
+
+After either output path (inline or file), continue to the next step.
 
 </step>
 
@@ -195,7 +264,6 @@ Triage results saved to .planning/notion-comments-{date}.md
 {If any accepted themes:}
 Next steps for accepted items:
 - Add requirements to next milestone via /gsd:new-milestone
-- Or create quick tasks via /gsd:quick
 
 {If all dismissed/deferred:}
 All feedback triaged — nothing requires immediate action.
