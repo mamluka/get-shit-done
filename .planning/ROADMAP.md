@@ -48,11 +48,10 @@
   3. Recommended settings and interactive flow produce identical config.json output (no drift)
   4. User can still choose custom settings if recommended defaults don't fit
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
+- [ ] 11-01-PLAN.md — Add RECOMMENDED_SETTINGS constant and Recommended/Custom gate to new-project workflow
 
 ### Phase 12: Notion Parent Page Configuration
 
