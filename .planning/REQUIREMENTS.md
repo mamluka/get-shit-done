@@ -96,23 +96,23 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 | PLAN-02 | Phase 13 | Complete |
 | PLAN-03 | Phase 14 | Complete |
 | NOTION-04 | Phase 14 | Complete |
-| CINT-01 | — | Pending |
-| CINT-02 | — | Pending |
-| CINT-03 | — | Pending |
-| OUTP-01 | — | Pending |
-| OUTP-02 | — | Pending |
-| PINT-01 | — | Pending |
-| PINT-02 | — | Pending |
-| PINT-03 | — | Pending |
-| CTRL-01 | — | Pending |
-| CTRL-02 | — | Pending |
-| CTRL-03 | — | Pending |
+| CINT-01 | Phase 15 | Pending |
+| CINT-02 | Phase 15 | Pending |
+| CINT-03 | Phase 15 | Pending |
+| OUTP-01 | Phase 15 | Pending |
+| OUTP-02 | Phase 15 | Pending |
+| PINT-01 | Phase 16 | Pending |
+| PINT-02 | Phase 16 | Pending |
+| PINT-03 | Phase 16 | Pending |
+| CTRL-01 | Phase 16 | Pending |
+| CTRL-02 | Phase 16 | Pending |
+| CTRL-03 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 11 total
-- Mapped to phases: 0/11 (awaiting roadmap)
-- Unmapped: 11
+- Mapped to phases: 11/11 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 after v1.3 milestone definition*
+*Last updated: 2026-02-12 after v1.3 roadmap creation*

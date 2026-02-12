@@ -4,7 +4,8 @@
 
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-02-11)
 - ✅ **v1.1 Notion Integration** — Phases 6-10 (shipped 2026-02-11)
-- 🚧 **v1.2 Streamlined Workflow** — Phases 11-14 (in progress)
+- ✅ **v1.2 Streamlined Workflow** — Phases 11-14 (shipped 2026-02-12)
+- 🚧 **v1.3 Comment-Driven Planning** — Phases 15-16 (in progress)
 
 ## Phases
 
@@ -30,88 +31,60 @@
 
 </details>
 
-### 🚧 v1.2 Streamlined Workflow (In Progress)
+<details>
+<summary>✅ v1.2 Streamlined Workflow (Phases 11-14) — SHIPPED 2026-02-12</summary>
 
-**Milestone Goal:** Streamline the new-project-to-Notion workflow — fewer questions at setup, integrated discussion before planning, and automatic Notion sync at the end.
+- [x] Phase 11: Quick Settings Shortcut (1/1 plans) — completed 2026-02-12
+- [x] Phase 12: Notion Parent Page Configuration (1/1 plans) — completed 2026-02-12
+- [x] Phase 13: Auto-Discuss Before Planning (1/1 plans) — completed 2026-02-12
+- [x] Phase 14: Notion Sync Integration (1/1 plans) — completed 2026-02-12
 
-### Phase 11: Quick Settings Shortcut
+</details>
 
-**Goal**: User can skip individual settings questions and apply recommended defaults in one action
+### 🚧 v1.3 Comment-Driven Planning (In Progress)
 
-**Depends on**: Nothing (standalone feature)
+**Milestone Goal:** Transform the notion-comments workflow from a passive triage tool into an active planning driver — Claude interprets comments, recommends planning changes, and can auto-incorporate feedback into phases.
 
-**Requirements**: SETUP-01, SETUP-02, SETUP-03
+### Phase 15: Comment Understanding & Output
 
-**Success Criteria** (what must be TRUE):
-  1. User sees "Apply recommended settings?" option during new-project before individual settings questions
-  2. Accepting recommended settings applies depth: standard, research: true, plan_check: true, verifier: true, model_profile: balanced, commit_docs: true, parallelization: true
-  3. Recommended settings and interactive flow produce identical config.json output (no drift)
-  4. User can still choose custom settings if recommended defaults don't fit
+**Goal**: User receives plain-language interpretation of Notion comments with smart output handling
 
-**Plans**: 1 plan
+**Depends on**: Phase 10 (comment retrieval infrastructure)
 
-Plans:
-- [x] 11-01-PLAN.md — Add RECOMMENDED_SETTINGS constant and Recommended/Custom gate to new-project workflow — completed 2026-02-12
-
-### Phase 12: Notion Parent Page Configuration
-
-**Goal**: User provides Notion parent page URL during install, and page ID is automatically extracted and saved
-
-**Depends on**: Nothing (standalone feature)
-
-**Requirements**: NOTION-01, NOTION-02, NOTION-03
+**Requirements**: CINT-01, CINT-02, CINT-03, OUTP-01, OUTP-02
 
 **Success Criteria** (what must be TRUE):
-  1. User is prompted for Notion parent page URL during install.js setup (after API key prompt)
-  2. Page ID is extracted from various URL formats (notion.so/{slug}-{id}, notion.so/{id}, shared links with query params)
-  3. Extracted page ID is validated (32-char hex or UUID format) and saved to config.json as notion.parent_page_id
-  4. User sees example URL format in prompt and helpful error messages for invalid URLs
-  5. User can skip parent page configuration by pressing Enter (optional field)
+  1. User sees plain-language interpretation of what each comment means and what the commenter is asking for
+  2. Comments are grouped by the source file they were placed on (using Notion page title)
+  3. Each interpretation shows original comment text, commenter name, and Claude's understanding of intent
+  4. When interpretation exceeds conversation-friendly length (>1500 tokens), output is saved to `.planning/notion-comments-{date}.md` and user is directed to read the file
+  5. When interpretation fits in conversation (<1500 tokens), it is presented inline without creating a file
 
-**Plans**: 1 plan
+**Plans**: 0 plans (not started)
 
 Plans:
-- [x] 12-01-PLAN.md — Add Notion parent page URL prompt with ID extraction, validation, and config persistence — completed 2026-02-12
+- [ ] 15-01-PLAN.md — TBD
 
-### Phase 13: Auto-Discuss Before Planning
+### Phase 16: Phase Integration & User Control
 
-**Goal**: Each phase automatically offers discussion before planning, ensuring context is gathered before formal planning begins
+**Goal**: User can choose to discuss or auto-incorporate comment-driven changes into planning artifacts
 
-**Depends on**: Nothing (extends existing discuss-phase workflow)
+**Depends on**: Phase 15 (comment interpretation)
 
-**Requirements**: PLAN-01, PLAN-02
+**Requirements**: PINT-01, PINT-02, PINT-03, CTRL-01, CTRL-02, CTRL-03
 
 **Success Criteria** (what must be TRUE):
-  1. When plan-phase runs and CONTEXT.md is missing, user is asked "Discuss this phase first or plan directly?"
-  2. If user chooses discuss, full interactive discussion runs (AskUserQuestion prompts for decisions and discretion areas) before planning
-  3. CONTEXT.md is created and saved before planning proceeds
-  4. Planning steps (research, plan, check) receive CONTEXT.md content to inform their work
-  5. User can skip discussion and proceed to planning directly if context is already clear
+  1. After presenting comment understanding, Claude analyzes the current roadmap and recommends whether each accepted comment should update an existing phase or create a new phase
+  2. For existing phase updates, Claude identifies which specific phase and what changes are needed (add success criterion, add requirement, update goal, etc.)
+  3. For new phase creation, Claude proposes a phase name, goal, requirements, and success criteria following the existing roadmap format
+  4. User is prompted with two options: "Discuss changes" (interactive conversation) or "Let Claude decide" (auto-incorporate)
+  5. If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
+  6. If "Let Claude decide", Claude auto-incorporates all accepted changes into planning artifacts (ROADMAP.md, phase PLAN.md files, REQUIREMENTS.md traceability)
 
-**Plans**: 1 plan
-
-Plans:
-- [x] 13-01-PLAN.md — Add discussion gate to plan-phase workflow with --skip-discussion flag — completed 2026-02-12
-
-### Phase 14: Notion Sync Integration
-
-**Goal**: After all phases are planned, user is prompted to sync planning docs to Notion with auth pre-check to prevent failures
-
-**Depends on**: Phase 12 (parent page configuration)
-
-**Requirements**: PLAN-03, NOTION-04
-
-**Success Criteria** (what must be TRUE):
-  1. After all phases in milestone are planned, user sees "Sync planning docs to Notion?" prompt before completion message
-  2. Prompt only appears if Notion is properly configured (API key validation: non-empty, correct prefix, parent page ID exists)
-  3. If user accepts, notion-sync.js runs and uploads .planning/ markdown files to Notion with parent/child hierarchy
-  4. Sync results are displayed (files created/updated/skipped/failed) before showing final completion message
-  5. If Notion is not configured, prompt is skipped and user proceeds to completion message without interruption
-
-**Plans**: 1 plan
+**Plans**: 0 plans (not started)
 
 Plans:
-- [x] 14-01-PLAN.md — Add Notion sync prompt step 14e to plan-phase workflow with auth pre-check — completed 2026-02-12
+- [ ] 16-01-PLAN.md — TBD
 
 ## Progress
 
@@ -131,7 +104,9 @@ Plans:
 | 12. Notion Parent Page Configuration | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 13. Auto-Discuss Before Planning | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 14. Notion Sync Integration | v1.2 | 1/1 | Complete | 2026-02-12 |
+| 15. Comment Understanding & Output | v1.3 | 0/? | Pending | — |
+| 16. Phase Integration & User Control | v1.3 | 0/? | Pending | — |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-12 (Phase 14 complete — v1.2 milestone done)*
+*Last updated: 2026-02-12 (v1.3 milestone roadmap created)*

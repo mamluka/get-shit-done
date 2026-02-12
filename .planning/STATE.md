@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.3 Comment-Driven Planning — Not started (defining requirements)
+**Current focus:** v1.3 Comment-Driven Planning — Phase 15 pending
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 15 — Comment Understanding & Output
 Plan: —
-Status: Defining requirements
-Last activity: 2026-02-12 — Milestone v1.3 started
+Status: Pending (awaiting `/gsd:plan-phase 15`)
+Last activity: 2026-02-12 — Milestone v1.3 roadmap created
 
-Progress: [██████████████] 100% (27/27 plans complete across all milestones)
+Progress: [█████████████░] 93% (27/29 phases planned across all milestones)
 
 ## Performance Metrics
 
@@ -32,10 +32,16 @@ Progress: [██████████████] 100% (27/27 plans complet
 - Files modified: 55
 - Notion module LOC: 3,371
 
-**v1.2 Status:**
-- Total plans: 4
-- Completed: 4
-- Progress: Phase 11 complete, Phase 12 complete, Phase 13 complete, Phase 14 complete
+**v1.2 Summary:**
+- Total plans completed: 4
+- Total tasks: 4
+- Timeline: 1 day (2026-02-12)
+- Phases: 11-14 (all complete)
+
+**v1.3 Status:**
+- Total phases: 2
+- Completed: 0
+- Pending: Phase 15, Phase 16
 
 **By Phase:**
 
@@ -55,37 +61,20 @@ Progress: [██████████████] 100% (27/27 plans complet
 | 12. Notion Parent Page Configuration | 1 | Complete | v1.2 |
 | 13. Auto-Discuss Before Planning | 1 | Complete | v1.2 |
 | 14. Notion Sync Integration | 1 | Complete | v1.2 |
-
-**Phase 13 Plan 01:**
-- Duration: 95 seconds
-- Tasks: 1
-- Files modified: 2
-
-**Phase 14 Plan 01:**
-- Duration: 107 seconds
-- Tasks: 2
-- Files modified: 2
+| 15. Comment Understanding & Output | — | Pending | v1.3 |
+| 16. Phase Integration & User Control | — | Pending | v1.3 |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table. All v1.0 and v1.1 decisions marked as ✓ Good.
+Decisions are logged in PROJECT.md Key Decisions table. All v1.0, v1.1, and v1.2 decisions marked as ✓ Good.
 
-**Recent decisions affecting v1.2:**
-- Node.js built-in readline for prompts — zero new dependencies, reuses install.js patterns
-- Single-source-of-truth for recommended settings — prevents drift between shortcut and interactive flow
-- Auto-discuss as opt-in before planning — improves plan quality without forcing all phases
-- Auth pre-check before Notion sync prompt — prevents post-completion failures
-- [Phase 11]: depth: 'standard' for recommended settings (user decision from CONTEXT.md) — Not 'quick' - provides balanced scope
-- [Phase 12]: Parent page prompt chains after API key prompt — only shown when API key exists
-- [Phase 12]: Support multiple Notion URL formats (workspace, bare ID, shared links) for flexibility
-- [Phase 13-01]: Step 3b positioned between step 4 and step 4b — Ensures discussion happens after CONTEXT.md is loaded but before phase is marked in-progress
-- [Phase 13-01]: Three skip conditions (has_context, --skip-discussion, --gaps) — has_context prevents redundant prompts, --skip-discussion enables fast-path, --gaps mode is gap closure
-- [Phase 13-01]: Init reload after discuss-phase completes — Original init has context_content null; reload picks up CONTEXT.md for downstream agents
-- [Phase 14-01]: Pre-check validates API key format without network calls — Format validation (secret_ or ntn_ prefix) is fast and prevents showing prompt when key is obviously invalid
-- [Phase 14-01]: Sync errors do not block milestone completion — Notion sync is a publishing convenience, not a required step
-- [Phase 14-01]: Silent skip when Notion not configured — Users who don't use Notion should not see irrelevant prompts
+**Recent decisions affecting v1.3:**
+- Phase 15 token threshold: 1500 tokens — Balances conversation readability with overflow prevention
+- Two-phase structure for v1.3 — Natural separation: understand comments (Phase 15), then act on them (Phase 16)
+- Dependency on Phase 10 — Comment retrieval infrastructure already exists, Phase 15 extends interpretation layer
+- Discuss vs auto-incorporate choice — User control over planning changes (CTRL-01, CTRL-02, CTRL-03)
 
 ### Pending Todos
 
@@ -93,17 +82,21 @@ None.
 
 ### Blockers/Concerns
 
-**Research gaps addressed:**
-- Context window tracking needed in Phase 13 (warn at 15K+ tokens, suggest /clear at 20K+)
-- Notion URL format edge cases covered in Phase 12 (workspace vs page URL detection)
-- Recommended settings versioning documented (manual review process, future CI/CD lint rule)
+**Research considerations for Phase 15:**
+- Token estimation strategy — Need to count tokens in interpretation output before deciding inline vs file
+- Conversation length threshold — 1500 tokens chosen as balance (may need tuning based on user feedback)
 
-No current blockers — all patterns validated via existing code and research.
+**Research considerations for Phase 16:**
+- Roadmap mutation patterns — Need to safely update ROADMAP.md structure (add phases, update existing)
+- PLAN.md editing patterns — Extend existing phase plans vs create new plans
+- Traceability updates — Automatically update REQUIREMENTS.md when new requirements added from comments
+
+No current blockers — all patterns follow existing codebase conventions.
 
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Milestone v1.3 requirements definition
+Stopped at: Milestone v1.3 roadmap creation
 Resume file: None
 
-**Next step:** Define requirements, then `/gsd:plan-phase 15` to start execution
+**Next step:** `/gsd:plan-phase 15` to start planning Phase 15: Comment Understanding & Output
