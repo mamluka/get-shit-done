@@ -68,10 +68,10 @@ Plans:
   4. User sees example URL format in prompt and helpful error messages for invalid URLs
   5. User can skip parent page configuration by pressing Enter (optional field)
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 12-01: TBD
+- [ ] 12-01-PLAN.md — Add Notion parent page URL prompt with ID extraction, validation, and config persistence
 
 ### Phase 13: Auto-Discuss Before Planning
 
