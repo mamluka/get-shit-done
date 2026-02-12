@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-12)
 ## Current Position
 
 Phase: 12 of 14 (Notion Parent Page Configuration)
-Plan: Ready to plan
-Status: Phase 11 verified and complete. Phase 12 ready.
-Last activity: 2026-02-12 — Phase 11 verified, all must-haves passed
+Plan: 1 of 1 complete
+Status: Phase 12 Plan 01 complete. Ready for Phase 13.
+Last activity: 2026-02-12 — Phase 12-01 executed and verified
 
-Progress: [██████████░░░░] 75% (24/32 plans complete across all milestones)
+Progress: [██████████░░░░] 78% (25/32 plans complete across all milestones)
 
 ## Performance Metrics
 
@@ -34,8 +34,8 @@ Progress: [██████████░░░░] 75% (24/32 plans complete
 
 **v1.2 Status:**
 - Total plans: TBD (estimated 4-6 plans)
-- Completed: 1
-- Progress: Phase 11 complete
+- Completed: 2
+- Progress: Phase 11 complete, Phase 12 complete
 
 **By Phase:**
 
@@ -52,7 +52,7 @@ Progress: [██████████░░░░] 75% (24/32 plans complete
 | 9. Image Handling | 2 | Complete | v1.1 |
 | 10. Workflow Integration & Comment Retrieval | 2 | Complete | v1.1 |
 | 11. Quick Settings Shortcut | 1 | Complete | v1.2 |
-| 12. Notion Parent Page Configuration | TBD | Not started | v1.2 |
+| 12. Notion Parent Page Configuration | 1 | Complete | v1.2 |
 | 13. Auto-Discuss Before Planning | TBD | Not started | v1.2 |
 | 14. Notion Sync Integration | TBD | Not started | v1.2 |
 
@@ -68,6 +68,8 @@ Decisions are logged in PROJECT.md Key Decisions table. All v1.0 and v1.1 decisi
 - Auto-discuss as opt-in before planning — improves plan quality without forcing all phases
 - Auth pre-check before Notion sync prompt — prevents post-completion failures
 - [Phase 11]: depth: 'standard' for recommended settings (user decision from CONTEXT.md) — Not 'quick' - provides balanced scope
+- [Phase 12]: Parent page prompt chains after API key prompt — only shown when API key exists
+- [Phase 12]: Support multiple Notion URL formats (workspace, bare ID, shared links) for flexibility
 
 ### Pending Todos
 
@@ -85,7 +87,7 @@ No current blockers — all patterns validated via existing code and research.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 11-01-PLAN.md
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 12` to plan Notion Parent Page Configuration
+**Next step:** `/gsd:plan-phase 13` to plan Auto-Discuss Before Planning
