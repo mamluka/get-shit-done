@@ -451,12 +451,94 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${PHASE}): mark
 
 **If `milestone_complete === true`:**
 
+Proceed to step 14e (Notion sync prompt).
+
+### 14e. Notion Sync Prompt
+
+First, run a fast local pre-check (no network calls) to validate Notion configuration:
+
+```bash
+NOTION_CHECK=$(node -e "
+const fs = require('fs');
+const path = require('path');
+const configPath = path.join(process.cwd(), '.planning', 'config.json');
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
+  const validPrefix = hasKey && (config.notion.api_key.startsWith('secret_') || config.notion.api_key.startsWith('ntn_'));
+  const hasParent = config.notion && config.notion.parent_page_id;
+  console.log(JSON.stringify({
+    configured: hasKey && validPrefix,
+    has_parent: !!hasParent,
+    reason: !hasKey ? 'no_api_key' : !validPrefix ? 'invalid_prefix' : 'valid'
+  }));
+} catch (e) {
+  console.log(JSON.stringify({ configured: false, reason: 'no_config' }));
+}
+" 2>/dev/null || echo '{"configured":false,"reason":"exec_error"}')
+
+CONFIGURED=$(echo "$NOTION_CHECK" | jq -r '.configured')
+```
+
+**If CONFIGURED is "true":**
+
+Display this banner:
+```
+───────────────────────────────────────────────────────────────
+
+## Upload Planning Docs to Notion?
+
+Your milestone planning docs are finalized and ready to share.
+
+This will sync .planning/ markdown files to Notion:
+- New files create pages
+- Changed files update existing pages
+- Unchanged files are skipped
+
+───────────────────────────────────────────────────────────────
+```
+
+Then use AskUserQuestion:
+- header: "Notion Sync"
+- question: "Sync planning docs to Notion?"
+- options:
+  - "Sync now" -- Run notion-sync.js
+  - "Skip" -- Continue to completion message
+
+**If user selects "Sync now":**
+
+Run sync as child process with inherited stdio for real-time progress visibility:
+```bash
+echo ""
+echo "Syncing to Notion..."
+echo ""
+
+if node bin/notion-sync.js sync --cwd "$(pwd)"; then
+  echo ""
+  echo "Planning docs synced to Notion"
+else
+  echo ""
+  echo "Sync encountered errors. You can retry with /gsd:sync-notion"
+  echo "Milestone completion will proceed regardless."
+fi
+```
+
+**If user selects "Skip":**
+
+Display: `Skipped Notion sync. Run /gsd:sync-notion later to upload docs.`
+
+**If CONFIGURED is "false":**
+
+Skip silently -- no prompt, no message. Users who don't use Notion should not see irrelevant prompts.
+
+### 14f. Display Completion Message
+
 Display:
 
 ```
 ───────────────────────────────────────────────────────────────
 
-## 🎉 All Phases Complete
+## All Phases Complete
 
 This was the last phase in the current roadmap.
 
@@ -498,4 +580,6 @@ Then **automatically start planning the next phase** by looping back to step 1 w
 - [ ] Verification passed OR user override OR max iterations with user decision
 - [ ] User sees status between agent spawns
 - [ ] User knows next steps
+- [ ] Notion sync prompt shown when milestone complete and Notion configured (step 14e)
+- [ ] Notion sync skipped silently when not configured
 </success_criteria>
