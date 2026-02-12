@@ -1,305 +1,272 @@
 # Project Research Summary
 
-**Project:** Notion API Integration for GSD
-**Domain:** CLI Tool Integration with Notion Workspace API
-**Researched:** 2026-02-11
+**Project:** v1.2 Streamlined Workflow
+**Domain:** CLI workflow optimization for Node.js meta-prompting framework
+**Researched:** 2026-02-12
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The Notion integration adds a parallel artifact distribution layer to GSD's existing git-backed planning system. The recommended approach uses @notionhq/client SDK (zero dependencies, official support) paired with @tryfabric/martian for markdown-to-Notion block conversion. This integration transforms GSD from a CLI-only planning tool into a stakeholder collaboration platform where planning artifacts remain git-backed (source of truth) while Notion becomes a read-only review interface with comment-based feedback flow.
+v1.2 focuses on streamlining the new-project-to-Notion workflow in the GSD framework through four targeted improvements: quick settings shortcuts, auto-discussion before planning, Notion sync prompts, and parent page URL collection. Research reveals that all features can be implemented using Node.js built-ins (readline, URL API) with zero new dependencies, integrating cleanly into existing workflow orchestration patterns validated in v1.0/v1.1.
 
-The critical architectural decision is keeping notion-sync.js as a separate parallel tool rather than embedding Notion logic into gsd-tools.js, preserving the zero-dependency architecture of core GSD functionality. The MVP requires only two new dependencies (@notionhq/client, @tryfabric/martian) adding ~7 total deps to the project. The core workflow is one-way push (.planning/ → Notion) with bidirectional comment retrieval (Notion comments → .planning/triage/).
+The recommended approach leverages existing architecture: modify workflow markdown files to insert new prompts/gates, reuse install.js readline patterns for yes/no questions, and delegate to existing utilities (gsd-tools.js, notion-sync.js) rather than creating new modules. The primary architectural insight is that GSD's markdown-based workflow orchestration is simpler than traditional orchestration frameworks and well-suited for linear phase progression with occasional user decision points.
 
-Key risks center on API constraints: 3 req/sec rate limiting, 2000-char block limits requiring chunking, 1-hour file upload expiration windows, and immutable parent hierarchies after page creation. Mitigation requires building rate limiting, chunking logic, and parent validation into the foundation before implementing batch operations. The most severe pitfall is token exposure via git commits, requiring strict environment variable-only storage from day one.
+Key risks center on configuration drift (recommended settings hardcoded separately from interactive flow) and context window bloat (chaining discuss → research → plan accumulates 20-33K tokens). Mitigation requires single-source-of-truth for defaults, token budget tracking with hard limits, and strategic `/clear` checkpoints between heavy operations. Notion integration risks include URL parsing fragility (workspace vs page URLs) and missing API key pre-checks, addressed through robust validation and early auth verification.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack research revealed a minimal-dependency approach that aligns with GSD's existing zero-dependency philosophy. Only two packages are required: @notionhq/client for API operations and @tryfabric/martian for markdown conversion.
+All v1.2 features use Node.js built-ins — no new dependencies required. This is not new development but strategic reuse of existing validated patterns.
 
 **Core technologies:**
-- **@notionhq/client ^5.9.0**: Official Notion API SDK — Zero dependencies, built-in file upload API, maintains parity with Notion's API version 2025-09-03, active maintenance (v5.9.0 released 10 days ago)
-- **@tryfabric/martian ^1.2.4**: Markdown to Notion blocks conversion — Purpose-built AST-based converter supporting all inline elements, headers, lists to any depth, GFM alerts, auto-handles Notion's 100-block-per-request limit
-- **Node.js built-in capabilities**: File handling (fs.readFile), markdown image parsing (native RegExp), testing (--test flag) — No additional libraries needed, Node 16.7+ sufficient (current env: 16.20.2)
+- **Node.js built-in readline** — yes/no prompts, "Apply recommended?" UX. Already proven in install.js for Notion API key prompts. Callback-based API matches existing patterns.
+- **Node.js built-in URL** — parse Notion page URLs to extract IDs. WHATWG URL API (stable since Node.js v10) handles protocol/domain/query params safely, avoiding regex fragility.
 
-**Alternatives considered and rejected:**
-- Custom markdown parser: Saves ~5 transitive deps but loses GFM support, list nesting, equations, and auto-chunking — not worth complexity
-- External image hosting service: Already have File Upload API which is simpler (1. create upload, 2. send file, 3. attach to block)
-- markdown-it/marked: General-purpose HTML parsers don't output Notion block objects
+**What NOT to use:**
+- Inquirer.js (25M weekly downloads) — overkill for simple yes/no prompts; v1.2 only needs binary choices, not multi-select/autocomplete/spinners
+- Orchestration frameworks (Zenaton, node-workflow) — heavy dependencies (Redis, BPMN parsers); GSD workflows are markdown + sequential prompts, not distributed state machines
+
+**Version compatibility:**
+- Node.js >=16.7.0 (already required in package.json)
+- All patterns validated in install.js (lines 1510-1576) and existing workflow files
 
 ### Expected Features
 
-Feature research identified clear MVP boundaries separating table-stakes functionality from differentiators and anti-features.
-
 **Must have (table stakes):**
-- Push markdown files to Notion as pages with proper formatting (headings, lists, tables, code blocks, bold/italic/strikethrough, links)
-- Preserve folder hierarchy as parent/child pages matching .planning/ structure
-- Update existing pages without creating duplicates (requires page ID tracking via notion-sync.json)
-- Handle basic markdown formatting (GFM subset that maps cleanly to Notion blocks)
-- Show sync status/progress with color-coded console output
-- Graceful error handling following GSD's best-effort pattern
+- **Default/Recommended Settings Shortcut** — CLI tools universally provide `-y`/`--yes` flags (npm, apt, yarn). Users expect one-click setup.
+- **Validation Feedback During Input** — users expect immediate feedback on config values (Notion URL format, API key prefix) to avoid re-doing entire process.
+- **Post-Workflow Optional Actions** — CLIs prompt for related actions after completing workflows (git commit → push, npm install → start).
+- **URL Format Flexibility** — tools accept various URL formats and extract IDs automatically (GitHub CLI accepts full URLs or repo slugs).
 
-**Should have (competitive advantage):**
-- Pull comments as structured feedback (Notion → .planning/triage/ for PM review)
-- Image handling for both local and external URLs
-- Smart change detection (only sync modified files based on hash comparison)
-- Preserve internal links between docs ([PLAN.md](PLAN.md) → Notion page links)
-- Post-milestone auto-prompt suggesting Notion upload after `/gsd:complete-milestone`
+**Should have (competitive):**
+- **Discussion-Before-Planning Loop** — conversational context gathering before formal planning reduces errors and improves plan quality. Research shows interactive planning receives feedback to alter steps.
+- **Context-Aware Workflow Chaining** — auto-advance through discuss → plan → complete → next phase without manual commands reduces cognitive load for PMs.
+- **Smart Setting Recommendations** — curated recommendations based on user type (PM vs Dev) vs generic defaults improves first-run experience.
+- **Rich Interactive Prompts** — structured prompts with descriptions vs raw Y/N questions improves decision quality (already implemented in new-project workflow).
 
 **Defer (v2+):**
-- Bidirectional sync (Notion → markdown): Creates divergence nightmare, conflict resolution unclear, users edit both places leading to data loss
-- Real-time auto-sync on file save: Hits rate limiting, excessive API calls, users lose control of what's published
-- Syncing all project files beyond .planning/: Notion is documentation tool not code repository, code blocks have 2000-char limits
-- Full markdown spec support: Notion doesn't support footnotes, nested tables, LaTeX, custom HTML
-- Template-based page creation: GSD already has markdown templates, two systems create confusion
+- Selective Auto-Discuss (only complex phases) — wait for user feedback: "Phase 1 doesn't need discussion"
+- Recommended Settings Profiles by Role — wait for evidence of different user types (technical vs non-technical PMs)
+- Phase-Specific Sync (sync individual phases mid-milestone) — wait for WIP sharing use cases
+- Notion Workspace Introspection (browse databases/pages in CLI) — requires Search API, complex UX, unclear value vs URL paste
 
 ### Architecture Approach
 
-Architecture research revealed a parallel tool pattern that preserves GSD's core zero-dependency design while adding Notion capabilities as an optional layer.
+v1.2 integrates into existing workflows through targeted modifications — no new modules, only enhancements to proven patterns. GSD's three-layer architecture (Commands → Workflows → Agents → Utilities) remains unchanged.
 
-**Major components:**
-1. **notion-sync.js (NEW)** — Standalone CLI tool for Notion operations, lives alongside gsd-tools.js, handles all SDK interactions, returns structured JSON output
-2. **MarkdownParser** — Uses @tryfabric/martian for AST-based conversion, post-processes to convert local image paths to external GitHub URLs
-3. **PageHierarchyManager** — Creates/updates Notion pages with parent relationships, validates parent IDs before creation (immutable after), determines hierarchy from .planning/ folder structure
-4. **StateTracker** — Manages notion-sync.json in version folder, tracks page IDs per file, implements hash-based change detection for incremental sync
-5. **CommentRetriever** — Fetches comments via Notion API, groups by discussion_id, formats as markdown for triage workflow
-6. **sync-notion.md workflow** — Orchestrates upload: load config → parse markdown → create/update pages → track state → commit
-7. **notion-comments.md workflow** — Orchestrates retrieval: fetch comments → format markdown → save to triage/
+**Major components modified:**
 
-**Key architectural patterns:**
-- **Parallel Tool Architecture**: notion-sync.js separate from gsd-tools.js to isolate SDK dependencies
-- **External URL Strategy**: Convert local images to GitHub raw URLs instead of uploading files (avoids 1-hour expiration, size limits)
-- **Page ID Mapping**: Track Notion page IDs in per-project notion-sync.json for incremental updates
-- **One-way Push + Comment Pull**: Planning docs flow .planning/ → Notion, feedback flows Notion comments → .planning/triage/
+1. **new-project.md Step 6** — insert AskUserQuestion gate before 8-question flow. "Apply recommended or customize?" shortcut skips to config.json creation with hardcoded defaults.
 
-**Integration points:**
-- Modified: gsd-tools.js (add `notion get-config`), config.json (add `notion` section), installer (add API key prompt), complete-milestone workflow (add upload prompt)
-- Reused: PathResolver, Config system, State management, Git operations (all existing GSD infrastructure)
+2. **plan-phase.md Step 4** — insert CONTEXT.md check. If missing, offer auto-discuss (invoke discuss-phase inline) before proceeding to research/planning. CONTEXT.md created, then reload for planner.
+
+3. **plan-phase.md Step 14d** — insert Notion sync check when milestone_complete. Auth-check before prompt, run notion-sync.js if user accepts, continue to "All Phases Complete" message.
+
+4. **install.js promptNotionKey()** — add parent page URL prompt after API key validation. Extract page ID from URL (using URL constructor + regex), validate format, write to config.notion.parent_page_id.
+
+**Data flow patterns:**
+- Quick settings: User response → hardcoded JSON or existing AskUserQuestion flow → config.json write
+- Auto-discuss: CONTEXT.md missing → AskUserQuestion → invoke discuss-phase inline → reload CONTEXT.md → pass to planner
+- Notion sync: milestone_complete → auth-check → AskUserQuestion → run notion-sync.js → report results
+- Parent URL: User enters URL → extractPageId() → validate length → write to config → notion-sync reads config
+
+**Configuration changes:**
+- Only addition: `config.notion.parent_page_id` (optional field)
+- Fully backward compatible — no removals, no renames
 
 ### Critical Pitfalls
 
-Pitfall research identified 10 critical issues with specific prevention strategies and phase assignments.
+1. **Recommended Settings Divergence** — "Apply recommended" shortcut creates hardcoded snapshot of defaults. As framework evolves, interactive flow updates but shortcut's values become stale, creating two config classes. **Prevention:** Single source of truth (RECOMMENDED_SETTINGS constant), shared code path, integration test comparing outputs, version recommendations, CI/CD lint rule requiring updates when settings change.
 
-1. **Rate Limit Exhaustion Without Retry-After Handling** — Integration hits 3 req/sec limit during batch operations, receives HTTP 429 errors, retries immediately compounding problem. **Avoid:** Configure SDK with maxRetries: 5, respect Retry-After header, throttle to ~2 rps for bulk ops. **Address in Phase 1** (SDK setup).
+2. **Context Window Bloat from Chained Workflows** — chaining discuss → research → planning accumulates 20-33K tokens (discussion 4-6K, research 8-12K, planning 5-10K, framework 3-5K). Hits three problems: exceeds effective context window (60-70% of advertised max), costs spike 3-5x, "lost in the middle" effect where earlier decisions get ignored. **Prevention:** Hard limit on chain depth (max 2 auto-advances), context checkpoints (suggest `/clear` after discussion), measure and warn at 15K+ tokens, make chaining opt-in, token budget per step (truncation).
 
-2. **Markdown Block Conversion Character Limit Violations** — Large sections >2000 chars fail silently or truncate. Rich text arrays hit 100-element limit. **Avoid:** Implement chunking logic upfront, use martian's auto-chunking, validate converted content length before API calls, test with >10KB markdown files. **Address in Phase 2** (conversion).
+3. **Notion URL Format Parsing Fragility** — users paste four URL types but code only handles one: page URLs work, workspace URLs fail (workspace ID ≠ page ID), shared links with query params break regex, database URLs confuse parser. **Prevention:** Robust parser with error messages, strip query params before parsing, validate via API (GET /pages/{id}), show example URL in prompt, fallback to manual ID entry if parsing fails.
 
-3. **Image Upload Expiration and Re-upload Loops** — Uploaded images expire after 1 hour if not attached. URLs fetched from Notion expire when re-fetched. **Avoid:** Attach within 1 hour, track image-to-block mappings, re-fetch file objects to refresh URLs, implement idempotent upload based on hash. **Address in Phase 3** (image upload).
+4. **Missing Notion API Key Pre-Check** — user completes milestone, prompted "Upload to Notion?", says yes, workflow triggers sync which immediately fails with "Missing API key." Milestone already tagged (irreversible) but sync didn't happen. Worse if config.json exists but api_key is empty string (auth error mid-upload, partial state). **Prevention:** Strict validation (api_key && trim() !== '' && startsWith('secret_' or 'ntn_')), auth-check before prompt (skip if not configured), early failure with clear recovery, validate during install (test API call before saving), idempotent sync (safe to re-run).
 
-4. **Block Update vs Append Semantics Confusion** — PATCH block endpoints don't work for content updates. Page update only modifies properties/metadata not content. Images can't be updated, must delete/recreate. **Avoid:** Track block IDs in metadata, use append endpoint for new content, delete old blocks before appending updated ones. **Address in Phase 4** (incremental sync).
-
-5. **Parent Page Hierarchy Immutability After Creation** — Pages created with wrong parent cannot be moved programmatically. No API to change parent after creation. **Avoid:** Verify parent page ID before creation, validate integration has access, resolve hierarchy before any API calls, fail fast with clear error. **Address in Phase 2** (hierarchy creation).
-
-6. **Request Payload Size Limits in Bulk Operations** — Creating pages with large content fails despite individual blocks being under limits. Payload exceeds 1000 blocks or 500KB total. **Avoid:** Track total block count before API call, split documents >900 blocks into create + append operations, estimate payload size (~500 bytes per block). **Address in Phase 2** (conversion).
-
-7. **Comment API Read-Only Thread Limitations** — Cannot create new comment threads via API, only reply to existing threads started in Notion UI. **Avoid:** Document as "read and reply only", implement retrieval for existing discussions, use discussion_id to group comments by thread. **Address in Phase 5** (comment retrieval).
-
-8. **Block Nesting Depth Limit Exceeded** — Notion allows max 2 levels of nesting in single request. Markdown with 4+ nesting levels exceeds this. **Avoid:** Validate nesting depth during parsing, flatten to 2 levels max, or create parent blocks first then append grandchildren in subsequent requests. **Address in Phase 2** (conversion).
-
-9. **Heading Level Mismatch Due to Three-Level Limit** — Notion only supports H1-H3. Markdown H4-H6 all convert to H3, flattening hierarchy. **Avoid:** Document limitation, normalize H1→H1, H2→H2, H3+→H3, provide warning during conversion. **Address in Phase 2** (conversion).
-
-10. **Integration Token Exposure in Git Commits** — Developer commits .env or hardcoded token to git, leaking credentials with full integration access. **Avoid:** Store token exclusively in environment variable NOTION_API_KEY, never write to tracked files, add .env* to .gitignore, use git pre-commit hook to detect token patterns. **Address in Phase 1** (SDK setup).
+5. **Technical Debt Patterns** — shortcuts that seem reasonable but create long-term problems: hardcoded recommended settings (diverges from interactive flow), chaining without context checkpoints (quality degradation), simple regex URL parser (silent failures), skipping API auth check (sync fails after irreversible milestone tag), parsing Notion URLs client-side only (fragile to format changes), auto-advance without token budget tracking (invisible quality degradation).
 
 ## Implications for Roadmap
 
-Based on research, the roadmap should follow a foundation-first approach with 5 phases building incrementally from SDK setup through comment retrieval. The critical path prioritizes rate limiting and token security in Phase 1, followed by robust markdown conversion with chunking in Phase 2.
+Based on research, all four features can be developed in parallel (no shared code, different files/sections). Suggested phase structure prioritizes standalone features first, then chained features, with integration testing at each step.
 
-### Phase 1: Foundation & SDK Setup
-**Rationale:** Must establish secure token handling, rate limiting, and config infrastructure before any API operations. Token exposure and rate limit exhaustion are the highest-risk pitfalls with immediate project-breaking impact.
+### Phase 1: Quick Settings Shortcut
 
-**Delivers:**
-- Notion config in installer (API key prompt during npx install)
-- Extended config.json schema with `notion: { api_key, workspace_id, database_id }`
-- gsd-tools.js notion commands (get-config, set-config)
-- notion-sync.json schema and StateTracker foundation
-- Rate limiting configuration in SDK (maxRetries: 5, Retry-After handling)
-- Token security enforcement (environment variable only, .gitignore updates)
-
-**Addresses:**
-- Token exposure pitfall (environment variable-only storage)
-- Rate limit exhaustion (SDK retry configuration)
-
-**Avoids:**
-- Committing tokens to git (pre-commit hooks, strict env var pattern)
-- API throttling during development (test with rate limit constraints from day 1)
-
-### Phase 2: Markdown-to-Notion Conversion Pipeline
-**Rationale:** Core value proposition depends on robust markdown conversion. Must handle all API limits (2000-char blocks, 1000-block payloads, 2-level nesting, H1-H3 headings) upfront, as retrofitting chunking logic later requires complete rewrite.
+**Rationale:** Standalone feature, modifies only new-project.md Step 6. No dependencies on other v1.2 features. Addresses user feedback about "too many questions" during setup. Can ship independently.
 
 **Delivers:**
-- MarkdownParser integration with @tryfabric/martian
-- Character limit chunking (2000-char rich text elements)
-- Payload size validation (1000-block, 500KB limits)
-- Nesting depth handling (flatten or multi-request for >2 levels)
-- Heading normalization (H4+ → H3 with warning)
-- Basic page creation (no hierarchy yet)
-- Conversion testing with large files (>10KB, >900 blocks)
+- "Apply recommended or customize?" gate before 8-question flow
+- Recommended values: YOLO mode, Standard depth, Parallel processing, Git tracking, all agents enabled, Balanced models
+- Single-source-of-truth pattern (RECOMMENDED_SETTINGS constant)
 
-**Addresses:**
-- Character limit violations (chunking from start)
-- Payload size limits (validation and splitting)
-- Nesting depth limits (flattening logic)
-- Heading level mismatches (normalization)
+**Addresses (from FEATURES.md):**
+- Default/Recommended Settings Shortcut (table stakes)
+- Smart Setting Recommendations (differentiator)
 
-**Uses:**
-- @tryfabric/martian for AST-based conversion
-- Node.js RegExp for image extraction
+**Avoids (from PITFALLS.md):**
+- Recommended Settings Divergence — implement as shared code path from day 1, not duplicated logic
 
-**Implements:**
-- MarkdownParser component with post-processing
+**Implementation notes:**
+- Use Node.js built-in readline (no dependencies)
+- Extract RECOMMENDED_SETTINGS constant to prevent divergence
+- Integration test: shortcut output === interactive flow with all defaults
 
-### Phase 3: Page Hierarchy & Incremental Sync
-**Rationale:** Hierarchy must be validated before page creation (immutable parent relationships). Incremental sync prevents duplicate pages and preserves Notion URLs across re-syncs.
+### Phase 2: Notion Parent Page URL Configuration
+
+**Rationale:** Standalone feature, modifies only install.js promptNotionKey(). No dependencies on other v1.2 features. Completes Notion setup during install (users currently don't know where pages will go when syncing). Can ship independently.
 
 **Delivers:**
-- PageHierarchyManager with parent relationship logic
-- Parent validation before page creation
-- Hierarchy resolution from .planning/ folder structure
-- Page ID tracking in notion-sync.json
-- Hash-based change detection (skip unchanged files)
-- Update existing pages (delete blocks + append pattern)
-- Block ID tracking for surgical updates
+- Parent page URL prompt after API key validation in install.js
+- extractPageId() function (URL constructor + regex for 32-char hex ID)
+- Write to config.notion.parent_page_id (optional field)
+- Reuses existing hierarchy-builder.js logic
 
-**Addresses:**
-- Parent hierarchy immutability (validation before creation)
-- Block update vs append confusion (delete + append pattern)
+**Addresses (from FEATURES.md):**
+- URL Format Flexibility (table stakes)
+- Validation Feedback During Input (table stakes)
 
-**Avoids:**
-- Creating pages with wrong parents (no way to move after creation)
-- Duplicate pages on re-sync (page ID tracking required)
+**Avoids (from PITFALLS.md):**
+- Notion URL Format Parsing Fragility — robust parser with error messages, strip query params, validate via API, show example URL, fallback to manual ID entry
 
-**Implements:**
-- PageHierarchyManager component
-- StateTracker for page ID persistence
+**Implementation notes:**
+- Use Node.js built-in URL constructor (no dependencies)
+- Validate page ID format (32 chars hex or UUID)
+- Optional field (skip if user presses Enter)
 
-### Phase 4: Image Handling
-**Rationale:** Images enhance planning docs but add complexity (expiration, upload APIs). External URL strategy avoids most pitfalls while supporting both local and external images.
+### Phase 3: Auto-Discuss Before Planning
+
+**Rationale:** Depends on existing discuss-phase.md workflow (already stable in v1.1). Improves plan quality by gathering context before formal planning. Addresses feedback about "plans miss important details." More complex than Phase 1/2 (inserts discuss step into plan-phase loop, maintains state).
 
 **Delivers:**
-- External image link support (passthrough HTTPS URLs)
-- Local image path conversion (→ GitHub raw URLs)
-- Image reference extraction from markdown (RegExp pattern)
-- Image-to-block mapping in notion-sync.json
-- Idempotent upload (hash-based skip for unchanged images)
+- CONTEXT.md check in plan-phase.md Step 4
+- If missing, offer "Discuss first or plan directly?" prompt
+- Invoke discuss-phase inline (not redirect)
+- Reload CONTEXT.md after discussion, pass to researcher/planner/checker
 
-**Addresses:**
-- Image upload expiration (external URL strategy avoids it)
-- Re-upload loops (hash tracking prevents redundant uploads)
+**Addresses (from FEATURES.md):**
+- Discussion-Before-Planning Loop (differentiator)
+- Context-Aware Workflow Chaining (differentiator)
 
-**Uses:**
-- GitHub raw URLs for local images (never expire)
-- Node.js RegExp for image extraction
+**Avoids (from PITFALLS.md):**
+- Context Window Bloat — add `/clear` checkpoint suggestion after discussion, warn at 15K+ tokens, limit chain depth
 
-**Alternative considered:**
-- Notion File Upload API deferred to v2.0 (1-hour expiration, size limits)
+**Implementation notes:**
+- Use Node.js built-in readline for "Discuss or plan?" prompt
+- Inline workflow invocation (follow all discuss-phase.md steps)
+- CONTEXT.md always created before planning (no more "missing context")
+- Auto-advance still works (discuss → plan → complete in one flow)
 
-### Phase 5: Workflow Integration & Comment Retrieval
-**Rationale:** Workflows orchestrate tools and provide UX. Comment retrieval completes bidirectional flow (push docs, pull feedback).
+**Research flag:** STANDARD PATTERN — conversational planning well-documented, no deeper research needed during phase planning.
+
+### Phase 4: Notion Sync Prompt After Planning
+
+**Rationale:** Depends on existing notion-sync.js (already stable in v1.1). Closes the loop on Notion integration, addresses "I forget to sync after planning." Benefits from Phase 2 (parent page configured during install). More complex than Phase 1/2 (auth-check before prompt, error handling).
 
 **Delivers:**
-- sync-notion.md workflow (orchestrates upload pipeline)
-- sync-notion.md command (entry point for `/gsd:sync-notion`)
-- Complete-milestone prompt ("Upload to Notion?")
-- CommentRetriever implementation
-- Comment formatting as markdown with threading
-- notion-comments.md workflow (orchestrate retrieval)
-- notion-comments.md command (entry point for `/gsd:notion-comments`)
-- Progress indicators and error recovery guidance
+- Notion sync check in plan-phase.md Step 14d (after all phases complete)
+- Auth-check before prompt (skip if not configured)
+- If configured, offer "Upload planning docs to Notion?" prompt
+- Run notion-sync.js if user accepts
+- Report results (created/updated/skipped), continue to final message
 
-**Addresses:**
-- Comment API read-only limitation (document as retrieval-only)
-- UX pitfalls (silent failures, no progress indicators)
+**Addresses (from FEATURES.md):**
+- Post-Workflow Optional Actions (table stakes)
 
-**Implements:**
-- CommentRetriever component
-- Workflow-level orchestration
+**Avoids (from PITFALLS.md):**
+- Missing Notion API Key Pre-Check — strict validation (api_key format), auth-check before prompt, early failure with clear recovery, idempotent sync
+
+**Implementation notes:**
+- Auth-check logic: config.notion.api_key && trim() !== '' && (startsWith('secret_') || startsWith('ntn_'))
+- Only prompt when milestone_complete (not per-phase)
+- Non-blocking error handling (sync fails → report error, user can run manually later)
+- Reuses complete-milestone.md prompt_notion_sync pattern (lines 586-642)
+
+**Research flag:** STANDARD PATTERN — post-workflow prompts well-documented (git, npm, docker examples), no deeper research needed.
 
 ### Phase Ordering Rationale
 
-**Dependencies dictate order:**
-- Phase 2 depends on Phase 1: Config and SDK must exist before conversion logic
-- Phase 3 depends on Phase 2: Can't create hierarchy without basic page creation
-- Phase 5 depends on Phase 3: Comments require page IDs from previous syncs
-- Phase 4 can run parallel to Phase 3: Images are enhancement to conversion
-
-**Risk mitigation drives sequence:**
-- Token security (Phase 1) addressed immediately before any API calls
-- Rate limiting (Phase 1) configured before bulk operations tested
-- Chunking (Phase 2) implemented before testing large documents
-- Parent validation (Phase 3) implemented before hierarchy creation
-- Expiration handling (Phase 4) deferred via external URL strategy
-
-**Incremental validation:**
-- Each phase delivers testable functionality
-- Phase 1: Can call Notion API with proper auth/throttling
-- Phase 2: Can convert markdown to Notion blocks without errors
-- Phase 3: Can create nested page hierarchies matching .planning/
-- Phase 4: Can handle images in markdown documents
-- Phase 5: Can retrieve comments and present them for triage
+- **Phases 1-2 first (parallel):** Standalone features, no dependencies, can ship independently. Quick wins that address immediate user feedback.
+- **Phases 3-4 second (parallel after 1-2 complete):** Depend on existing stable workflows (discuss-phase.md, notion-sync.js). More complex (chaining, auth-check) but build on validated patterns.
+- **Integration testing after each pair:** Test standalone features (1-2), then chained features (3-4), then full flow (all 4 together).
 
 ### Research Flags
 
-**Phases needing deeper research during planning:**
-- **Phase 2 (Markdown Conversion):** Complex block mapping, edge cases in GFM → Notion conversion require testing with actual GSD planning docs. Martian library may not handle all cases (3+ years old, GSD-specific markdown patterns).
-- **Phase 4 (Image Handling):** GitHub raw URL strategy for private repos unclear — may need auth tokens in URL. Alternative strategies (Notion File Upload API, external CDN) require phase-specific research.
-
 **Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Foundation):** Well-documented SDK setup, config patterns match existing GSD infrastructure, token security is standard practice.
-- **Phase 3 (Hierarchy):** Notion parent-child API well-documented, folder-to-hierarchy mapping is straightforward pattern.
-- **Phase 5 (Workflows):** GSD workflow patterns established, comment API simple (read-only, no complex operations).
+- **Phase 1:** Quick Settings — npm `-y` pattern universally understood
+- **Phase 2:** Notion Parent URL — GitHub CLI URL extraction pattern widely used
+- **Phase 3:** Auto-Discuss — conversational planning well-documented in arXiv papers
+- **Phase 4:** Notion Sync Prompt — post-workflow prompts common in git/npm/docker CLIs
+
+**No phases need deeper research during planning.** All patterns validated through existing tools, official docs, and academic sources.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Official SDK docs, active maintenance, clear version requirements. @tryfabric/martian is 3+ years old but Notion block API stable. |
-| Features | MEDIUM-HIGH | Feature expectations clear from competitor analysis, but MVP boundaries require validation with actual GSD users. Comment feature constraints well-documented. |
-| Architecture | HIGH | Parallel tool pattern proven in similar CLI integrations. Data flow maps cleanly to existing GSD infrastructure. Notion API constraints documented thoroughly. |
-| Pitfalls | HIGH | All pitfalls verified from official Notion docs, multiple community sources confirm issues. Prevention strategies tested in production tools. |
+| Stack | HIGH | All recommendations use Node.js built-ins already validated in install.js. Zero new dependencies. |
+| Features | HIGH | All features extend existing workflows (new-project, plan-phase, install). Table stakes validated via npm/git/GitHub CLI patterns. |
+| Architecture | HIGH | All integration points verified against existing code (new-project.md, plan-phase.md, install.js, notion-sync.js). No new modules. |
+| Pitfalls | HIGH | Pitfalls identified from official Node.js docs, context window research (arXiv), Notion API docs, and existing codebase patterns. |
 
 **Overall confidence:** HIGH
 
-Research is comprehensive with strong official documentation and established patterns. The main uncertainty is martian library's handling of GSD-specific markdown patterns (requires validation in Phase 2).
+All four features reuse existing validated stack (Node.js built-ins, readline patterns from install.js, workflow orchestration from plan-phase.md, Notion modules from v1.1). Research identified concrete pitfalls with prevention strategies tested in production (configuration drift, context bloat, URL parsing fragility, auth pre-checks).
 
 ### Gaps to Address
 
-**During planning/execution:**
+**Context window effectiveness tracking:** Research shows models effectively use only 10-20% of available context, but GSD doesn't yet track cumulative token usage across chained workflows. Phase 3 (Auto-Discuss) should implement token counter to warn at 15K+ tokens and suggest `/clear` at 20K+ tokens. **Validation:** Test discuss → research → plan flow; measure tokens at each step; verify warning appears.
 
-- **Martian library compatibility with GSD markdown:** FEATURES.md, REQUIREMENTS.md, PLAN.md files use specific formatting (tables for features, numbered lists for requirements, code blocks for examples). Validate martian handles these during Phase 2 implementation. If inadequate, pivot to custom parser (adds ~3 days to Phase 2).
+**Notion URL format edge cases:** Research identified four URL types (page, workspace, shared links, database) but only page URLs are valid for parent page configuration. Phase 2 (Notion Parent URL) should detect workspace URLs and show specific error: "This is a workspace URL. Open a page and copy that URL." **Validation:** Unit tests for all four URL formats; error message test for workspace URL.
 
-- **GitHub raw URL strategy for private repos:** If GSD projects live in private repos, raw.githubusercontent.com URLs require authentication. May need to generate URLs with personal access tokens or pivot to Notion File Upload API. Research during Phase 4 planning.
-
-- **Notion workspace/database selection UX:** Research assumes single workspace, single database. Multi-workspace setups may need selection UI. Defer to v2.0 unless MVP testing reveals blocking issue.
-
-- **Incremental sync performance at scale:** Research based on <100 pages. If GSD projects grow to 500+ pages, may need to batch API calls differently. Monitor during Phase 3 testing with large projects.
-
-- **Comment triage workflow integration:** Research defines technical retrieval but PM workflow for triaging comments needs validation. May need additional tooling (group by phase, filter by keyword, mark resolved). Validate during Phase 5 testing.
+**Recommended settings versioning:** As GSD adds new workflow options (e.g., v1.3 adds "discussion_mode" setting), Phase 1's RECOMMENDED_SETTINGS constant must be updated. Currently no automation for this. **Future work:** Add CI/CD lint rule that requires RECOMMENDED_SETTINGS update when new-project.md Step 6 changes. **For now:** Document "last reviewed" date and manual review process.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Notion API - Request Limits](https://developers.notion.com/reference/request-limits) — Rate limiting (3 rps), payload limits (1000 blocks, 500KB), Retry-After header
-- [Notion API - Working with Page Content](https://developers.notion.com/docs/working-with-page-content) — Block nesting (2 levels), rich text limits (2000 chars, 100 elements), update vs append semantics
-- [Notion API - Create a Page](https://developers.notion.com/reference/post-page) — Parent relationships, property structure, content blocks
-- [Notion API - Working with Files and Media](https://developers.notion.com/docs/working-with-files-and-media) — Upload workflows, size limits, expiration (1 hour if not attached)
-- [Notion API - Working with Comments](https://developers.notion.com/docs/working-with-comments) — Read-only threading, discussion_id grouping, open comments only
-- [@notionhq/client - npm](https://www.npmjs.com/package/@notionhq/client) — SDK version 5.9.0, zero dependencies, Node.js 16.7+ compatibility
-- [@notionhq/client - GitHub](https://github.com/makenotion/notion-sdk-js) — Retry configuration, error handling, API version 2025-09-03
-- [@tryfabric/martian - GitHub](https://github.com/tryfabric/martian) — Markdown AST to Notion blocks, auto-chunking for 100-block limit, GFM support
+
+**Official Documentation:**
+- [Node.js v25.6.1 Readline Documentation](https://nodejs.org/api/readline.html) — readline API patterns
+- [Node.js v25.6.1 URL Documentation](https://nodejs.org/api/url.html) — WHATWG URL API
+- [Notion Working with page content](https://developers.notion.com/docs/working-with-page-content) — Page ID format specification
+- [Notion API Introduction](https://developers.notion.com/reference/intro) — Authentication, page vs database objects
+- [npm-init Documentation](https://docs.npmjs.com/cli/v10/commands/npm-init/) — `-y` flag pattern
+
+**Codebase Analysis:**
+- `get-shit-done/workflows/new-project.md` (lines 1-1080) — Step 6 workflow preferences flow
+- `get-shit-done/workflows/plan-phase.md` (lines 1-440) — Auto-advance loop, Step 14d routing
+- `get-shit-done/workflows/discuss-phase.md` (lines 1-409) — CONTEXT.md creation pattern
+- `get-shit-done/workflows/complete-milestone.md` (lines 586-642) — Notion sync prompt pattern
+- `bin/install.js` (lines 1492-1577) — promptNotionKey() readline validation
 
 ### Secondary (MEDIUM confidence)
-- [Understanding Notion API Rate Limits in 2025](https://www.oreateai.com/blog/understanding-notion-api-rate-limits-in-2025-what-you-need-to-know/50d89b885182f65117ff8af2609b34c2) — 3 rps average, 2700 calls per 15 min window
-- [Martian - Markdown to Notion Blocks](https://brittonhayes.dev/notes/markdown-to-notion-blocks/) — Character limits, chunking strategies, rich text array constraints
-- [NotionRepoSync](https://github.com/sourcegraph/notionreposync) — Internal link handling patterns (deferred to v2.0)
-- [notion-sync (startnext)](https://github.com/startnext/notion-sync) — Update strategy (detect changes, update existing), hierarchy preservation
-- [How to Handle Notion API Request Limits](https://thomasjfrank.com/how-to-handle-notion-api-request-limits/) — Retry strategies, request queuing patterns
 
-### Tertiary (LOW confidence - needs validation)
-- [Uploading Files via Notion's API](https://notionmastery.com/uploading-files-via-notions-api/) — File Upload API workflow (deferred to v2.0, validated in official docs)
-- [Pushing Notion to the Limits](https://notionmastery.com/pushing-notion-to-the-limits/) — Performance constraints, scale thresholds (>500 pages)
+**CLI UX Patterns:**
+- [UX patterns for CLI tools](https://www.lucasfcosta.com/blog/ux-patterns-cli-tools) — Interactive prompts, default values
+- [Command Line Interface Guidelines](https://clig.dev/) — Best practices for CLI design
+- [10 design principles for delightful CLIs - Atlassian](https://www.atlassian.com/blog/it-teams/10-design-principles-for-delightful-clis) — User experience patterns
+
+**Conversational Planning:**
+- [Conversational Planning for Personal Plans - arXiv](https://arxiv.org/html/2502.19500v1) — Interactive planning with natural language feedback
+- [A Workflow Analysis of Context-driven Conversational Recommendation](https://dl.acm.org/doi/pdf/10.1145/3442381.3450123) — Structured information gathering
+- [Agentic Workflows for Conversational Human-AI Interaction Design - arXiv](https://arxiv.org/html/2501.18002v1) — Context distribution between users and AI
+
+**Context Window Management:**
+- [Context Length Comparison: Leading AI Models in 2026](https://www.elvex.com/blog/context-length-comparison-ai-models-2026) — Effective capacity 60-70% of advertised max
+- [Fix AI Agents that Miss Critical Details From Context Windows](https://datagrid.com/blog/optimize-ai-agent-context-windows-attention) — Lost in the middle effect
+- [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Scaling without bloating orchestrator prompt
+
+**Configuration Management:**
+- [Are default values an anti-pattern?](https://medium.com/@marcus.nielsen82/are-default-values-an-anti-pattern-54d5d40310f3) — Configuration drift patterns
+- [Environment variables and configuration anti patterns in Node.js applications](https://lirantal.com/blog/environment-variables-configuration-anti-patterns-node-js-applications) — Node.js-specific patterns
+
+### Tertiary (LOW confidence)
+
+**Validation Only:**
+- [How to Get Your Root Notion Page ID](https://docs.engine.so/root-notion-page-id) — ID extraction from URLs (verified with official docs)
+- [Notion Update Page failing discussion](https://community.n8n.io/t/notion-update-page-failing-could-not-extract-page-id-from-url/248772) — Real-world ID extraction issues (community anecdotes)
+- [Master Node.js readline/promises: Production-Ready Guide](https://kitemetric.com/blogs/mastering-node-js-readline-promises-a-production-ready-guide) — Best practices (tutorial)
 
 ---
-*Research completed: 2026-02-11*
+*Research completed: 2026-02-12*
 *Ready for roadmap: yes*

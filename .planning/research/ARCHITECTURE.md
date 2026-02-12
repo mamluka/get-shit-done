@@ -1,777 +1,579 @@
-# Architecture Research: Notion Integration
+# Architecture Integration: v1.2 Streamlined Workflow
 
-**Domain:** Notion CLI Integration for PM Planning Tool
-**Researched:** 2026-02-11
-**Confidence:** HIGH
+**Domain:** Workflow improvement features for existing GSD framework
+**Researched:** 2026-02-12
+**Confidence:** HIGH (existing codebase analyzed)
 
-## Integration Overview
+## Executive Summary
 
-The Notion integration adds a parallel artifact distribution layer to the existing GSD architecture. Planning artifacts remain git-backed (source of truth), while Notion becomes a stakeholder collaboration interface with bidirectional sync for review and feedback.
+v1.2 adds 4 features that integrate into existing workflows:
+1. **Quick settings** — shortcut during new-project setup
+2. **Auto-discuss** — insert discuss-phase before plan-phase
+3. **Notion sync prompt** — post-planning sync offer
+4. **Notion parent URL** — parent page configuration at install
+
+All features leverage existing architecture. No new modules. Modifications only.
+
+## Existing Architecture (Context)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    USER INTERACTION LAYER                    │
-│  /gsd:sync-notion     /gsd:notion-comments                   │
-└──────────────┬────────────────────┬──────────────────────────┘
-               ↓                    ↓
-┌──────────────────────────────────────────────────────────────┐
-│                    COMMAND LAYER (NEW)                       │
-│  commands/gsd/sync-notion.md    commands/gsd/notion-         │
-│                                 comments.md                  │
-└──────────────┬────────────────────┬──────────────────────────┘
-               ↓                    ↓
-┌──────────────────────────────────────────────────────────────┐
-│                   WORKFLOW LAYER (NEW)                       │
-│  workflows/sync-notion.md    workflows/notion-comments.md    │
-└──────────────┬────────────────────┬──────────────────────────┘
-               ↓                    ↓
-┌──────────────────────────────────────────────────────────────┐
-│                   NOTION CLI TOOL (NEW)                      │
-│           get-shit-done/bin/notion-sync.js                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  MD Parser   │  │ Page Manager │  │   Comment    │       │
-│  │  (Martian)   │  │  (Hierarchy) │  │   Retriever  │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-│         │                 │                 │                │
-└─────────┼─────────────────┼─────────────────┼────────────────┘
-          ↓                 ↓                 ↓
-┌──────────────────────────────────────────────────────────────┐
-│                   STATE TRACKING (NEW)                       │
-│     .planning/{project}/v{N}/notion-sync.json                │
-│     { page_mapping: {...}, last_sync: {...} }                │
-└──────────────────────────────────────────────────────────────┘
-          ↓                 ↓                 ↓
-┌──────────────────────────────────────────────────────────────┐
-│                    @notionhq/client SDK                      │
-│  Client → Pages API → Blocks API → Comments API              │
-└──────────────┬────────────────────┬──────────────────────────┘
-               ↓                    ↓
-┌──────────────────────────────────────────────────────────────┐
-│                     NOTION WORKSPACE                         │
-│  Database: Projects → Pages (hierarchy matching .planning/)  │
-└──────────────────────────────────────────────────────────────┘
-
-         ←──────────────────────────────────────────────
-                    EXISTING GSD ARCHITECTURE
-         ───────────────────────────────────────────────→
-
-┌──────────────────────────────────────────────────────────────┐
-│                EXISTING UTILITY LAYER (REUSE)                │
-│              get-shit-done/bin/gsd-tools.js                  │
-│  PathResolver | Config | State | Git Operations              │
-└──────────────────────────────────────────────────────────────┘
-          ↓
-┌──────────────────────────────────────────────────────────────┐
-│                  PLANNING ARTIFACTS (SOURCE OF TRUTH)        │
-│   .planning/{project}/v{N}/                                  │
-│   ├── PROJECT.md, STATE.md, ROADMAP.md, REQUIREMENTS.md     │
-│   ├── phases/{N}-{name}/                                     │
-│   │   ├── {phase}-PLAN.md, {phase}-SUMMARY.md               │
-│   └── research/, milestones/                                 │
-└──────────────────────────────────────────────────────────────┘
+Commands (slash commands)
+    ↓
+Workflows (markdown orchestration)
+    ↓
+Agents (specialized subprocesses)
+    ↓
+Utilities (gsd-tools.js, notion-sync.js)
 ```
 
-## Component Responsibilities
+**Key workflows affected:**
+- `new-project.md` — project initialization (Steps 1-10)
+- `plan-phase.md` — planning orchestration (Steps 1-14)
+- `install.js` — interactive setup
 
-### New Components
+**Key utilities:**
+- `gsd-tools.js` — CLI for config manipulation
+- `notion-sync.js` — Notion API integration
 
-| Component | Responsibility | Implementation |
-|-----------|----------------|----------------|
-| **notion-sync.js** | CLI tool for all Notion operations | Node.js script using @notionhq/client SDK, invoked from workflows |
-| **Markdown Parser** | Convert .md → Notion blocks | @tryfabric/martian v1.2.4+ for AST-based conversion |
-| **Page Manager** | Create/update page hierarchy | Notion Pages API with parent/child relationships |
-| **Image Uploader** | Handle local images + external links | External URL strategy (HTTPS links in blocks) |
-| **Comment Retriever** | Pull comments from Notion pages | Notion Comments API with discussion grouping |
-| **State Tracker** | Track page IDs per project | notion-sync.json in version folder |
-| **sync-notion.md workflow** | Orchestrate upload process | Read artifacts → parse → create/update pages → track state |
-| **notion-comments.md workflow** | Orchestrate comment retrieval | Fetch comments → format as .md → save to triage/ |
+## Feature Integration Architecture
 
-### Modified Components
+### Feature 1: Quick Settings Shortcut
 
-| Component | Modification | Reason |
-|-----------|--------------|--------|
-| **gsd-tools.js** | Add `notion get-config` command | Return API key and workspace ID for notion-sync.js |
-| **config.json** | Add `notion` section | Store API key, workspace ID, database ID |
-| **installer (bin/install.js)** | Add Notion setup step | Prompt for API key during npx install |
-| **complete-milestone workflow** | Add Notion upload prompt | After git tag: "Upload to Notion?" Yes/No |
+**Location:** `new-project.md` Step 6 (Workflow Preferences)
 
-### Reused Components (No Changes)
-
-| Component | How Notion Uses It |
-|-----------|-------------------|
-| **PathResolver** | Resolve .planning/ paths in nested mode (per-project structure) |
-| **Config system** | Store Notion credentials alongside existing settings |
-| **State management** | Update STATE.md with last sync timestamp |
-| **Git operations** | Commit notion-sync.json updates via existing commit helpers |
-
-## Architectural Patterns
-
-### Pattern 1: Parallel Tool Architecture
-
-**What:** notion-sync.js lives alongside gsd-tools.js as a second standalone CLI utility, rather than embedding Notion logic into gsd-tools.js.
-
-**When to use:** When integrating external service SDKs that introduce dependencies (@notionhq/client). Keeps core tool (gsd-tools.js) zero-dependency.
-
-**Trade-offs:**
-- **PRO:** Clean separation of concerns, easier to test, npm dependency isolation
-- **PRO:** Can be versioned/updated independently
-- **CON:** Two invocation patterns (workflows call both tools)
-
-**Example:**
-```javascript
-// workflows/sync-notion.md invokes both tools
-
-// Get config from gsd-tools
-const config = execSync('node gsd-tools.js notion get-config --raw');
-
-// Pass to notion-sync for upload
-const result = execSync(`node notion-sync.js upload \
-  --api-key ${config.api_key} \
-  --database-id ${config.database_id} \
-  --path .planning/${project}/v${version}`);
+**Current flow:**
+```
+Step 6: Workflow Preferences
+  ├─ Round 1 (Core workflow: 4 questions)
+  │   ├─ Mode (YOLO/Interactive)
+  │   ├─ Depth (Quick/Standard/Comprehensive)
+  │   ├─ Plan Processing (Parallel/Sequential)
+  │   └─ Git Tracking (Yes/No)
+  ├─ Round 2 (Workflow agents: 4 questions)
+  │   ├─ Research (Yes/No)
+  │   ├─ Plan Check (Yes/No)
+  │   ├─ Verifier (Yes/No)
+  │   └─ Model Profile (Quality/Balanced/Budget)
+  └─ Create config.json → commit
 ```
 
-### Pattern 2: External URL Strategy for Images
-
-**What:** Rather than uploading image files to Notion's servers, convert local image paths to external HTTPS URLs that Notion fetches on-demand.
-
-**When to use:** For markdown files with local image references (e.g., `![](./images/diagram.png)`). Avoids file upload complexity and size limits.
-
-**Trade-offs:**
-- **PRO:** No file size limits, no upload API complexity, images never expire
-- **PRO:** External URLs always returned as-is in Notion API (stable)
-- **CON:** Requires hosting images somewhere accessible (GitHub raw URLs work)
-- **CON:** Images break if external URL becomes unavailable
-
-**Example:**
-```javascript
-// notion-sync.js image handler
-function convertImagePath(mdImagePath, projectContext) {
-  // Local path: ./images/architecture.png
-  // → External URL: https://github.com/{user}/{repo}/raw/{branch}/.planning/{project}/v{N}/images/architecture.png
-
-  const gitRemote = execSync('git config --get remote.origin.url').toString().trim();
-  const branch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-
-  return `https://github.com/${user}/${repo}/raw/${branch}/${projectContext.path}/${mdImagePath}`;
-}
+**Modified flow:**
+```
+Step 6: Workflow Preferences
+  ├─ NEW: Pre-Round Gate
+  │   └─ AskUserQuestion: "Use recommended settings or customize?"
+  │       ├─ "Apply recommended" → skip to config creation
+  │       └─ "Customize" → proceed to Round 1
+  ├─ Round 1 (Core workflow: 4 questions)
+  ├─ Round 2 (Workflow agents: 4 questions)
+  └─ Create config.json → commit
 ```
 
-### Pattern 3: Page ID Mapping with notion-sync.json
-
-**What:** Track Notion page IDs in a per-project JSON file to support incremental updates (create new pages vs. update existing pages).
-
-**When to use:** For sync operations where the same markdown file may be uploaded multiple times. Prevents duplicate pages in Notion.
-
-**Trade-offs:**
-- **PRO:** Enables incremental sync (only update changed files)
-- **PRO:** Preserves Notion page URLs across re-syncs
-- **CON:** notion-sync.json must be committed to git for team consistency
-- **CON:** File can drift if pages are manually deleted in Notion
-
-**Example:**
-```json
-// .planning/{project}/v{N}/notion-sync.json
-{
-  "database_id": "abc123...",
-  "page_mapping": {
-    "PROJECT.md": {
-      "page_id": "def456...",
-      "last_synced": "2026-02-11T14:30:00Z",
-      "hash": "sha256:..."
-    },
-    "ROADMAP.md": {
-      "page_id": "ghi789...",
-      "last_synced": "2026-02-11T14:32:00Z",
-      "hash": "sha256:..."
-    },
-    "phases/01-foundation/01-PLAN.md": {
-      "page_id": "jkl012...",
-      "last_synced": "2026-02-11T14:35:00Z",
-      "hash": "sha256:...",
-      "parent_id": "mno345..."
+**Integration points:**
+- **File:** `get-shit-done/workflows/new-project.md`
+- **Section:** Step 6 (lines ~336-467)
+- **Modification:** Insert AskUserQuestion gate before Round 1
+- **Recommended values:**
+  ```json
+  {
+    "mode": "yolo",
+    "depth": "standard",
+    "parallelization": true,
+    "commit_docs": true,
+    "model_profile": "balanced",
+    "workflow": {
+      "research": true,
+      "plan_check": true,
+      "verifier": true
     }
-  },
-  "last_sync": "2026-02-11T14:35:00Z"
-}
+  }
+  ```
+
+**Implementation approach:**
+1. Add AskUserQuestion before Round 1
+2. If "Apply recommended", populate config with defaults
+3. If "Customize", run existing Round 1+2 logic (no change)
+
+**Data flow:**
+```
+User response
+    ↓
+if "Apply recommended" → hardcoded JSON → skip to config.json write
+if "Customize" → existing AskUserQuestion flow → config.json write
 ```
 
-## Data Flow
+**No new components.** Pure workflow modification.
 
-### Upload Flow (sync-notion command)
+---
 
+### Feature 2: Auto-Discuss Before Planning
+
+**Location:** `plan-phase.md` Step 1-5 (before spawning planner)
+
+**Current flow:**
 ```
-User runs /gsd:sync-notion
-    ↓
-[Workflow: sync-notion.md]
-    ↓
-1. Load config via gsd-tools.js notion get-config
-    ↓
-2. Check API key exists → If not, error with setup instructions
-    ↓
-3. Resolve project path via PathResolver
-    ↓
-4. Read notion-sync.json (if exists) for incremental sync
-    ↓
-5. Glob .planning/{project}/v{N}/**/*.md files
-    ↓
-6. For each .md file:
-    ├─ Calculate file hash (SHA-256)
-    ├─ Compare to notion-sync.json hash
-    ├─ Skip if unchanged
-    └─ Queue for upload
-    ↓
-7. Invoke notion-sync.js upload with file list
-    ↓
-[notion-sync.js]
-    ↓
-8. Parse markdown with @tryfabric/martian
-    ├─ markdownToBlocks() → Notion block array
-    ├─ Handle images: convert local paths → external URLs
-    └─ Handle tables, code blocks, checkboxes, headers
-    ↓
-9. Determine page hierarchy
-    ├─ PROJECT.md → root page (database entry)
-    ├─ ROADMAP.md → child of PROJECT
-    ├─ phases/{N}/PLAN.md → child of ROADMAP
-    └─ Map parent relationships from folder structure
-    ↓
-10. For each file:
-    ├─ Check notion-sync.json for existing page_id
-    ├─ If exists: UPDATE page via Notion Pages API
-    └─ If new: CREATE page with parent relationship
-    ↓
-11. Update notion-sync.json with page IDs + hashes
-    ↓
-12. Commit notion-sync.json via gsd-tools.js commit
-    ↓
-13. Return success summary to workflow
-    ↓
-[Workflow displays]
-    ↓
-✓ Synced 12 files to Notion
-  - Created: 3 new pages
-  - Updated: 9 existing pages
-  - Skipped: 2 unchanged
-
-View in Notion: https://notion.so/{workspace}/{database_id}
+Step 1: Initialize
+Step 2: Parse Arguments
+Step 3: Validate Phase
+Step 4: Load CONTEXT.md (if exists)
+Step 5: Handle Research (if needed)
+Step 6: Check Existing Plans
+Step 7: Use Context Files
+Step 8: Spawn gsd-planner
 ```
 
-### Comment Retrieval Flow (notion-comments command)
-
+**Modified flow:**
 ```
-User runs /gsd:notion-comments
-    ↓
-[Workflow: notion-comments.md]
-    ↓
-1. Load config via gsd-tools.js notion get-config
-    ↓
-2. Read notion-sync.json for page IDs
-    ↓
-3. Invoke notion-sync.js get-comments
-    ↓
-[notion-sync.js]
-    ↓
-4. For each page_id in notion-sync.json:
-    ├─ Call Notion Comments API (retrieve comments endpoint)
-    ├─ Filter for open (unresolved) comments
-    └─ Group by discussion_id
-    ↓
-5. Parse comment data
-    ├─ Extract: discussion_id, comment text, author, timestamp
-    ├─ Reverse-map page_id → original .md file
-    └─ Group by phase/artifact
-    ↓
-6. Format as markdown
-    ├─ Header: ## Comments from {filename}
-    ├─ Thread: ### Discussion {N} (started by {author} on {date})
-    ├─ Comments: - **{author}** ({timestamp}): {text}
-    └─ Metadata: Page: {notion_url}
-    ↓
-7. Save to .planning/{project}/v{N}/triage/comments-{date}.md
-    ↓
-8. Return structured summary
-    ↓
-[Workflow displays]
-    ↓
-✓ Retrieved 8 comments from 3 pages
-
-Saved to: .planning/{project}/v{N}/triage/comments-2026-02-11.md
-
-Summary by phase:
-  - Phase 01: 2 comments
-  - Phase 02: 5 comments
-  - ROADMAP: 1 comment
-
-Next: Review and address feedback in triage file.
+Step 1: Initialize
+Step 2: Parse Arguments
+Step 3: Validate Phase
+Step 4: NEW: Check for CONTEXT.md
+    ├─ If exists → load and proceed
+    └─ If missing → offer auto-discuss
+        ├─ AskUserQuestion: "Discuss phase first or plan directly?"
+        │   ├─ "Discuss first (Recommended)" → run discuss-phase inline
+        │   └─ "Plan directly" → proceed to Step 5
+        └─ After discussion → reload CONTEXT.md
+Step 5: Handle Research (if needed)
+Step 6: Check Existing Plans
+Step 7: Use Context Files (including new CONTEXT.md)
+Step 8: Spawn gsd-planner
 ```
 
-### Hierarchy Management Flow
+**Integration points:**
+- **File:** `get-shit-done/workflows/plan-phase.md`
+- **Section:** Between Step 3 and Step 4 (lines ~53-68)
+- **Modification:** Insert CONTEXT.md check + discuss-phase invocation
+- **Key decision:** Run discuss-phase inline (not redirect)
 
+**Data flow:**
 ```
-.planning/{project}/v{N}/
-├── PROJECT.md                    → Notion: Root page (database entry)
-├── ROADMAP.md                    → Notion: Child of PROJECT
-├── REQUIREMENTS.md               → Notion: Child of PROJECT
-├── STATE.md                      → Notion: Child of PROJECT (optional)
-└── phases/
-    ├── 01-foundation/
-    │   ├── 01-CONTEXT.md         → Notion: Child of ROADMAP, tagged "Phase 01"
-    │   ├── 01-01-PLAN.md         → Notion: Child of 01-CONTEXT
-    │   └── 01-01-SUMMARY.md      → Notion: Child of 01-01-PLAN
-    └── 02-integration/
-        ├── 02-CONTEXT.md         → Notion: Child of ROADMAP, tagged "Phase 02"
-        └── 02-01-PLAN.md         → Notion: Child of 02-CONTEXT
-
-Notion Hierarchy Mapping Strategy:
-1. Create database for project (if doesn't exist)
-2. Create root pages (PROJECT, ROADMAP, REQUIREMENTS) as database entries
-3. Create phase CONTEXT pages as children of ROADMAP
-4. Create PLAN pages as children of CONTEXT
-5. Create SUMMARY pages as children of corresponding PLAN
-
-Parent detection algorithm:
-- phases/{N}-{name}/{phase}-CONTEXT.md → parent: ROADMAP page_id
-- phases/{N}-{name}/{phase}-{plan}-PLAN.md → parent: CONTEXT page_id
-- phases/{N}-{name}/{phase}-{plan}-SUMMARY.md → parent: PLAN page_id
-- All others at root → parent: PROJECT page_id or database_id
+INIT JSON (from Step 1)
+    ↓
+has_context === false
+    ↓
+AskUserQuestion → if "Discuss first"
+    ↓
+Invoke discuss-phase.md workflow inline
+    ↓
+CONTEXT.md created
+    ↓
+Reload context_content from disk
+    ↓
+Pass to researcher, planner, checker (existing flow)
 ```
 
-## Integration Points
+**Workflow invocation pattern:**
+```markdown
+**Run discuss-phase inline:**
 
-### External Services
+Follow all steps from `discuss-phase.md`:
+1. Initialize (with same $PHASE)
+2. Check existing (will be "doesn't exist")
+3. Analyze phase
+4. Present gray areas
+5. Discuss areas
+6. Write CONTEXT.md
+7. Commit CONTEXT.md
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| **Notion API** | REST via @notionhq/client SDK | Rate limit: 3 req/sec per integration |
-| **@tryfabric/martian** | Markdown → Notion blocks parser | Handles API limits via content redistribution |
-| **GitHub (image hosting)** | External image URLs via raw.githubusercontent.com | Requires public repo or auth token in URL |
+After completion, reload CONTEXT.md and continue to Step 5 (Research).
+```
 
-### Internal Boundaries
+**Implications:**
+- CONTEXT.md always created before planning (no more "missing context" issues)
+- Researcher gets decisions (more focused research)
+- Planner gets decisions (locked vs discretion clear)
+- Auto-advance still works (discuss → plan → complete in one flow)
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| **Workflow ↔ notion-sync.js** | Bash exec with --raw JSON output | Same pattern as gsd-tools.js invocation |
-| **notion-sync.js ↔ gsd-tools.js** | Bash exec for config/state operations | Config read, state update, git commit |
-| **Workflow ↔ PathResolver** | Via gsd-tools.js (no direct access) | Workflows use gsd-tools to resolve paths |
-| **Notion SDK ↔ State Tracker** | notion-sync.json read/write | Persisted in version folder, git-committed |
+**No new files.** Pure orchestration change.
 
-## Notion CLI Tool Structure (notion-sync.js)
+---
 
-### Recommended File Organization
+### Feature 3: Notion Sync Prompt After Planning
 
-```javascript
-#!/usr/bin/env node
+**Location:** `plan-phase.md` Step 14d (after phase complete, before next phase)
 
-/**
- * notion-sync.js — Notion API operations for GSD
- *
- * Commands:
- *   upload <path>           Upload .md files to Notion
- *     --api-key <key>
- *     --database-id <id>
- *     [--incremental]       Only sync changed files
- *
- *   get-comments <path>     Retrieve comments from Notion pages
- *     --api-key <key>
- *     [--since <date>]      Only comments after date
- *
- *   create-database         Initialize project database in Notion
- *     --api-key <key>
- *     --workspace-id <id>
- *     --name <name>
- *
- * Returns structured JSON when invoked with --raw flag.
- */
+**Current flow:**
+```
+Step 14: Auto-Complete Phase
+  ├─ 14a: Validate Phase
+  ├─ 14b: Mark Phase Complete
+  ├─ 14c: Commit Completion
+  └─ 14d: Route to Next
+      ├─ If milestone_complete → display "All Phases Complete" → STOP
+      └─ If more phases → display "Auto-advancing" → loop to Step 1
+```
 
-const { Client } = require('@notionhq/client');
-const { markdownToBlocks } = require('@tryfabric/martian');
+**Modified flow:**
+```
+Step 14: Auto-Complete Phase
+  ├─ 14a: Validate Phase
+  ├─ 14b: Mark Phase Complete
+  ├─ 14c: Commit Completion
+  ├─ NEW: 14d: Check Notion Sync (if milestone_complete)
+  │   └─ If Notion configured AND all phases complete
+  │       ├─ AskUserQuestion: "Upload planning docs to Notion?"
+  │       ├─ If "yes" → run `node bin/notion-sync.js sync --cwd $(pwd)`
+  │       └─ If "skip" → continue
+  └─ 14e: Route to Next
+      ├─ If milestone_complete → display options → STOP
+      └─ If more phases → display "Auto-advancing" → loop to Step 1
+```
+
+**Integration points:**
+- **File:** `get-shit-done/workflows/plan-phase.md`
+- **Section:** Step 14d (lines ~390-423)
+- **Modification:** Insert Notion check before final routing
+- **Key decision:** Only prompt when ALL phases complete (not per-phase)
+
+**Notion detection logic:**
+```bash
+node -e "
 const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-
-// ─── Configuration ────────────────────────────────────────────────────────
-
-class NotionConfig {
-  constructor(apiKey, databaseId) {
-    this.client = new Client({ auth: apiKey });
-    this.databaseId = databaseId;
-  }
+const configPath = require('path').join(process.cwd(), '.planning', 'config.json');
+try {
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
+  console.log(JSON.stringify({ configured: hasKey }));
+} catch (e) {
+  console.log(JSON.stringify({ configured: false }));
 }
-
-// ─── Markdown Parsing ─────────────────────────────────────────────────────
-
-class MarkdownParser {
-  static toBlocks(mdContent, context) {
-    // Use Martian to convert markdown to Notion blocks
-    const blocks = markdownToBlocks(mdContent);
-
-    // Post-process: convert local image paths to external URLs
-    return this.processImages(blocks, context);
-  }
-
-  static processImages(blocks, context) {
-    // Recursively find image blocks and convert paths
-    // context = { gitRemote, branch, projectPath }
-    return blocks.map(block => {
-      if (block.type === 'image' && block.image.type === 'external') {
-        block.image.external.url = this.convertImagePath(
-          block.image.external.url,
-          context
-        );
-      }
-      return block;
-    });
-  }
-
-  static convertImagePath(localPath, context) {
-    // Convert ./images/x.png → https://github.com/.../raw/.../x.png
-    if (localPath.startsWith('http')) return localPath; // Already external
-
-    const { gitRemote, branch, projectPath } = context;
-    const repoUrl = gitRemote.replace('.git', '');
-    return `${repoUrl}/raw/${branch}/${projectPath}/${localPath}`;
-  }
-}
-
-// ─── Page Hierarchy Manager ───────────────────────────────────────────────
-
-class PageHierarchyManager {
-  constructor(notionClient, stateTracker) {
-    this.client = notionClient;
-    this.state = stateTracker;
-  }
-
-  async createOrUpdatePage(filePath, blocks, parentId) {
-    const existingPageId = this.state.getPageId(filePath);
-
-    if (existingPageId) {
-      return await this.updatePage(existingPageId, blocks);
-    } else {
-      return await this.createPage(filePath, blocks, parentId);
-    }
-  }
-
-  async createPage(filePath, blocks, parentId) {
-    const title = this.extractTitle(filePath);
-
-    const response = await this.client.pages.create({
-      parent: parentId
-        ? { page_id: parentId }
-        : { database_id: this.state.databaseId },
-      properties: {
-        title: {
-          title: [{ text: { content: title } }]
-        }
-      },
-      children: blocks
-    });
-
-    return response.id;
-  }
-
-  async updatePage(pageId, blocks) {
-    // First, delete existing blocks
-    await this.clearPageBlocks(pageId);
-
-    // Then append new blocks
-    await this.client.blocks.children.append({
-      block_id: pageId,
-      children: blocks
-    });
-
-    return pageId;
-  }
-
-  async clearPageBlocks(pageId) {
-    const { results } = await this.client.blocks.children.list({
-      block_id: pageId
-    });
-
-    for (const block of results) {
-      await this.client.blocks.delete({ block_id: block.id });
-    }
-  }
-
-  extractTitle(filePath) {
-    const basename = path.basename(filePath, '.md');
-    return basename.replace(/-/g, ' ').replace(/^\d+\s*/, '');
-  }
-
-  determineParent(filePath, stateTracker) {
-    // Map file paths to parent page IDs based on folder structure
-    const parts = filePath.split('/');
-
-    if (parts.includes('phases')) {
-      const phaseDir = parts.find(p => /^\d+-/.test(p));
-      const fileName = parts[parts.length - 1];
-
-      if (fileName.includes('CONTEXT')) {
-        // Phase context → child of ROADMAP
-        return stateTracker.getPageId('ROADMAP.md');
-      } else if (fileName.includes('PLAN')) {
-        // Plan → child of CONTEXT
-        const contextFile = `phases/${phaseDir}/${phaseDir.split('-')[0]}-CONTEXT.md`;
-        return stateTracker.getPageId(contextFile);
-      } else if (fileName.includes('SUMMARY')) {
-        // Summary → child of corresponding PLAN
-        const planFile = fileName.replace('SUMMARY', 'PLAN');
-        return stateTracker.getPageId(`phases/${phaseDir}/${planFile}`);
-      }
-    }
-
-    // Default: child of PROJECT or root database
-    return stateTracker.getPageId('PROJECT.md') || null;
-  }
-}
-
-// ─── State Tracker ────────────────────────────────────────────────────────
-
-class StateTracker {
-  constructor(projectPath) {
-    this.stateFilePath = path.join(projectPath, 'notion-sync.json');
-    this.state = this.load();
-  }
-
-  load() {
-    if (fs.existsSync(this.stateFilePath)) {
-      return JSON.parse(fs.readFileSync(this.stateFilePath, 'utf-8'));
-    }
-
-    return {
-      database_id: null,
-      page_mapping: {},
-      last_sync: null
-    };
-  }
-
-  save() {
-    fs.writeFileSync(
-      this.stateFilePath,
-      JSON.stringify(this.state, null, 2),
-      'utf-8'
-    );
-  }
-
-  getPageId(relativePath) {
-    return this.state.page_mapping[relativePath]?.page_id || null;
-  }
-
-  setPageId(relativePath, pageId, hash) {
-    this.state.page_mapping[relativePath] = {
-      page_id: pageId,
-      last_synced: new Date().toISOString(),
-      hash: hash
-    };
-  }
-
-  hasChanged(relativePath, currentHash) {
-    const tracked = this.state.page_mapping[relativePath];
-    return !tracked || tracked.hash !== currentHash;
-  }
-
-  calculateHash(content) {
-    return crypto.createHash('sha256').update(content).digest('hex');
-  }
-}
-
-// ─── Comment Retriever ────────────────────────────────────────────────────
-
-class CommentRetriever {
-  constructor(notionClient, stateTracker) {
-    this.client = notionClient;
-    this.state = stateTracker;
-  }
-
-  async getAllComments() {
-    const comments = [];
-
-    for (const [filePath, data] of Object.entries(this.state.state.page_mapping)) {
-      const pageComments = await this.getPageComments(data.page_id);
-      comments.push({
-        file: filePath,
-        page_id: data.page_id,
-        comments: pageComments
-      });
-    }
-
-    return comments;
-  }
-
-  async getPageComments(pageId) {
-    try {
-      const response = await this.client.comments.list({
-        block_id: pageId
-      });
-
-      // Group by discussion_id
-      const grouped = {};
-      for (const comment of response.results) {
-        const discussionId = comment.discussion_id;
-        if (!grouped[discussionId]) {
-          grouped[discussionId] = [];
-        }
-        grouped[discussionId].push({
-          id: comment.id,
-          text: comment.rich_text.map(rt => rt.plain_text).join(''),
-          author: comment.created_by.name || 'Unknown',
-          timestamp: comment.created_time
-        });
-      }
-
-      return Object.values(grouped);
-    } catch (error) {
-      // Page may not support comments
-      return [];
-    }
-  }
-
-  formatAsMarkdown(commentsData, outputPath) {
-    let md = `# Notion Comments — ${new Date().toISOString().split('T')[0]}\n\n`;
-
-    for (const { file, page_id, comments } of commentsData) {
-      if (comments.length === 0) continue;
-
-      md += `## ${file}\n\n`;
-      md += `Page: https://notion.so/${page_id.replace(/-/g, '')}\n\n`;
-
-      for (let i = 0; i < comments.length; i++) {
-        const thread = comments[i];
-        md += `### Discussion ${i + 1}\n\n`;
-
-        for (const comment of thread) {
-          md += `- **${comment.author}** (${comment.timestamp}):\n`;
-          md += `  ${comment.text}\n\n`;
-        }
-      }
-
-      md += '\n---\n\n';
-    }
-
-    fs.writeFileSync(outputPath, md, 'utf-8');
-  }
-}
-
-// ─── CLI Commands ─────────────────────────────────────────────────────────
-
-// Main command dispatcher (upload, get-comments, create-database)
-// Parse args, invoke appropriate class methods, return JSON if --raw
-
-// ... implementation follows similar pattern to gsd-tools.js
+"
 ```
 
-### Structure Rationale
+**Sync invocation:**
+```bash
+node bin/notion-sync.js sync --cwd "$(pwd)"
+```
 
-- **Class-based organization:** Clean separation of concerns (parsing, page management, state tracking, comments)
-- **Same invocation pattern as gsd-tools.js:** Bash exec with --raw JSON output for workflow integration
-- **StateTracker as central coordination:** All page ID lookups go through state tracker for consistency
-- **Incremental sync support:** Hash-based change detection prevents redundant API calls
-- **Error isolation:** Each class can fail independently without breaking entire sync
+**Data flow:**
+```
+milestone_complete === true
+    ↓
+Read .planning/config.json
+    ↓
+config.notion.api_key exists?
+    ↓ yes
+AskUserQuestion
+    ↓ "yes"
+Run notion-sync.js
+    ↓
+Report results (created/updated/skipped)
+    ↓
+Continue to "All Phases Complete" message
+```
 
-## Scaling Considerations
+**Error handling:**
+- If sync fails → report error BUT continue (non-blocking)
+- User can run `/gsd:sync-notion` manually later
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 1-5 projects, <100 pages | Current architecture sufficient — single database per workspace |
-| 5-20 projects, 100-500 pages | Add database per project for cleaner organization |
-| 20+ projects, 500+ pages | Batch API calls (3 req/sec limit), add retry logic, consider page archival strategy |
+**Reuse existing pattern:**
+This matches `complete-milestone.md` Step "prompt_notion_sync" (lines 586-642).
+Same logic, different trigger point (all phases vs milestone tag).
 
-### Scaling Priorities
+**No new files.** Workflow modification + existing CLI reuse.
 
-1. **First bottleneck:** Notion API rate limits (3 req/sec) — fix with request batching and exponential backoff retry
-2. **Second bottleneck:** Large markdown files → Martian auto-chunks, but may hit 2000 char block limits — need custom splitter for very long documents
+---
 
-## Anti-Patterns
+### Feature 4: Notion Parent Page URL at Install
 
-### Anti-Pattern 1: Embedding Notion Logic in gsd-tools.js
+**Location:** `bin/install.js` promptNotionKey() function
 
-**What people do:** Add Notion operations directly to gsd-tools.js to avoid second CLI tool.
+**Current flow:**
+```
+install.js
+  ├─ Install files
+  ├─ Configure statusline
+  └─ promptNotionKey() (lines 1492-1577)
+      ├─ Ask: "Configure Notion integration? [y/N]"
+      ├─ If yes → prompt for API key
+      ├─ Validate key (secret_* or ntn_* prefix)
+      ├─ Write to .planning/config.json
+      │   {
+      │     "notion": { "api_key": "..." }
+      │   }
+      └─ finishInstall()
+```
 
-**Why it's wrong:** Breaks zero-dependency architecture of gsd-tools.js. @notionhq/client is 5MB+ with many transitive dependencies. Makes testing harder and increases attack surface.
+**Modified flow:**
+```
+install.js
+  ├─ Install files
+  ├─ Configure statusline
+  └─ promptNotionKey() (MODIFIED)
+      ├─ Ask: "Configure Notion integration? [y/N]"
+      ├─ If yes → prompt for API key
+      ├─ Validate key (secret_* or ntn_* prefix)
+      ├─ NEW: Prompt for parent page URL (optional)
+      │   ├─ "Enter parent page URL (optional, press Enter to skip):"
+      │   ├─ If provided → extract page ID from URL
+      │   └─ Validate page ID format (32 chars hex or UUID)
+      ├─ Write to .planning/config.json
+      │   {
+      │     "notion": {
+      │       "api_key": "...",
+      │       "parent_page_id": "..." (if provided)
+      │     }
+      │   }
+      └─ finishInstall()
+```
 
-**Do this instead:** Keep notion-sync.js as separate tool. Workflows can invoke both tools cleanly. Future: notion-sync.js could be extracted to separate npm package.
+**Integration points:**
+- **File:** `bin/install.js`
+- **Function:** `promptNotionKey()` (lines 1492-1577)
+- **Modification:** Add parent page URL prompt after API key validation
 
-### Anti-Pattern 2: Uploading Image Files to Notion
+**Parent page ID extraction:**
+```javascript
+/**
+ * Extract Notion page ID from URL
+ * Supports formats:
+ * - https://www.notion.so/Page-Title-<32-char-hex>
+ * - https://www.notion.so/<32-char-hex>
+ * - https://www.notion.so/workspace/Page-Title-<uuid>
+ * - Raw page ID (32 chars hex or UUID)
+ */
+function extractPageId(input) {
+  const trimmed = input.trim();
 
-**What people do:** Use Notion's file upload API to store images directly in Notion's infrastructure.
+  // Match 32-char hex ID (with or without dashes)
+  const hexMatch = trimmed.match(/([0-9a-f]{32})/i);
+  if (hexMatch) return hexMatch[1];
 
-**Why it's wrong:** File upload API has size limits, requires multipart/form-data, and Notion URLs expire after 1 hour. External URLs never expire and are simpler.
+  // Match UUID format
+  const uuidMatch = trimmed.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+  if (uuidMatch) return uuidMatch[1].replace(/-/g, '');
 
-**Do this instead:** Convert local image paths to GitHub raw URLs (or other HTTPS hosting). Images remain accessible indefinitely and require less code.
+  return null;
+}
+```
 
-### Anti-Pattern 3: Syncing on Every File Change
+**Validation:**
+```javascript
+// After extraction
+if (pageId && pageId.length !== 32) {
+  console.log(`  ${yellow}⚠${reset} Invalid page ID format. Skipping parent page configuration.`);
+  pageId = null;
+}
+```
 
-**What people do:** Add git hooks to auto-sync .planning/ files to Notion after every commit.
+**Data flow:**
+```
+User enters URL
+    ↓
+extractPageId(url)
+    ↓
+Validate length === 32
+    ↓
+Write to config.notion.parent_page_id
+    ↓
+notion-sync.js reads config (existing behavior)
+    ↓
+Uses parent_page_id if present (existing lib/notion/hierarchy-builder.js)
+```
 
-**Why it's wrong:** Violates user intent (PM may not want work-in-progress in Notion). Notion API rate limits will cause failures. Creates noise for stakeholders.
+**Reuse existing:**
+- `lib/notion/hierarchy-builder.js` already supports parent_page_id
+- `bin/notion-sync.js` already reads config.notion
+- No new logic needed in Notion modules
 
-**Do this instead:** Explicit sync command (`/gsd:sync-notion`) invoked by PM when ready. Post-milestone prompt offers sync but doesn't force it.
+**Optional field:**
+- If user skips → config.notion.parent_page_id undefined
+- Existing code handles undefined gracefully (creates pages at root)
 
-### Anti-Pattern 4: Storing Notion as Source of Truth
+**No new files.** Install.js modification only.
 
-**What people do:** Allow editing in Notion and pulling changes back to .planning/ files.
+---
 
-**Why it's wrong:** Creates bidirectional sync complexity, merge conflicts, and divergence. Git history is source of truth for planning artifacts.
+## Component Modifications Summary
 
-**Do this instead:** Notion is read-only for stakeholders (comment-only). Changes flow .planning/ → Notion only. Comments flow Notion → .planning/triage/ for PM triage.
+| Component | File | Lines | Change Type | Complexity |
+|-----------|------|-------|-------------|------------|
+| new-project workflow | get-shit-done/workflows/new-project.md | ~336-340 | Insert AskUserQuestion gate | Low |
+| plan-phase workflow | get-shit-done/workflows/plan-phase.md | ~53-68 | Insert CONTEXT.md check + discuss-phase inline | Medium |
+| plan-phase workflow | get-shit-done/workflows/plan-phase.md | ~390-423 | Insert Notion sync check | Low |
+| install script | bin/install.js | ~1520-1577 | Add parent page URL prompt + extraction | Low |
 
-## Build Order Recommendation
+**No new files.** All changes are modifications to existing workflows and scripts.
 
-Based on dependencies and risk, suggested implementation sequence:
+## Data Flow: Feature Interactions
 
-### Phase 1: Foundation (Low Risk)
-1. **Add Notion config to installer** — bin/install.js prompts for API key, workspace ID
-2. **Extend config.json schema** — Add `notion: { api_key, workspace_id, database_id }` section
-3. **Add gsd-tools.js notion commands** — `notion get-config`, `notion set-config`
-4. **Create notion-sync.json schema** — Document structure for page mapping
+### Interaction 1: Quick Settings → Auto-Discuss
 
-### Phase 2: Upload Pipeline (Medium Risk)
-5. **Scaffold notion-sync.js** — Basic CLI structure, arg parsing, --raw output
-6. **Implement MarkdownParser** — Integrate @tryfabric/martian, test with sample .md files
-7. **Implement StateTracker** — JSON read/write, hash calculation, change detection
-8. **Implement PageHierarchyManager** — Create/update pages, parent relationship logic
-9. **Image path conversion** — GitHub URL strategy for local images
-10. **Upload command** — End-to-end test: .md → Notion page
+**Scenario:** User selects "Apply recommended" during setup
 
-### Phase 3: Workflow Integration (Low Risk)
-11. **Create sync-notion.md workflow** — Orchestrate upload with user prompts
-12. **Create sync-notion.md command** — Entry point for `/gsd:sync-notion`
-13. **Modify complete-milestone workflow** — Add "Upload to Notion?" prompt after tagging
-14. **Manual testing** — Run full sync on existing GSD project
+```
+new-project.md Step 6
+    ↓
+Apply recommended → config.research = true
+    ↓
+new-project.md Step 7 → research runs
+    ↓
+User later runs /gsd:plan-phase 1
+    ↓
+plan-phase.md → no CONTEXT.md → offer discuss
+    ↓
+User can still discuss even with "recommended" settings
+```
 
-### Phase 4: Comment Retrieval (Medium Risk)
-15. **Implement CommentRetriever** — Notion Comments API integration, discussion grouping
-16. **Comment formatting** — Markdown output with threading
-17. **Create notion-comments.md workflow** — Orchestrate comment retrieval + triage file creation
-18. **Create notion-comments.md command** — Entry point for `/gsd:notion-comments`
+**Implication:** Quick settings don't skip discussion. They set workflow agents, not discussion behavior.
 
-### Phase 5: Polish (Low Risk)
-19. **Error handling** — API failures, missing credentials, invalid page IDs
-20. **Incremental sync optimization** — Hash-based skipping, batch API calls
-21. **Documentation** — Update README, add Notion setup guide
-22. **Integration testing** — Full workflow from install → sync → comments
+**Independence:** Features don't interfere.
 
-**Critical path dependencies:**
-- Phase 2 depends on Phase 1 (config must exist before upload works)
-- Phase 4 depends on Phase 2 (comments require page IDs from previous syncs)
-- Phase 3 can proceed in parallel with Phase 2 (mock notion-sync.js responses)
+---
 
-**Risk mitigation:**
-- Test Martian parser early (Phase 2.6) — if inadequate, fall back to custom parser
-- Verify Notion API rate limits don't break large syncs (Phase 2.10)
-- Ensure GitHub raw URLs work for private repos (may need auth token in URL)
+### Interaction 2: Auto-Discuss → Notion Sync Prompt
+
+**Scenario:** User discusses phase, plans phase, all phases complete
+
+```
+plan-phase.md Step 4
+    ↓
+No CONTEXT.md → offer discuss → CONTEXT.md created
+    ↓
+plan-phase.md Step 8 → planner uses CONTEXT.md
+    ↓
+plan-phase.md Step 14 → phase complete
+    ↓
+If milestone_complete → Notion sync prompt
+    ↓
+Sync includes all artifacts (CONTEXT.md, PLAN.md, etc.)
+```
+
+**Implication:** CONTEXT.md files are included in Notion sync (already supported).
+
+**Integration:** discuss-phase creates files that notion-sync uploads. No new logic.
+
+---
+
+### Interaction 3: Notion Parent URL → Notion Sync Prompt
+
+**Scenario:** User configured parent page at install, now syncing after all phases
+
+```
+install.js promptNotionKey()
+    ↓
+config.notion.parent_page_id = "abc123..."
+    ↓
+plan-phase.md Step 14d → Notion sync prompt
+    ↓
+notion-sync.js reads config.notion.parent_page_id
+    ↓
+hierarchy-builder.js creates pages under parent
+```
+
+**Implication:** Parent page is used automatically. No additional prompts needed.
+
+**Reuse:** Existing hierarchy-builder logic.
+
+---
+
+## Build Order & Dependencies
+
+### Phase Order Recommendation
+
+**Phase 1: Quick Settings (standalone)**
+- Modify new-project.md Step 6
+- No dependencies on other features
+- Can ship independently
+
+**Phase 2: Notion Parent URL (standalone)**
+- Modify install.js promptNotionKey()
+- No dependencies on other features
+- Can ship independently
+
+**Phase 3: Auto-Discuss (depends on existing discuss-phase.md)**
+- Modify plan-phase.md Step 4
+- Requires discuss-phase.md to be stable (already is)
+- No dependencies on Phase 1 or 2
+
+**Phase 4: Notion Sync Prompt (depends on existing notion-sync.js)**
+- Modify plan-phase.md Step 14d
+- Requires notion-sync.js to be stable (already is)
+- No dependencies on Phase 1, 2, or 3
+
+**Parallelization:**
+- Phases 1-4 can all be developed in parallel
+- No shared code between features
+- Each modifies different files/sections
+
+**Integration testing order:**
+1. Test each feature standalone
+2. Test Interaction 1 (Quick Settings → Auto-Discuss)
+3. Test Interaction 2 (Auto-Discuss → Notion Sync)
+4. Test Interaction 3 (Notion Parent URL → Notion Sync)
+5. Full flow test (all 4 features together)
+
+---
+
+## Configuration Schema Changes
+
+### Current config.json schema
+
+```json
+{
+  "mode": "yolo|interactive",
+  "depth": "quick|standard|comprehensive",
+  "parallelization": true|false,
+  "commit_docs": true|false,
+  "model_profile": "quality|balanced|budget",
+  "workflow": {
+    "research": true|false,
+    "plan_check": true|false,
+    "verifier": true|false
+  },
+  "notion": {
+    "api_key": "secret_..."
+  }
+}
+```
+
+### Modified config.json schema (v1.2)
+
+```json
+{
+  "mode": "yolo|interactive",
+  "depth": "quick|standard|comprehensive",
+  "parallelization": true|false,
+  "commit_docs": true|false,
+  "model_profile": "quality|balanced|budget",
+  "workflow": {
+    "research": true|false,
+    "plan_check": true|false,
+    "verifier": true|false
+  },
+  "notion": {
+    "api_key": "secret_...",
+    "parent_page_id": "abc123..." // NEW: optional
+  }
+}
+```
+
+**Only addition:** `config.notion.parent_page_id` (optional field)
+
+**No removals, no renames.** Fully backward compatible.
+
+---
 
 ## Sources
 
-- [Notion API - Working with Files and Media](https://developers.notion.com/docs/working-with-files-and-media)
-- [Notion API - Working with Comments](https://developers.notion.com/docs/working-with-comments)
-- [Notion API - Create a Page](https://developers.notion.com/reference/post-page)
-- [@tryfabric/martian on GitHub](https://github.com/tryfabric/martian)
-- [@tryfabric/martian on npm](https://www.npmjs.com/package/@tryfabric/martian)
-- [Notion API - Uploading Small Files](https://developers.notion.com/docs/uploading-small-files)
-- [Notion API - Importing External Files](https://developers.notion.com/docs/importing-external-files)
-- [Notion API - Retrieve Comments](https://developers.notion.com/reference/retrieve-a-comment)
+**Codebase analyzed:**
+- `get-shit-done/workflows/new-project.md` (lines 1-1080)
+- `get-shit-done/workflows/plan-phase.md` (lines 1-440)
+- `get-shit-done/workflows/discuss-phase.md` (lines 1-409)
+- `get-shit-done/workflows/complete-milestone.md` (lines 1-735)
+- `bin/install.js` (lines 1-1832)
+- `bin/gsd-tools.js` (config-set at line 5935)
+
+**Existing patterns reused:**
+- AskUserQuestion gate pattern (from multiple workflows)
+- Notion sync invocation (from complete-milestone.md Step 586-642)
+- Parent page ID usage (from lib/notion/hierarchy-builder.js)
+- Config.json manipulation (from gsd-tools.js config-set)
+
+**Confidence:** HIGH — all integration points verified against existing code
 
 ---
-*Architecture research for: Notion CLI Integration*
-*Researched: 2026-02-11*
+
+*Architecture research for: v1.2 Streamlined Workflow*
+*Researched: 2026-02-12*

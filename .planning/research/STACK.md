@@ -1,8 +1,12 @@
-# Stack Research
+# Stack Research: v1.2 Streamlined Workflow
 
-**Domain:** Notion API Integration for CLI Planning Tool
-**Researched:** 2026-02-11
+**Domain:** CLI workflow improvements for Node.js meta-prompting framework
+**Researched:** 2026-02-12
 **Confidence:** HIGH
+
+## Scope: Additions Only
+
+v1.2 builds on validated stack from v1.0/v1.1. This document covers ONLY new stack needs for v1.2 features. Existing capabilities (Node.js, readline, @notionhq/client, gsd-tools.js, config.json) are NOT re-researched.
 
 ## Recommended Stack
 
@@ -10,151 +14,242 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| @notionhq/client | ^5.9.0 | Official Notion API SDK | Zero dependencies, official support, built-in file upload API, maintains parity with Notion's API versions (currently 2025-09-03). Active maintenance with recent updates (v5.7.0 added move page API, v5.9.0 latest as of 10 days ago). |
-| @tryfabric/martian | ^1.2.4 | Markdown to Notion blocks conversion | Purpose-built for converting Markdown AST to Notion API blocks and RichText. Supports all inline elements (bold, italic, strikethrough, code, links, equations), headers, lists (ordered, unordered, checkboxes) to any depth, and GFM alerts. Auto-handles Notion's 100-block limit per request by redistributing content. |
+| Node.js built-in `readline` | N/A (built-in) | Yes/no prompts, "Apply recommended?" UX | Already used in install.js for Notion API key prompts. Zero dependencies, callback-based API proven in production. Pattern: `rl.question()` with regex validation (`/^y(es)?$/i`). |
+| Node.js built-in `URL` | N/A (built-in) | Parse Notion page URLs to extract page IDs | Modern WHATWG URL API (Node.js v10+). No dependencies. Provides `pathname` and `searchParams` for safe parsing without regex fragility. |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| None required | N/A | Built-in Node.js capabilities sufficient | Node.js 16.7+ provides fs.readFile for file handling, native RegExp for markdown image parsing. Node.js 18+ provides native FormData for file uploads (already exceeds minimum v16.7.0). |
+| None required | — | — | All v1.2 features use built-in Node.js modules |
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| Node.js built-in testing | Unit tests for markdown parsing logic | Existing `npm test` script uses Node.js built-in test runner (node --test) - continue this pattern for consistency |
+| Node.js built-in test runner | Unit tests for URL parsing | Already used for Notion module TDD (v1.1). No jest/mocha needed. |
 
 ## Installation
 
 ```bash
-# Core dependencies (only two additions to existing zero-dep codebase)
-npm install @notionhq/client @tryfabric/martian
-
-# No dev dependencies needed - existing esbuild remains sufficient
+# No new dependencies required
+# All features use Node.js built-ins (readline, URL)
 ```
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| @tryfabric/martian | Build custom parser with regex | Only if you need to support <5 markdown features (headers, paragraphs, bold only). Custom parser saves ~5 transitive deps (unified, remark-parse, remark-gfm, remark-math) but loses GFM support, list nesting, equations, and auto-chunking for Notion's block limits. NOT worth the complexity for full markdown support. |
-| @notionhq/client file upload API | External image hosting service | If you already have a CDN/image service. File Upload API is simpler: 1) create upload, 2) send file, 3) attach to block. External URLs require permanent hosting and don't integrate with Notion's 1-hour attachment workflow. |
-| Native Node.js RegExp | markdown-it or marked parser | Only if you need to transform markdown to HTML or other formats. For just extracting image references from markdown, regex pattern `/!\[(.*?)\]\((.*?)\)/g` is sufficient and adds zero dependencies. |
+| Built-in `readline` | Inquirer.js (25M weekly downloads) | Only if we need multi-select, autocomplete, password masking, or spinners. v1.2 requires simple yes/no — overkill. |
+| Built-in `readline` | Commander.js prompts | Commander.js is for argument parsing, not interactive prompts. Would need Inquirer.js as peer dependency. |
+| Built-in `URL` + regex | `url-parse` npm package | Only if supporting Node.js <v10. We require Node.js >=16.7.0 (package.json). |
+| Regex for Notion ID | Dedicated URL parser lib | Only if parsing non-standard URL formats. Notion uses standard HTTPS URLs. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| @notionhq/client v4.x or earlier | Version 5.0+ required for API version 2025-09-03 with data sources support. V5.7+ adds move page API and template-powered page creation. | @notionhq/client ^5.9.0 (latest) |
-| form-data npm package | Node.js 18+ has native FormData support built-in. Current env is Node 16.20.2 which meets minimum (16.7.0) but native FormData only in 18+. | Use @notionhq/client's built-in file upload methods (fileUploads.create) which handle FormData internally - no need to construct manually |
-| notion-to-md or reverse parsers | These convert Notion blocks TO markdown (opposite direction). You need markdown TO Notion. | @tryfabric/martian (correct direction) |
-| marked, markdown-it, showdown | General-purpose markdown to HTML parsers. Don't output Notion block objects. | @tryfabric/martian (Notion-specific output) |
-| Heavy unified ecosystem directly | While @tryfabric/martian uses unified internally, importing unified/remark-parse/remark-gfm directly adds same transitive deps but requires writing custom AST-to-Notion converter (200+ lines). | @tryfabric/martian (does conversion for you) |
+| Inquirer.js | 25M weekly downloads but 200KB+ package for features we don't need. v1.2 requires simple yes/no prompts, not multi-select/autocomplete/spinners. | Built-in `readline` with `rl.question()` pattern from install.js |
+| Complex workflow orchestration libraries (Zenaton, Processus, WorkflowJS) | Heavy dependencies (Redis, BPMN parsers). GSD workflows are markdown files + sequential readline prompts. No distributed state needed. | Existing markdown workflow files + sequential readline prompts |
+| Legacy `url.parse()` | Deprecated in Node.js v11+. Less secure than WHATWG URL API. | Built-in `URL` constructor |
+| Custom URL regex for Notion IDs | Fragile — breaks if Notion adds query params or changes URL structure. | `URL` constructor + `pathname.split()` + validation |
 
-## Stack Patterns by Variant
+## Stack Patterns by Feature
 
-**For uploading planning docs with images to Notion:**
-1. Parse markdown with @tryfabric/martian to get Notion blocks
-2. Scan markdown for images with regex: `/!\[(.*?)\]\((.*?)\)/g`
-3. For each local image reference:
-   - Read file with fs.readFile
-   - Upload with notion.fileUploads.create({ mode: "single_part", filename, content_type })
-   - Replace markdown image path with Notion file ID in blocks
-4. Create page with notion.pages.create({ parent, properties, children: blocks })
-5. Images auto-attach during page creation (within 1-hour expiry window)
+### Feature 1: "Apply recommended settings?" UX
 
-**For syncing/updating existing pages:**
-- Use notion.blocks.children.append() to add content to existing pages
-- Respect 100-block limit per request (martian handles this)
-- Total page limit: 1,000 blocks
+**Pattern:** Callback-based readline prompts with default values
 
-**For pulling comments:**
-- Use notion.comments.list({ block_id: pageId }) (pages are blocks)
-- Requires integration to have "read comment" capabilities
-- Returns flat list sorted by discussion_id for threading
-- Paginated (max 100 per request)
-
-**If Node.js version < 18:**
-- Current project is Node 16.20.2 (meets minimum 16.7.0)
-- No issue: @notionhq/client handles file uploads internally
-- Upgrade to Node 18+ only if you need native FormData for other purposes
-
-**If markdown conversion fails:**
-- @tryfabric/martian truncates content that exceeds Notion limits
-- For edge cases (deeply nested structures >2 levels), manually flatten or split into separate pages
-- Notion blocks can only nest 2 levels deep
-
-## Version Compatibility
-
-| Package A | Compatible With | Notes |
-|-----------|-----------------|-------|
-| @notionhq/client@^5.9.0 | Node.js >= 18 (recommended), >= 16.7.0 (minimum) | Current env: Node 16.20.2 meets minimum. TypeScript 5.9+ required only if using TypeScript (project uses plain JS). |
-| @tryfabric/martian@^1.2.4 | @notionhq/client ^1.0.4+ | Martian's package.json specifies @notionhq/client ^1.0.4, but outputs are compatible with v5.x API (block structure unchanged). Last updated 3+ years ago but Notion block API stable. |
-| @tryfabric/martian@^1.2.4 | Node.js >= 16 | Uses unified ecosystem (remark-parse ^9.0.0, unified ^9.2.1) which supports Node 16+. |
-
-## Integration with Existing Codebase
-
-**Minimal impact on zero-dep architecture:**
-- Adding only 2 direct dependencies (@notionhq/client, @tryfabric/martian)
-- @notionhq/client has 0 dependencies itself
-- @tryfabric/martian brings ~5 transitive deps (unified ecosystem) - acceptable tradeoff for avoiding custom parser complexity
-- Total final dep count: ~7 (from 0) - still lightweight
-
-**Integration points with gsd-tools.js:**
-- PathResolver: Use for locating .planning/ markdown files and relative image paths
-- config.json system: Add Notion API token storage (notion.apiToken, notion.pageId, etc.)
-- Agent spawning: Potential new agent for Notion sync operations
-- CLI commands: New /gsd:notion-upload, /gsd:notion-sync, /gsd:notion-comments commands
-
-**File handling pattern:**
 ```javascript
-const fs = require('fs').promises;
-const { Client } = require('@notionhq/client');
-const { markdownToBlocks } = require('@tryfabric/martian');
+const readline = require('readline');
 
-// Pattern: Read markdown -> Convert -> Upload images -> Create page
-async function uploadToNotion(markdownPath, notionApiToken, parentPageId) {
-  const markdown = await fs.readFile(markdownPath, 'utf-8');
-  const blocks = markdownToBlocks(markdown);
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-  // Extract and upload images
-  const imageRefs = [...markdown.matchAll(/!\[(.*?)\]\((.*?)\)/g)];
-  for (const [fullMatch, alt, path] of imageRefs) {
-    if (!path.startsWith('http')) { // Local file
-      const fileBuffer = await fs.readFile(path);
-      const notion = new Client({ auth: notionApiToken });
-      const upload = await notion.fileUploads.create({
-        mode: "single_part",
-        filename: path.split('/').pop(),
-        content_type: "image/png" // Detect from extension
-      });
-      // Replace block references with uploaded file ID
-    }
+rl.question(`Apply recommended settings? ${dim}[Y/n]${reset}: `, (answer) => {
+  const apply = !answer.trim() || answer.trim().toLowerCase() === 'y';
+  rl.close();
+
+  if (apply) {
+    // Apply defaults
+  } else {
+    // Ask individual questions
   }
+});
+```
 
-  await notion.pages.create({
-    parent: { page_id: parentPageId },
-    properties: { title: { title: [{ text: { content: "Title" } }] } },
-    children: blocks
+**Why this pattern:**
+- Already proven in install.js lines 1510-1576 (Notion API key prompt)
+- Default-on pattern (`!answer.trim()` = yes) matches PM expectations
+- Minimal code, no dependencies
+
+### Feature 2: Auto-discussion workflow orchestration
+
+**Pattern:** Sequential readline prompts chained via callbacks or async/await wrapper
+
+```javascript
+// Callback chaining (matches install.js pattern)
+function discussPhase(phaseNum, callback) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  rl.question(`Ready to discuss Phase ${phaseNum}? [Y/n]: `, (answer) => {
+    rl.close();
+    if (!answer.trim() || answer.toLowerCase() === 'y') {
+      // Spawn discussion agent
+      callback();
+    } else {
+      callback(); // Skip to next
+    }
   });
 }
 ```
 
+**Why this pattern:**
+- GSD workflows already use sequential orchestration (markdown files → agent spawns)
+- No state machine or Redis needed — linear phase progression
+- Fits existing architecture: commands → workflows → agents
+
+### Feature 3: Notion URL parsing to extract page IDs
+
+**Pattern:** WHATWG URL + pathname extraction + validation
+
+Notion page URL format:
+- Standard: `https://www.notion.so/Page-Title-1429989fe8ac4effbc8f57f56486db54`
+- With workspace: `https://www.notion.so/workspace-name/Page-Title-1429989fe8ac4effbc8f57f56486db54`
+- ID format: 32 hex chars (no hyphens in URL, hyphens added for API)
+
+```javascript
+const { URL } = require('url');
+
+function extractNotionPageId(urlString) {
+  try {
+    const url = new URL(urlString);
+
+    // Extract last segment of pathname
+    const segments = url.pathname.split('/').filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+
+    // Extract 32-char hex ID (after last hyphen in segment)
+    const match = lastSegment.match(/([a-f0-9]{32})$/i);
+    if (!match) return null;
+
+    const rawId = match[1];
+
+    // Format as UUID: 8-4-4-4-12
+    return rawId.replace(
+      /^([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{12})$/i,
+      '$1-$2-$3-$4-$5'
+    );
+  } catch (e) {
+    return null; // Invalid URL
+  }
+}
+```
+
+**Why this pattern:**
+- Built-in `URL` constructor handles protocol, domain, query params, fragments safely
+- Regex only for ID extraction (narrow scope = less fragile)
+- Format conversion matches Notion API requirements (hyphens in 8-4-4-4-12 pattern)
+- Returns null on invalid input (caller decides error handling)
+
+**Sources:**
+- [Notion Working with page content](https://developers.notion.com/docs/working-with-page-content) — Page ID format spec
+- [How to Get Your Root Notion Page ID](https://docs.engine.so/root-notion-page-id) — ID extraction from URLs
+- [Node.js URL Documentation](https://nodejs.org/api/url.html) — WHATWG URL API
+
+### Feature 4: Post-planning Notion sync trigger
+
+**Pattern:** Reuse existing readline prompt pattern + trigger existing CLI command
+
+```javascript
+rl.question(`Upload planning docs to Notion? ${dim}[Y/n]${reset}: `, (answer) => {
+  const shouldSync = !answer.trim() || answer.trim().toLowerCase() === 'y';
+  rl.close();
+
+  if (shouldSync) {
+    // Trigger existing /gsd:sync-notion workflow
+    // (Don't shell out — call workflow orchestrator directly)
+  }
+});
+```
+
+**Why this pattern:**
+- Matches install.js Notion prompt pattern (lines 1510-1576)
+- Reuses existing sync-orchestrator.js module (no new Notion code needed)
+- Default-yes UX matches PM workflow (most will sync)
+
+## Version Compatibility
+
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| Node.js >=16.7.0 | readline (built-in), URL (built-in) | Already required in package.json. WHATWG URL API stable since Node.js v10. |
+| readline callbacks | Existing install.js patterns | No breaking changes needed. Same callback-based API. |
+| URL constructor | @notionhq/client ^5.9.0 | Notion SDK expects UUIDs in 8-4-4-4-12 format. Our regex conversion matches. |
+
+## Integration Patterns
+
+### With Existing Config System
+
+**Pattern:** Read/write .planning/config.json for Notion parent page URL
+
+```javascript
+const config = JSON.parse(fs.readFileSync('.planning/config.json', 'utf8'));
+
+// Add parent page URL to Notion section
+config.notion = config.notion || {};
+config.notion.parent_page_url = 'https://www.notion.so/workspace/Parent-Page-abc123...';
+config.notion.parent_page_id = extractNotionPageId(config.notion.parent_page_url);
+
+fs.writeFileSync('.planning/config.json', JSON.stringify(config, null, 2) + '\n');
+```
+
+**Already validated:** install.js lines 1547-1566 (Notion API key storage)
+
+### With Existing Workflow Orchestration
+
+**Pattern:** Markdown workflow files call readline prompts, then spawn agents
+
+Existing pattern (from get-shit-done/workflows/plan-phase.md):
+1. Markdown file defines orchestration steps
+2. Claude reads workflow file
+3. Claude executes prompts sequentially
+4. Claude spawns subagents as needed
+
+No new orchestration framework needed — v1.2 adds readline prompts to existing workflow files.
+
+## Confidence Assessment
+
+| Area | Confidence | Reason |
+|------|------------|--------|
+| readline prompts | HIGH | Already in production (install.js). Pattern proven. Zero new dependencies. |
+| URL parsing | HIGH | WHATWG URL API stable since Node.js v10. Notion ID format documented in official docs. |
+| Workflow orchestration | HIGH | No new framework needed. Fits existing markdown → agent pattern. |
+| Integration with existing stack | HIGH | All patterns validated in install.js and lib/notion/* modules. |
+
 ## Sources
 
-- [@notionhq/client - npm](https://www.npmjs.com/package/@notionhq/client) — Latest version 5.9.0, Node.js compatibility (HIGH confidence)
-- [GitHub - makenotion/notion-sdk-js](https://github.com/makenotion/notion-sdk-js) — Official SDK repository (HIGH confidence)
-- [Notion Developers - Upgrading to Version 2025-09-03](https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03) — API version compatibility (HIGH confidence)
-- [@tryfabric/martian GitHub](https://github.com/tryfabric/martian) — Markdown to Notion conversion library (HIGH confidence)
-- [@tryfabric/martian package.json](https://github.com/tryfabric/martian/blob/master/package.json) — Dependencies and compatibility (HIGH confidence)
-- [Notion Developers - Working with Files and Media](https://developers.notion.com/docs/working-with-files-and-media) — File upload API documentation (HIGH confidence)
-- [Notion Developers - Uploading Small Files](https://developers.notion.com/docs/uploading-small-files) — File upload workflow (HIGH confidence)
-- [Notion Developers - Working with Comments](https://developers.notion.com/docs/working-with-comments) — Comments API documentation (HIGH confidence)
-- [Notion Developers - Retrieve Comments](https://developers.notion.com/reference/retrieve-a-comment) — Comment retrieval endpoint (HIGH confidence)
-- [Node.js FormData support discussion](https://github.com/pocketbase/pocketbase/discussions/1201) — Native FormData in Node 18+ (MEDIUM confidence)
-- [Markdown Image Regex](https://gist.github.com/DavidWells/ca823fcbdc25599ee3efc62906068599) — Image reference extraction patterns (MEDIUM confidence)
+**Notion API & URL Formats:**
+- [Notion Working with page content](https://developers.notion.com/docs/working-with-page-content) — Page ID format specification (MEDIUM confidence — official docs)
+- [How to Get Your Root Notion Page ID](https://docs.engine.so/root-notion-page-id) — ID extraction from URL examples (MEDIUM confidence — third-party docs verified with official)
+- [Notion Update Page failing discussion](https://community.n8n.io/t/notion-update-page-failing-could-not-extract-page-id-from-url/248772) — Real-world ID extraction issues (LOW confidence — community anecdotes, validation only)
+
+**Node.js Built-ins:**
+- [Node.js v25.6.1 Readline Documentation](https://nodejs.org/api/readline.html) — Official readline API (HIGH confidence — official docs)
+- [Node.js v25.6.1 URL Documentation](https://nodejs.org/api/url.html) — WHATWG URL API (HIGH confidence — official docs)
+- [Creating a Confirmation Prompt in Node.js](https://www.codu.co/articles/creating-a-confirmation-prompt-in-a-node-js-script-efe8ynfx) — Yes/no prompt patterns (MEDIUM confidence — tutorial, verified with official docs)
+
+**CLI Interaction Patterns:**
+- [Node.js CLI Apps Best Practices](https://github.com/lirantal/nodejs-cli-apps-best-practices) — CLI UX patterns (MEDIUM confidence — community-driven best practices repo)
+- [How to Create a CLI Tool with Node.js (2026)](https://oneuptime.com/blog/post/2026-01-22-nodejs-create-cli-tool/view) — Modern CLI patterns (MEDIUM confidence — recent tutorial)
+- [Build an interactive CLI with Node.js, Commander, Inquirer](https://medium.com/skilllane/build-an-interactive-cli-application-with-node-js-commander-inquirer-and-mongoose-76dc76c726b6) — Framework comparison (LOW confidence — used to validate "don't use Inquirer.js" decision)
+
+**Workflow Orchestration (Research Only — Not Used):**
+- [Orchestration Pattern in Microservices (2026)](https://oneuptime.com/blog/post/2026-01-30-microservices-orchestration-pattern/view) — Validated that GSD's markdown-based orchestration is simpler than orchestration frameworks
+- [GitHub: node-workflow](https://github.com/TritonDataCenter/node-workflow) — Validated overkill for linear phase progression
 
 ---
-*Stack research for: Notion API Integration (Milestone: Notion Integration Features)*
-*Researched: 2026-02-11*
+*Stack research for: v1.2 Streamlined Workflow*
+*Researched: 2026-02-12*
+*Confidence: HIGH — All recommendations use existing validated stack (Node.js built-ins, existing patterns from install.js)*

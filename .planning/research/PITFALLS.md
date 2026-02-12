@@ -1,273 +1,124 @@
 # Pitfalls Research
 
-**Domain:** Notion API Integration for CLI Tools
-**Researched:** 2026-02-11
+**Domain:** Workflow Streamlining (v1.2 milestone - adding shortcuts and automations to existing GSD framework)
+**Researched:** 2026-02-12
 **Confidence:** HIGH
 
 ## Critical Pitfalls
 
-### Pitfall 1: Rate Limit Exhaustion Without Retry-After Handling
+### Pitfall 1: Recommended Settings Divergence
 
 **What goes wrong:**
-Integration hits Notion's 3 requests/second rate limit (2700 calls per 15 minutes), receives HTTP 429 errors, and fails silently or retries immediately, compounding the problem. Bulk operations like syncing multiple markdown files can exhaust rate limits quickly.
+"Apply recommended settings" shortcut creates a snapshot of defaults at implementation time. As the framework evolves, the step-by-step settings flow updates (new options, changed defaults, different recommendations), but the shortcut's hardcoded "recommended" values become stale. Users who use the shortcut get outdated settings, while users who go step-by-step get current best practices. This creates two classes of configurations that behave differently, making debugging and support nightmares.
 
 **Why it happens:**
-Developers implement synchronous upload loops without rate limiting awareness, assuming "just retry" will work. The @notionhq/client SDK has retry logic but defaults to only 2 retries, insufficient for batch operations.
+The shortcut is implemented as a separate code path that directly sets values (e.g., `config.workflow.research = true`) instead of delegating to the same underlying mechanism the interactive flow uses. When the interactive flow changes (new workflow option added, default profile changes from "balanced" to "quality"), the shortcut code isn't updated in parallel.
 
 **How to avoid:**
-- Configure SDK retry options: `maxRetries: 5`, `initialRetryDelayMs: 500`, `maxRetryDelayMs: 60000`
-- Implement request queuing for batch operations (process sequentially or with throttling)
-- Respect the `Retry-After` response header value when receiving 429 errors
-- Add exponential backoff for failed requests
-- For bulk operations, throttle to ~2 requests/second to stay safely under the 3 rps average
+- **Single source of truth:** Define recommended settings as data (e.g., `RECOMMENDED_SETTINGS` constant or JSON file), not duplicated logic
+- **Shared code path:** Shortcut should invoke the same setter functions as interactive flow, passing `answers = RECOMMENDED_SETTINGS`
+- **Version the recommendations:** Track when recommended settings were last reviewed (e.g., `// Last reviewed: 2026-02-12 for v1.2`)
+- **Test coverage:** Integration test that compares shortcut output to interactive flow output with all defaults selected
+- **Update trigger:** When adding new settings to interactive flow, CI/CD lint rule requires updating RECOMMENDED_SETTINGS constant
 
 **Warning signs:**
-- Intermittent 429 errors during bulk operations
-- Operations work with single files but fail with multiple files
-- Success rate decreases as batch size increases
-- Error logs showing rapid-fire retries
+- User reports different behavior after using shortcut vs. interactive flow
+- Settings file has unexpected values (e.g., `research: false` when shortcut docs say "research enabled")
+- Support issues cluster around "I used recommended settings but X doesn't work"
+- Git blame shows interactive flow changed recently but shortcut code hasn't
 
 **Phase to address:**
-Phase 1 (SDK setup and core infrastructure) - build rate limiting into the foundation before implementing any batch operations.
+Phase addressing "Apply recommended settings" feature (likely early in v1.2). Implement as DRY abstraction from day 1 — refactoring diverged code paths is harder than preventing divergence.
 
 ---
 
-### Pitfall 2: Markdown Block Conversion Character Limit Violations
+### Pitfall 2: Context Window Bloat from Chained Workflows
 
 **What goes wrong:**
-Large markdown sections (>2000 characters) fail silently or truncate when converting to Notion blocks. Rich text arrays hit the 100-element limit. Documents that appear to upload successfully are missing content.
+Chaining discuss-phase → research → planning in one session accumulates massive context: discussion transcript (4-6K tokens), research results (8-12K tokens), planning artifacts (5-10K tokens), plus framework instructions (3-5K tokens). Total: 20-33K tokens before user even starts. This hits three problems: (1) Exceeds effective context window (~60-70% of advertised max), causing "lost in the middle" where model misses earlier decisions. (2) Costs spike 3-5x vs. separate sessions. (3) Model performance degrades — verbose discussions early in context get ignored during planning.
 
 **Why it happens:**
-Notion's API has a strict 2000 character limit per rich text array element and 100 element maximum per block. Developers convert markdown naively without chunking, assuming the API will handle large content.
+Auto-advance feels smooth (no manual command invocation), so it's tempting to chain everything. Workflow authors see "200K context window" and assume chaining is free. Real-world research shows models effectively use only 10-20% of available context, and information in the middle gets lost. Chain-of-thought (discussion) improves quality but consumes massive context. Trade-off between seamless UX and context efficiency isn't obvious until users hit degraded output quality.
 
 **How to avoid:**
-- Implement chunking logic that splits large text blocks into multiple Notion blocks before sending
-- Monitor rich text array lengths and split when approaching 100 elements
-- Use libraries like `martian` (@tryfabric/martian) that handle chunking automatically
-- Validate converted content length before API calls
-- Test with large markdown files (>10KB) during development
+- **Hard limit on chain depth:** Max 2 auto-advances per session (e.g., discuss → plan, then STOP; or plan → auto-complete, then STOP)
+- **Context checkpoints:** After discussion, write CONTEXT.md and suggest `/clear` before planning: "Discussion complete. `/clear` recommended before planning to free context window."
+- **Measure and warn:** Track cumulative tokens (count discussion + research + planning prompts). If > 15K, warn: "Context heavy (15K+ tokens). Consider `/clear` for better quality."
+- **Make chaining opt-in:** Default to single-step execution. Require `--chain` flag or config setting for auto-advance
+- **Token budget per step:** Discussion agent limited to 3K tokens output, research to 8K, planning to 10K — enforced truncation prevents runaway growth
 
 **Warning signs:**
-- Content appears truncated in Notion after upload
-- Long paragraphs cut off mid-sentence
-- API validation errors mentioning "rich text" or "character limit"
-- Complex markdown documents fail while simple ones succeed
+- Users report "planner ignored my discussion decisions" (information lost in middle)
+- Token costs 3-5x higher than expected for milestone
+- Quality degrades in later phases (model has less effective context remaining)
+- Users manually run `/clear` between steps (signal that chaining is too aggressive)
 
 **Phase to address:**
-Phase 2 (markdown-to-Notion conversion) - implement chunking from the start, as retrofitting is complex and risks data corruption.
+Phase implementing auto-advance from plan-phase (current v1.1 behavior). Add context budget tracking BEFORE extending chains further. Phase adding discuss-phase integration should include `/clear` checkpoint, not seamless chaining.
 
 ---
 
-### Pitfall 3: Image Upload Expiration and Re-upload Loops
+### Pitfall 3: Notion URL Format Parsing Fragility
 
 **What goes wrong:**
-Uploaded images expire after 1 hour if not attached to a block. URLs fetched from Notion expire and break when re-fetched. Sync operations re-upload the same image repeatedly instead of reusing existing attachments.
+Users paste four types of Notion URLs, but code only handles one:
+1. **Page URLs:** `https://www.notion.so/WORKSPACE-PAGE_ID` (works)
+2. **Workspace URLs:** `https://www.notion.so/WORKSPACE_NAME-WORKSPACE_ID` (fails — workspace ID ≠ page ID)
+3. **Shared links:** `https://notion.so/PAGE_ID?pvs=21` (query params break regex)
+4. **Database URLs:** `https://www.notion.so/DATABASE_ID?v=VIEW_ID` (database ID works like page ID, but view param confuses parser)
+
+Code assumes format #1, extracts last segment as page ID, fails silently for others. User sees "Sync successful" (no pages created) or "Invalid page ID" (API error). Debugging requires understanding Notion URL structure, which users don't have.
 
 **Why it happens:**
-Developers don't realize Notion-hosted files have time-based expiration. Upload workflows assume "upload once, use forever" model. Image references aren't tracked between sync operations.
+Initial implementation uses simple regex: `url.match(/\/([a-f0-9]{32})/)[1]`. This works for canonical page URLs but doesn't handle query params, workspace-only URLs, or the `notion.so` vs `www.notion.so` variance. Notion API docs don't clearly document URL format variations. Developers test with their own pages (format #1), miss edge cases.
 
 **How to avoid:**
-- Attach uploaded images to blocks within 1 hour of upload
-- Track image-to-block mappings in local metadata (page ID → image block IDs)
-- Re-fetch file objects to refresh URLs when reading existing pages (don't cache URLs)
-- For sync operations, detect unchanged images by comparing local file hashes to tracked uploads
-- Implement idempotent image upload (upload only if local image changed)
+- **Robust parser with error messages:** Parse URL, then validate:
+  ```javascript
+  const match = url.match(/([a-f0-9]{32})/); // Extract any 32-char hex
+  if (!match) return { error: "No page ID found. Use a full Notion page URL (e.g., https://notion.so/workspace-page123...)" };
+  const pageId = match[1];
+  // Then verify it's a page, not workspace ID, via API
+  ```
+- **Strip query params:** `url.split('?')[0]` before parsing
+- **Validate via API:** After extracting ID, call Notion API `GET /pages/{id}` to verify it's a page. If error: "This looks like a workspace/database URL. Open a specific page and copy that URL."
+- **User guidance:** Show example URL in prompt: "Paste your Notion parent page URL (e.g., https://notion.so/yourworkspace-abc123...)"
+- **Fallback to manual ID entry:** If URL parsing fails, offer: "Can't parse URL. Enter page ID directly (32-character hex string):"
 
 **Warning signs:**
-- Images work initially but show "expired" or broken later
-- Same images uploaded multiple times during repeated syncs
-- Orphaned uploads in Notion workspace (files not attached to pages)
-- Sync operations take progressively longer due to unnecessary re-uploads
+- User reports "sync says success but nothing appeared in Notion"
+- Support requests with database URLs: "I pasted my workspace, why doesn't it work?"
+- Error logs show `Invalid page ID` with workspace IDs in the error
+- Regex works in unit tests (only test format #1) but fails in production
 
 **Phase to address:**
-Phase 3 (image upload) - implement upload tracking and expiration handling immediately, as fixing post-launch requires migration of existing metadata.
+Phase implementing Notion parent page configuration (likely when adding sync-to-Notion workflow integration). Include URL validation and error handling from day 1 — retrofitting clear errors into brittle regex is painful.
 
 ---
 
-### Pitfall 4: Block Update vs Append Semantics Confusion
+### Pitfall 4: Missing Notion API Key Pre-Check
 
 **What goes wrong:**
-Attempting incremental page updates by using PATCH block endpoints fails because most block types can't be updated in place. Trying to "update" a page replaces entire content instead of merging changes. Images can't be updated at all and must be deleted/recreated.
+User completes milestone, prompted "Upload planning docs to Notion?", says yes, workflow triggers `notion-sync.js sync` which immediately fails with "Missing API key" or "Authentication failed." Milestone is already tagged and archived (irreversible), but sync didn't happen. User now has to manually run sync later, defeating the automation's purpose. Worse: if config.json exists but `notion.api_key` is empty string, code may not fail early — sync attempts, hits auth error mid-upload, leaves partial state (some pages created, others failed).
 
 **Why it happens:**
-Developers assume PATCH semantics mean "merge changes" but Notion's API has separate update vs append operations. The page update endpoint (PATCH /v1/pages/:id) only updates properties/metadata, not content. Block children cannot be updated directly.
+Workflow checks `if (config.notion && config.notion.api_key)` but this passes for `api_key: ""` (empty string is truthy object property). Notion API returns 401 Unauthorized, but error handling assumes network issues, not config issues. Prompt appears too late (after milestone completion), when user expects automation to "just work." Install flow prompts for API key but doesn't validate it (copy-paste errors, expired keys, wrong format).
 
 **How to avoid:**
-- Track page block IDs in local metadata to enable surgical updates
-- Use "append block children" endpoint to add new content at the end
-- For content changes, delete old blocks and append new ones (no direct update)
-- For images, delete old image block via block ID, then append new image block
-- Implement "replace mode" flag: if true, use `erase_content: true` parameter (destructive); if false, append only
-- Document that incremental updates require block ID tracking from initial creation
+- **Strict validation in prompt step:** Check `api_key && api_key.trim() !== '' && (api_key.startsWith('secret_') || api_key.startsWith('ntn_'))`
+- **Auth-check before prompt:** Before asking "Upload to Notion?", run `notion-sync.js auth-check --raw` (returns `{authenticated: true/false, error: null}`). If false, skip prompt or show: "Notion not configured. Run /gsd:settings to add API key."
+- **Early failure, clear recovery:** If auth-check fails during sync, STOP and show: "Notion sync failed (auth error). Your milestone is complete and tagged. Fix API key in .planning/config.json, then run /gsd:sync-notion manually."
+- **Validate during install:** When user enters API key, make test API call (`GET /users/me`) to verify it works BEFORE saving to config
+- **Idempotent sync:** Sync should be safe to re-run (hash-based change detection). If sync partially fails, user can fix config and re-run without duplicates
 
 **Warning signs:**
-- Page properties update but content doesn't change
-- Error messages about "cannot update block children"
-- Image updates fail with "operation not supported"
-- Entire page content replaced when only partial update intended
+- Users report "said it would sync but nothing happened"
+- Error logs show 401 after milestone tag created (too late to recover gracefully)
+- Support tickets: "How do I add API key after milestone completion?"
+- Empty `api_key` values in config.json (install flow accepted invalid input)
 
 **Phase to address:**
-Phase 4 (incremental sync) - design sync strategy upfront with clear replace vs merge semantics, as changing strategy mid-project breaks existing workflows.
-
----
-
-### Pitfall 5: Parent Page Hierarchy Immutability After Creation
-
-**What goes wrong:**
-Pages created with wrong parent cannot be moved programmatically. Parent-child hierarchy errors require manual Notion UI fixes. Attempting to reorganize page structure via API fails silently.
-
-**Why it happens:**
-The Notion API has no endpoint to change a page's parent after creation. Developers assume "create then organize" workflow but API only supports "organize during creation."
-
-**How to avoid:**
-- Verify parent page ID before creating child pages (no undo)
-- Implement parent validation step that checks parent page exists and integration has access
-- For nested markdown documents, resolve parent-child relationships before any API calls
-- Build hierarchy bottom-up (deepest children first) or top-down with careful ID tracking
-- Fail fast with clear error if parent page ID invalid or inaccessible
-- Document limitation prominently: "Page parents cannot be changed after creation"
-
-**Warning signs:**
-- Pages created in wrong locations (flat instead of nested)
-- Errors mentioning "parent access" or "parent not found"
-- Manual Notion UI reorganization needed after API sync
-- Hierarchy structure doesn't match local markdown directory structure
-
-**Phase to address:**
-Phase 2 (page hierarchy creation) - implement parent validation and hierarchy resolution before any page creation, as post-creation fixes require API deletion/recreation.
-
----
-
-### Pitfall 6: Request Payload Size Limits in Bulk Operations
-
-**What goes wrong:**
-Creating pages with large content fails with "validation_error" despite individual blocks being under limits. Batch operations silently fail when payload exceeds 1000 blocks or 500KB total.
-
-**Why it happens:**
-Notion enforces overall payload limits (1000 blocks, 500KB) in addition to per-element limits. Developers check character limits but not aggregate payload size. Large markdown files converted to 200+ blocks exceed limits.
-
-**How to avoid:**
-- Implement payload size tracking: count total blocks and estimate size before API call
-- For documents exceeding 900 blocks, split into multiple append operations
-- Create page with first 900 blocks, then append remaining blocks via separate calls
-- Monitor total payload size (estimate ~500 bytes per block as safety margin)
-- Test with large markdown files (50+ KB) to validate chunking logic
-
-**Warning signs:**
-- Validation errors mentioning "request too large"
-- Documents under per-block limits but still failing
-- Success with small files, failure with large files at unpredictable threshold
-- API returning 400 errors without specific field mentioned
-
-**Phase to address:**
-Phase 2 (markdown conversion) - build multi-request chunking into conversion pipeline, as retrofitting requires rewriting core upload logic.
-
----
-
-### Pitfall 7: Comment API Read-Only Thread Limitations
-
-**What goes wrong:**
-Attempting to create new comment threads via API fails. Comments can only be added to existing threads started by users in Notion UI. Integration appears to "support comments" but can't initiate discussions.
-
-**Why it happens:**
-Notion's comment API is read-and-respond only - integrations cannot start new discussion threads on blocks, only reply to existing threads. Developers assume comment creation means "create thread" but API only supports "add to thread."
-
-**How to avoid:**
-- Document prominently that comment feature is "read and reply only"
-- Implement comment retrieval to display existing discussions in CLI
-- For comment-to-CLI workflow, detect existing threads and pull comments
-- Don't implement "create comment" feature unless user has manually started thread in Notion
-- Use `discussion_id` field to group comments by thread when displaying
-- Consider alternative: append regular text blocks instead of inline comments for annotations
-
-**Warning signs:**
-- Errors mentioning "cannot start discussion"
-- Comments appear in Notion but not attached to blocks
-- Feature works for some pages (with existing threads) but not others (new pages)
-- Integration lacks permission to create inline comments
-
-**Phase to address:**
-Phase 5 (comment retrieval) - scope as "read-only thread viewer" from the start to avoid building unusable "create comment" UI.
-
----
-
-### Pitfall 8: Block Nesting Depth Limit Exceeded in Complex Markdown
-
-**What goes wrong:**
-Deeply nested markdown lists (toggle lists, nested bullet points >2 levels) fail during conversion. API silently truncates nested content or flattens structure.
-
-**Why it happens:**
-Notion API allows maximum 2 levels of nesting in a single request. Markdown with 4+ nesting levels exceeds this limit. Recursive conversion doesn't account for depth restrictions.
-
-**How to avoid:**
-- Implement nesting depth validation during markdown parsing
-- Flatten deeply nested structures to 2 levels maximum (Notion's limit)
-- For structures needing >2 levels, create parent blocks first, then append grandchildren in subsequent requests
-- Track parent block IDs during recursive creation to enable multi-request nesting
-- Test with complex markdown: nested toggles, nested lists, nested quotes
-
-**Warning signs:**
-- Nested lists appear flat in Notion
-- Toggle blocks lose their nested children
-- Indentation structure doesn't match source markdown
-- Content appears but hierarchy is flattened
-
-**Phase to address:**
-Phase 2 (markdown conversion) - handle nesting limits during initial conversion logic, as fixing later requires re-parsing entire document structures.
-
----
-
-### Pitfall 9: Heading Level Mismatch Due to Notion's Three-Level Limit
-
-**What goes wrong:**
-Markdown documents with H4, H5, H6 headings all convert to Notion's H3 (smallest heading). Document hierarchy appears flattened. Table of contents and navigation breaks.
-
-**Why it happens:**
-Notion only supports heading levels 1, 2, and 3. Markdown allows H1-H6. Naive conversion maps H4+ to H3, losing hierarchical distinction.
-
-**How to avoid:**
-- Document heading limitation prominently in user-facing docs
-- Implement heading level normalization: H1→H1, H2→H2, H3+→H3
-- Consider alternative: convert H4+ to bold paragraph text to preserve visual distinction
-- For documents with deep heading hierarchies, suggest restructuring before conversion
-- Provide warning during conversion: "H4+ headings downgraded to H3"
-
-**Warning signs:**
-- All subsections appear same size in Notion
-- Document outline loses depth
-- Navigation hierarchy flattened
-- Users report "everything looks the same"
-
-**Phase to address:**
-Phase 2 (markdown conversion) - handle during initial heading conversion, as changing strategy later breaks consistency across synced documents.
-
----
-
-### Pitfall 10: Integration Token Exposure in Git Commits
-
-**What goes wrong:**
-Developer commits `.env` file or hardcoded token to git, leaking Notion integration credentials. Token grants full access to all pages integration can reach.
-
-**Why it happens:**
-CLI tools often use local config files for tokens. Git integration in GSD auto-commits `.planning/` directory. Developers forget to gitignore sensitive files or accidentally include tokens in config files.
-
-**How to avoid:**
-- Store token exclusively in environment variable (`NOTION_API_KEY`)
-- Never write token to any file in `.planning/` or git-tracked directories
-- Add `.env*` to `.gitignore` before any development
-- Document token setup: "Set NOTION_API_KEY environment variable - never commit token"
-- Implement token validation on startup with clear error if missing
-- Use git pre-commit hook to detect and block token patterns
-- Rotate token immediately if accidentally committed (via Notion integration settings)
-
-**Warning signs:**
-- Token visible in git history
-- Config files containing "secret_" or "ntn_" prefixes (Notion token format)
-- `.env` files tracked in git
-- Security scanner alerts about exposed credentials
-
-**Phase to address:**
-Phase 1 (SDK setup) - enforce environment variable pattern before any token usage, as leaked tokens require immediate rotation and audit.
+Phase integrating Notion sync into complete-milestone workflow (v1.2). Pre-check must happen BEFORE prompting user — failing after user says "yes" erodes trust. Phase adding API key configuration should validate immediately, not defer to first use.
 
 ---
 
@@ -277,12 +128,12 @@ Shortcuts that seem reasonable but create long-term problems.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Skip block ID tracking for sync | Faster initial implementation | Cannot do incremental updates, must replace entire pages | Never - tracking is essential for sync |
-| Hardcode 3 rps throttle instead of Retry-After | Simple implementation | Doesn't adapt to Notion rate limit changes, wastes time waiting when unnecessary | Never - Retry-After header is authoritative |
-| Convert markdown to Notion blocks without chunking | Works for small docs | Fails on large documents, requires rewrite | Only for proof-of-concept, never production |
-| Store image URLs from Notion API responses | Avoids re-fetching | URLs expire after 1 hour, breaks existing references | Never - always re-fetch when displaying |
-| Use PATCH to update page content | Seems like standard REST pattern | Doesn't work, blocks aren't updatable this way | Never - API semantics differ from REST conventions |
-| Assume page parent can be changed later | Flexible "create first, organize later" workflow | No API to move pages, requires delete/recreate | Never - validate parent upfront |
+| Hardcode recommended settings in shortcut function | Fast to implement (5 lines) | Diverges from interactive flow defaults; creates two config paths to maintain | Never — always delegate to shared setter |
+| Chain all workflows without context checkpoints | Seamless UX; user runs one command | Context bloat (20-33K tokens); quality degradation; 3-5x cost increase | Only for short chains (<10K tokens cumulative) |
+| Simple regex URL parser without validation | Works for 80% of URLs (canonical format) | Silent failures for workspace/shared/database URLs; hard to debug | Only if paired with "or enter page ID manually" fallback |
+| Skip API auth check, assume config is valid | One less network call | Sync fails after irreversible milestone tag; poor error messages; user confusion | Only in offline/testing mode, never in production workflow |
+| Parse Notion URLs client-side only | No server dependency; works offline | Fragile to Notion URL format changes; can't distinguish page vs workspace IDs | Only if combined with server-side validation API call |
+| Auto-advance without token budget tracking | Feels magical; no manual steps | Invisible quality degradation; users don't know why output is worse | Only with hard-coded chain depth limit (max 2 steps) |
 
 ## Integration Gotchas
 
@@ -290,11 +141,12 @@ Common mistakes when connecting to external services.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| @notionhq/client SDK | Using default retry settings (2 retries) for bulk operations | Configure `maxRetries: 5` and exponential backoff for batch uploads |
-| Markdown parsers (martian, notion-to-md) | Assuming they handle all API limits | Validate output: check block count (<1000), payload size (<500KB), nesting depth (≤2) |
-| Git auto-commit in GSD | Committing Notion tokens in `.planning/config.json` | Store token in environment variable only, never in tracked files |
-| Image file uploads | Uploading to Notion then referencing later | Attach uploaded images to blocks within 1 hour or they expire |
-| Page hierarchy sync | Creating pages flat then trying to reorganize | Resolve parent-child relationships before API calls, create with correct parent |
+| Notion API (parent page) | Assume pasted URL is always a page ID | Parse URL, extract ID, then validate via `GET /pages/{id}` API call; offer manual ID entry fallback |
+| Notion API (auth) | Check config exists, assume key is valid | Validate key format (starts with `secret_` or `ntn_`), then test with `GET /users/me` before saving |
+| Notion API (sync trigger) | Prompt user → run sync → handle errors | Auth-check BEFORE prompting; if no key, skip prompt entirely; never prompt for action that can't succeed |
+| Interactive readline | Assume stdin is always TTY | Check `process.stdin.isTTY` before readline prompts; fallback to defaults or error in non-interactive environments |
+| Readline validation | Validate after user confirms | Validate each input immediately (e.g., API key format) with retries; prevent saving invalid config |
+| Auto-advance chains | Chain operations, handle errors at end | Measure cumulative token budget; break chain at checkpoints; suggest `/clear` when budget exceeds threshold |
 
 ## Performance Traps
 
@@ -302,23 +154,11 @@ Patterns that work at small scale but fail as usage grows.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Synchronous sequential uploads | Slow but works for 5-10 pages | Implement request queue with 2 rps throttling | >20 pages, takes 10+ seconds per page |
-| Re-uploading unchanged images every sync | Unnecessary API calls, slow syncs | Track local file hashes, skip upload if unchanged | >10 images per sync, wastes rate limit budget |
-| Fetching nested blocks recursively without caching | Excessive API calls for deep hierarchies | Cache page structure, invalidate only on sync | Pages with >50 nested blocks |
-| Creating pages with all content in single request | Works until hitting 1000 block limit | Chunk into 900-block batches with append operations | Markdown files >50KB or >900 blocks |
-| Not implementing incremental sync | Full replace works for small projects | Track block IDs, implement surgical updates | >50 pages, full sync takes minutes |
-
-## Security Mistakes
-
-Domain-specific security issues beyond general web security.
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing Notion token in `.planning/config.json` | Token leaked via git commit, grants full integration access | Use environment variable exclusively: `NOTION_API_KEY` |
-| Not validating parent page access before creation | Creates pages in unauthorized locations, potential data leakage | Verify integration has access to parent via API call before creating children |
-| Logging API responses with sensitive page content | User data exposed in CLI logs or terminal history | Sanitize logs: show page IDs but not content, use LogLevel.DEBUG only when needed |
-| Sharing integration tokens between projects | Token compromise affects all projects, no isolation | Create separate integration per project or per environment |
-| Not rotating tokens after team member departure | Former team member retains access via committed/shared token | Rotate token immediately when access should be revoked |
+| Chaining workflows without context limits | First milestone fine, later ones produce lower-quality plans | Track cumulative tokens (discussion + research + planning); warn at 15K, break chain at 20K | After 2-3 phases in one session (~25K tokens) |
+| Loading all SUMMARY.md files without pagination | Fast for 5-10 phases, slow for 50+ phases | Stream files or paginate; extract only needed fields (one_liner) via `summary-extract` | 20+ phases (~1MB of markdown) |
+| Regex-only URL parsing without API validation | Works until user pastes workspace/database URL | Always validate extracted ID via API call; treat regex as hint, not source of truth | When users discover workspace URLs (10-20% of attempts) |
+| Setting recommended defaults without versioning | Smooth until defaults change in v1.3 | Version recommendations (`RECOMMENDED_SETTINGS_V1_2`); migrate old configs during install | When new setting added or default changes (every major version) |
+| Auto-advance without user-visible checkpoints | Magic until context window fills | Show token count after each step: "Discussion: 4K tokens, Planning: 8K tokens (12K total)" | After 15-20K tokens (model effectiveness drops) |
 
 ## UX Pitfalls
 
@@ -326,24 +166,25 @@ Common user experience mistakes in this domain.
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Silent failure on rate limit | User sees "sync failed" with no explanation, retries manually and makes it worse | Show clear message: "Rate limited, retrying in {N} seconds..." with progress indicator |
-| No progress indicator for bulk uploads | User doesn't know if tool is frozen or working | Display "Uploading page 3/20..." with percentage and current page name |
-| Syncing entire document when only metadata changed | Wastes time, user waits unnecessarily | Detect content vs property changes, update only what changed |
-| Creating Notion pages without user preview | User sees unexpected formatting, has to manually fix in Notion | Show preview: "Will create page with N blocks, H1/H2/H3 headings, M images - proceed?" |
-| No error recovery guidance | "Error: validation_error" leaves user stuck | Specific guidance: "Document too large (1200 blocks, limit 1000). Split into sections or reduce nesting." |
+| Prompt "Upload to Notion?" when API key missing | User says yes → immediate error → confusion | Pre-check auth; if not configured, skip prompt or show "Notion not set up (run /gsd:settings to configure)" |
+| Show "Sync successful" when no pages created | User thinks it worked, checks Notion, sees nothing → erodes trust | Count created/updated/skipped pages; show "Synced 5 pages (3 created, 2 updated)" or "No changes to sync" |
+| Silent failure on invalid Notion URL | User pastes workspace URL, sees generic error, doesn't know what's wrong | Parse URL, detect format, show specific error: "This is a workspace URL. Open a page and copy that URL instead." |
+| Chaining workflows without showing progress | User waits, doesn't know if it's stuck or working | Display: "Step 1/3: Discussion complete (4K tokens)... Step 2/3: Researching... Step 3/3: Planning..." |
+| Apply recommended settings without showing what changed | User clicks shortcut, doesn't know what was set | After applying, show table: "Applied recommended settings: Research ON, Plan Check ON, Profile Balanced" |
+| Auto-advance without escape hatch | User realizes mid-chain they wanted to stop, can't | Show: "Auto-advancing to Phase 2 in 3s... (Ctrl+C to stop)" or check for user confirmation between steps |
 
 ## "Looks Done But Isn't" Checklist
 
 Things that appear complete but are missing critical pieces.
 
-- [ ] **Markdown conversion:** Often missing chunking for 2000-char limit — verify with >10KB markdown file containing 3000+ char paragraphs
-- [ ] **Image upload:** Often missing expiration handling — verify images still load after 2 hours
-- [ ] **Rate limiting:** Often missing Retry-After header handling — verify bulk operation with 50+ pages respects 429 responses
-- [ ] **Page hierarchy:** Often missing parent validation — verify error handling when parent page doesn't exist or lacks access
-- [ ] **Incremental sync:** Often missing block ID tracking — verify second sync updates existing pages instead of creating duplicates
-- [ ] **Error messages:** Often showing raw API errors — verify user-facing messages explain what went wrong and how to fix
-- [ ] **Token security:** Often hardcoded or committed — verify token stored only in environment variable, no files contain it
-- [ ] **Nested content:** Often missing nesting depth checks — verify deeply nested markdown (4+ levels) doesn't break
+- [ ] **Recommended settings shortcut:** Often missing update trigger when interactive flow changes — verify shortcut and interactive flow produce identical config for same inputs
+- [ ] **Notion URL parsing:** Often missing query param stripping — verify `?v=view&pvs=21` URLs work
+- [ ] **Notion sync prompt:** Often missing API key validation — verify prompt is skipped if auth-check fails
+- [ ] **Context chain limits:** Often missing cumulative token tracking — verify chain breaks or warns at 15-20K tokens
+- [ ] **Auto-advance checkpoints:** Often missing `/clear` suggestions — verify user is prompted to clear context between heavy steps
+- [ ] **Readline validation:** Often missing retry logic — verify invalid input (empty string, wrong format) prompts user again, doesn't save
+- [ ] **Error messages for Notion:** Often generic ("Invalid page ID") — verify error distinguishes workspace URLs, shared links, auth failures
+- [ ] **Sync idempotency:** Often missing hash-based change detection — verify re-running sync after partial failure doesn't create duplicates
 
 ## Recovery Strategies
 
@@ -351,13 +192,12 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Rate limit exhaustion | LOW | Wait for Retry-After period (typically 15 min), implement exponential backoff, retry batch |
-| Duplicate pages created | MEDIUM | Use Notion API to delete duplicates by page ID, implement idempotency tracking to prevent recurrence |
-| Images expired | LOW | Re-fetch image blocks to get fresh URLs, or delete and re-upload images with new blocks |
-| Token leaked in git | HIGH | Immediately rotate token via Notion integration settings, audit git history for exposure window, force-push history rewrite if needed (coordinate with team) |
-| Wrong parent hierarchy | HIGH | Delete incorrectly parented pages via API, recreate with correct parent (data loss risk if not backed up locally) |
-| Content truncated due to limits | MEDIUM | Implement chunking logic, re-sync affected pages with chunked content, verify no data loss |
-| Block ID tracking missing | HIGH | Delete all synced pages, implement tracking, re-sync from scratch (or maintain mapping manually) |
+| Recommended settings diverged from interactive flow | MEDIUM | 1. Extract RECOMMENDED_SETTINGS constant. 2. Update shortcut to use constant. 3. Add integration test comparing outputs. 4. Document "last reviewed" date. |
+| Context chain caused quality degradation | LOW | 1. User runs `/clear`. 2. Re-run planning step fresh. 3. Add token budget tracking for future. |
+| Invalid Notion URL parsed incorrectly | LOW | 1. Show error with correct URL format example. 2. Offer manual page ID entry. 3. Add URL validation to prevent recurrence. |
+| Sync failed due to missing API key | MEDIUM | 1. Milestone already tagged (can't roll back). 2. User adds API key to config.json. 3. User runs `/gsd:sync-notion` manually. 4. Add pre-check for future. |
+| Workspace URL mistaken for page URL | LOW | 1. Parse URL, detect workspace ID pattern. 2. Show: "This is a workspace URL. Open a page in your workspace and copy that URL." 3. User pastes correct URL. |
+| Readline accepted invalid input (empty API key) | MEDIUM | 1. User edits .planning/config.json manually. 2. Deletes empty `api_key: ""` or adds valid key. 3. Add validation with retries to install flow. |
 
 ## Pitfall-to-Phase Mapping
 
@@ -365,63 +205,43 @@ How roadmap phases should address these pitfalls.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Rate limit exhaustion | Phase 1: SDK Setup | Load test with 50 sequential requests, verify Retry-After respected |
-| Markdown block conversion limits | Phase 2: MD-to-Notion Conversion | Test with 10KB markdown file, verify no truncation |
-| Image upload expiration | Phase 3: Image Upload | Upload image, wait 2 hours, verify URL refresh logic works |
-| Block update vs append confusion | Phase 4: Incremental Sync | Sync page twice, verify second sync updates (not duplicates) |
-| Parent hierarchy immutability | Phase 2: Page Hierarchy | Test with nested markdown dirs, verify parent validation errors show before creation |
-| Request payload size limits | Phase 2: MD-to-Notion Conversion | Test with 60KB markdown file (1000+ blocks), verify chunking |
-| Comment API read-only threads | Phase 5: Comment Retrieval | Verify "read-only" documented, no "create thread" UI built |
-| Block nesting depth limits | Phase 2: MD-to-Notion Conversion | Test markdown with 4-level nested lists, verify flattening or multi-request nesting |
-| Heading level mismatches | Phase 2: MD-to-Notion Conversion | Test markdown with H1-H6, verify H4+ documented as limitations |
-| Token exposure in git | Phase 1: SDK Setup | Verify `.env` in `.gitignore`, git pre-commit hook detects token patterns |
+| Recommended settings divergence | Phase adding shortcut feature (early v1.2) | Integration test: shortcut output === interactive flow output with all defaults |
+| Context window bloat | Phase implementing auto-advance from plan-phase (current v1.1), Phase adding discuss-phase chaining (v1.2) | Token counter in workflow; test that chain breaks at 20K tokens; `/clear` prompt appears |
+| Notion URL parsing fragility | Phase adding parent page URL configuration (likely early v1.2 Notion integration) | Unit tests for all 4 URL formats; error message test (workspace URL shows specific guidance) |
+| Missing Notion API key pre-check | Phase integrating Notion sync into complete-milestone workflow (v1.2) | Auth-check runs before prompt; prompt skipped if auth fails; test with missing/invalid key |
 
 ## Sources
 
-**Notion API Official Documentation:**
-- [Request limits](https://developers.notion.com/reference/request-limits) - Rate limiting, payload limits, Retry-After header
-- [Working with page content](https://developers.notion.com/docs/working-with-page-content) - Block nesting, unsupported types, update semantics
-- [Working with files and media](https://developers.notion.com/docs/working-with-files-and-media) - Upload workflows, size limits, expiration behavior
-- [Best practices for handling API keys](https://developers.notion.com/docs/best-practices-for-handling-api-keys) - Token security, rotation, secret management
+**Framework Context (Internal):**
+- install.js (lines 1492-1577) — promptNotionKey interactive flow with readline validation
+- plan-phase.md workflow — auto-advance loop (step 14d, lines 411-423)
+- discuss-phase.md — interactive AskUserQuestion creating CONTEXT.md
+- complete-milestone.md (step prompt_notion_sync, lines 586-643) — Notion sync trigger after milestone
 
-**Rate Limiting:**
-- [Understanding Notion API Rate Limits in 2025](https://www.oreateai.com/blog/understanding-notion-api-rate-limits-in-2025-what-you-need-to-know/50d89b885182f65117ff8af2609b34c2) - 3 rps average, 2700 calls per 15 min
-- [How to Handle Notion API Request Limits](https://thomasjfrank.com/how-to-handle-notion-api-request-limits/) - Retry strategies, request queuing
+**External Research:**
 
-**Markdown Conversion:**
-- [Martian - Markdown to Notion](https://github.com/tryfabric/martian) - 2000-char limit handling, chunking strategies
-- [Using Markdown in Notion Without Losing Formatting](https://www.goinsight.ai/blog/markdown-to-notion/) - Heading levels, formatting limitations
-- [Markdown to Notion Blocks](https://brittonhayes.dev/notes/markdown-to-notion-blocks/) - Nesting depth, rich text arrays
+**Context Window & AI Performance:**
+- [Context Length Comparison: Leading AI Models in 2026](https://www.elvex.com/blog/context-length-comparison-ai-models-2026) — Effective capacity is 60-70% of advertised max
+- [The Next AI Failure Mode Isn't Hallucinations. It's Bloat.](https://itbusinessnet.com/2026/02/the-next-ai-failure-mode-isnt-hallucinations-its-bloat/) — Context bloat from verbose examples and unnecessary tooling
+- [Context Window Management: Strategies for Long-Context AI Agents and Chatbots](https://www.getmaxim.ai/articles/context-window-management-strategies-for-long-context-ai-agents-and-chatbots/) — Dynamic context allocation, preventing bloat
+- [Fix AI Agents that Miss Critical Details From Context Windows](https://datagrid.com/blog/optimize-ai-agent-context-windows-attention) — Lost in the middle effect; models effectively use 10-20% of context
+- [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Scaling without bloating orchestrator prompt
 
-**SDK and Error Handling:**
-- [Official Notion JavaScript Client](https://github.com/makenotion/notion-sdk-js) - Retry configuration, error types
-- [@notionhq/client - npm](https://www.npmjs.com/package/@notionhq/client) - API usage, TypeScript examples
+**Configuration Management:**
+- [Are default values an anti-pattern?](https://medium.com/@marcus.nielsen82/are-default-values-an-anti-pattern-54d5d40310f3) — Configuration drift patterns
+- [What is Configuration Drift?](https://www.reach.security/blog/what-is-configuration-drift-5-best-practices-for-your-teams-security-posture) — Causes: temporary changes not documented, undocumented quick fixes, variations accumulate
+- [Environment variables and configuration anti patterns in Node.js applications](https://lirantal.com/blog/environment-variables-configuration-anti-patterns-node-js-applications) — Node.js-specific config anti-patterns
 
-**File Uploads:**
-- [Uploading Files via Notion's API](https://notionmastery.com/uploading-files-via-notions-api/) - Expiration times, multi-part uploads
-- [Uploading small files](https://developers.notion.com/guides/data-apis/uploading-small-files) - Size limits, workflow steps
+**Node.js Interactive Prompts:**
+- [Master Node.js readline/promises: Production-Ready Guide](https://kitemetric.com/blogs/mastering-node-js-readline-promises-a-production-ready-guide) — Best practices: always close interface, handle errors, validate input
+- [Node.js — Accept input from the command line](https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs) — Error handling, TTY detection
+- [Node.js Interactive Command Line Prompts](https://mangohost.net/blog/node-js-interactive-command-line-prompts-how-to-use/) — Common pitfalls: forgetting close(), not handling errors, ignoring input validation
 
-**Comments API:**
-- [Working with comments](https://developers.notion.com/guides/data-apis/working-with-comments) - Read-only threading, discussion IDs
-- [Comments API changelog](https://developers.notion.com/changelog/comments-api) - API capabilities and limitations
-
-**Page Hierarchy:**
-- [Parent object reference](https://developers.notion.com/reference/parent-object) - Parent types, creation constraints
-- [Feature Request: Page Parent Management](https://github.com/makenotion/notion-mcp-server/issues/64) - No API to move pages after creation
-
-**Block Operations:**
-- [Update page properties](https://developers.notion.com/reference/patch-page) - Property vs content updates, erase_content flag
-- [Append block children](https://developers.notion.com/reference/patch-block-children) - 100 block limit, append-only semantics
-- [How to handle deep nesting restrictions](https://community.latenode.com/t/how-to-handle-deep-nesting-restrictions-in-notion-api-block-creation/29316) - 2-level nesting limit
-
-**Security:**
-- [Remediating Notion Integration Token leaks](https://www.gitguardian.com/remediation/notion-integration-token) - Token rotation, leak detection
-- [Notion Integration Token detection](https://docs.gitguardian.com/secrets-detection/secrets-detection-engine/detectors/specifics/notion_integration_token) - Token patterns, security scanning
-
-**Sync and Webhooks:**
-- [Webhooks documentation](https://developers.notion.com/reference/webhooks) - Real-time change tracking, event types
-- [Pushing Notion to the Limits](https://notionmastery.com/pushing-notion-to-the-limits/) - Performance constraints, scale thresholds
+**Notion API:**
+- [Start building with the Notion API](https://developers.notion.com/docs/getting-started) — Base URL https://api.notion.com, workspace URL formats
+- [Retrieving page URLs through Notion's Public API](https://community.latenode.com/t/retrieving-page-urls-through-notions-public-api/18531) — Page URLs not directly in API; ID extraction challenges
+- [Introduction - Notion Docs](https://developers.notion.com/reference/intro) — API authentication, page vs. database objects
 
 ---
-*Pitfalls research for: Notion API Integration for CLI Tools*
-*Researched: 2026-02-11*
+*Pitfalls research for: v1.2 Workflow Streamlining*
+*Researched: 2026-02-12*
