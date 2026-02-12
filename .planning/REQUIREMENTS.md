@@ -20,15 +20,15 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 
 ### Phase Integration
 
-- [ ] **PINT-01**: After presenting comment understanding, Claude analyzes the current roadmap and recommends whether each accepted comment should update an existing phase or create a new phase
-- [ ] **PINT-02**: For existing phase updates, Claude identifies which specific phase and what changes are needed
-- [ ] **PINT-03**: For new phase creation, Claude proposes a phase name, goal, and requirements following the existing roadmap format
+- [x] **PINT-01**: After presenting comment understanding, Claude analyzes the current roadmap and recommends whether each accepted comment should update an existing phase or create a new phase
+- [x] **PINT-02**: For existing phase updates, Claude identifies which specific phase and what changes are needed
+- [x] **PINT-03**: For new phase creation, Claude proposes a phase name, goal, and requirements following the existing roadmap format
 
 ### User Control
 
-- [ ] **CTRL-01**: User is prompted with two options: "Discuss changes" (interactive conversation) or "Let Claude decide" (auto-incorporate)
-- [ ] **CTRL-02**: If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
-- [ ] **CTRL-03**: If "Let Claude decide", Claude auto-incorporates all accepted changes into the planning artifacts (ROADMAP.md, phase plans, REQUIREMENTS.md)
+- [x] **CTRL-01**: User is prompted with two options: "Discuss changes" (interactive conversation) or "Let Claude decide" (auto-incorporate)
+- [x] **CTRL-02**: If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
+- [x] **CTRL-03**: If "Let Claude decide", Claude auto-incorporates all accepted changes into the planning artifacts (ROADMAP.md, phase plans, REQUIREMENTS.md)
 
 ## v1.2 Requirements (Complete)
 
@@ -101,12 +101,12 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 | CINT-03 | Phase 15 | Complete |
 | OUTP-01 | Phase 15 | Complete |
 | OUTP-02 | Phase 15 | Complete |
-| PINT-01 | Phase 16 | Pending |
-| PINT-02 | Phase 16 | Pending |
-| PINT-03 | Phase 16 | Pending |
-| CTRL-01 | Phase 16 | Pending |
-| CTRL-02 | Phase 16 | Pending |
-| CTRL-03 | Phase 16 | Pending |
+| PINT-01 | Phase 16 | Complete |
+| PINT-02 | Phase 16 | Complete |
+| PINT-03 | Phase 16 | Complete |
+| CTRL-01 | Phase 16 | Complete |
+| CTRL-02 | Phase 16 | Complete |
+| CTRL-03 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 11 total

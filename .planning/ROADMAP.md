@@ -84,7 +84,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 16-01-PLAN.md — Replace triage flow with phase-integration analysis and user-controlled incorporation
+- [x] 16-01-PLAN.md — Replace triage flow with phase-integration analysis and user-controlled incorporation — completed 2026-02-12
 
 ## Progress
 
@@ -105,7 +105,7 @@ Plans:
 | 13. Auto-Discuss Before Planning | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 14. Notion Sync Integration | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 15. Comment Understanding & Output | v1.3 | 1/1 | Complete | 2026-02-12 |
-| 16. Phase Integration & User Control | v1.3 | 0/? | Pending | — |
+| 16. Phase Integration & User Control | v1.3 | 1/1 | Complete | 2026-02-12 |
 
 ---
 *Roadmap created: 2026-02-10*

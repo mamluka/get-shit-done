@@ -105,7 +105,9 @@ No current blockers — v1.3 complete.
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 16-01-PLAN.md (Phase integration workflow)
+Stopped at: Phase 16 verified and complete. v1.3 milestone done.
 Resume file: None
+
+**Next step:** `/gsd:complete-milestone` to mark v1.3 as shipped and archive
 
 **Next step:** v1.3 milestone complete. Review ROADMAP.md for next milestone planning.
