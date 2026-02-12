@@ -1,5 +1,5 @@
 <purpose>
-Retrieve unresolved comments from synced Notion pages, identify themes across all feedback, map themes to affected roadmap phases, and walk the user through an interactive triage discussion. Saves results as a dated markdown file for historical reference.
+Retrieve unresolved comments from synced Notion pages, interpret each comment, analyze them against the current roadmap, recommend planning changes (update existing phases or create new ones), and let the user choose between interactive discussion or auto-incorporation. Applies accepted changes directly to ROADMAP.md, REQUIREMENTS.md, and phase directories.
 </purpose>
 
 <required_reading>
@@ -98,175 +98,169 @@ Found {N} comments across {M} pages.
 ...
 ```
 
-**Note:** This interpretation output is separate from the triage results saved by the `save_results` step later in the workflow. The interpretation file provides raw understanding; the triage file records user decisions.
+**Note:** This interpretation output (when saved to file) provides raw understanding of comments. The `incorporate_changes` step later in the workflow applies accepted changes directly to planning artifacts.
 
 After either output path (inline or file), continue to the next step.
 
 </step>
 
-<step name="cluster_themes">
+<step name="analyze_and_recommend">
 
-Read `.planning/ROADMAP.md` to understand the project's phase structure.
+After comment interpretation, analyze each comment against the current roadmap and recommend planning changes.
 
-Analyze all fetched comments and identify 2-5 themes. For each theme:
-1. **Theme name** — Short descriptive label (e.g., "Authentication UX Concerns", "API Documentation Gaps")
-2. **Comments** — Which comments belong to this theme (by discussion text)
-3. **Affected phases** — Which roadmap phases are impacted by this feedback (reference phase numbers and names from ROADMAP.md)
-4. **Severity** — How critical is this theme? (blocking / important / nice-to-have)
+**1. Read the current roadmap:**
 
-Present the themes to the user:
+Read `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md` to understand the current phase structure, goals, requirements, and what's in progress vs complete.
+
+**2. For each interpreted comment**, analyze whether it:
+
+**Updates an existing phase** — the feedback relates to a phase that already exists (even if complete). Claude identifies which specific phase and what changes are needed:
+- Add a new requirement
+- Add a new success criterion
+- Update the goal
+- Modify existing requirements
+
+**Creates a new phase** — the feedback suggests entirely new capability not covered by any existing phase. Claude proposes:
+- Phase name
+- Goal (outcome-shaped, not task-shaped)
+- Requirements (using the project's requirement ID format from REQUIREMENTS.md)
+- Success criteria (what must be TRUE)
+- Where it fits in the roadmap (which milestone, after which phase)
+
+**3. Present recommendations** in a structured format:
 
 ```
-## Comment Themes
+## Recommended Changes
 
-Found {N} unresolved comments across {M} pages, grouped into {T} themes:
+Based on the comments, I recommend the following planning changes:
 
-### Theme 1: {Name}
-**Severity:** {blocking/important/nice-to-have}
-**Affected phases:** Phase {X} ({name}), Phase {Y} ({name})
-**Comments ({count}):**
-- "{comment text excerpt}" — {author}, {page title}
-- "{comment text excerpt}" — {author}, {page title}
+### Change 1: Update Phase {N} — {Phase Name}
+**Type:** Update existing phase
+**Affected phase:** Phase {N} ({name})
+**What to change:**
+- Add requirement {ID}: {description}
+- Add success criterion: {criterion text}
+**Rationale:** {Why this comment maps to this phase}
 
-### Theme 2: {Name}
-...
+### Change 2: Create New Phase — {Proposed Name}
+**Type:** New phase
+**Proposed name:** {name}
+**Goal:** {outcome-shaped goal}
+**Requirements:**
+- {ID}: {description}
+**Success criteria:**
+1. {criterion}
+**Suggested placement:** After Phase {N} in milestone {X}
+**Rationale:** {Why this needs a new phase}
 
----
+### Change 3: ...
+```
 
-Review these themes? (yes / adjust grouping / skip triage)
+If no comments warrant planning changes (e.g., all are "nice work" or already addressed), say so and end the workflow:
+```
+None of the comments require planning changes. All feedback is either already addressed or informational.
+```
+
+**4. After presenting recommendations, prompt the user with exactly two options:**
+
+```
+How would you like to proceed?
+
+1. **Discuss changes** — I'll walk through each proposed change for your approval
+2. **Let Claude decide** — I'll incorporate all recommended changes automatically
+
+Your choice? (discuss / auto)
 ```
 
 AskUserQuestion and wait for response.
 
-- **"yes":** Continue to triage_discussion
-- **"adjust grouping":** Ask user what to change, regroup, re-present
-- **"skip triage":** Save themes as-is to dated file (skip discussion), jump to save_results
-
 </step>
 
-<step name="triage_discussion">
+<step name="incorporate_changes">
 
-For each theme, conduct an interactive triage discussion:
+This step handles both the discuss and auto paths.
 
-```
-## Triage: Theme {N}/{Total} — {Theme Name}
+**Path A: "Discuss changes" (CTRL-02)**
 
-**Severity:** {severity}
-**Affected phases:** {phase list}
-**Comments:**
-{Full comment text for each comment in this theme}
-
----
-
-**Triage options:**
-1. **Accept** — Create a task/requirement for this feedback
-2. **Defer** — Acknowledge but handle in a future milestone
-3. **Dismiss** — Not actionable or already addressed
-4. **Discuss** — Need to think about this more
-
-Your decision? (accept / defer / dismiss / discuss)
-```
-
-AskUserQuestion for each theme.
-
-For each decision, record:
-- Theme name
-- Decision (accept / defer / dismiss / discuss)
-- User's notes (if they provide additional context)
-- Action items (if accept: what specifically needs to change)
-
-If user chooses "discuss": engage in brief back-and-forth conversation about the theme, then ask for final decision (accept/defer/dismiss).
-
-After all themes are triaged, present summary:
+For each recommended change, present it individually and ask:
 
 ```
-## Triage Summary
+## Change {N}/{Total}: {Change title}
 
-| Theme | Decision | Action |
-|-------|----------|--------|
-| {name} | Accepted | {brief action} |
-| {name} | Deferred | To milestone v{X} |
-| {name} | Dismissed | {reason} |
+{Full change details from recommendations}
 
-Save these results? (yes / revise)
+**Options:**
+- **Accept** — Apply this change as proposed
+- **Modify** — Apply with modifications (describe what to change)
+- **Skip** — Don't apply this change
+
+Your decision? (accept / modify / skip)
 ```
 
-AskUserQuestion. If "revise": let user change specific decisions, then re-present.
+AskUserQuestion for each change. If "modify", ask for specifics and update the change accordingly.
 
-</step>
+After all changes are reviewed, present a summary of accepted changes before applying.
 
-<step name="save_results">
+**Path B: "Let Claude decide" (CTRL-03)**
 
-Generate a dated triage output file.
+Apply all recommended changes automatically without per-change review.
 
-**Filename:** `.planning/notion-comments-{YYYY-MM-DD}.md` where the date is today's date (ISO 8601 format).
+**Applying changes (both paths converge here):**
 
-**If file already exists for today:** Append a counter, e.g., `notion-comments-2026-02-11-2.md`
+For each accepted change, Claude modifies the actual planning artifacts:
 
-**File content template:**
+**1. For existing phase updates:**
+- Read the target section of `.planning/ROADMAP.md`
+- Add new requirements to the phase's **Requirements** line
+- Add new success criteria to the phase's **Success Criteria** section
+- Update the phase goal if recommended
+- If requirements are added, also add them to `.planning/REQUIREMENTS.md`:
+  - Add new requirement entries under the appropriate section (create a new section if needed)
+  - Add entries to the Traceability table at the bottom
 
-```markdown
-# Notion Comment Triage — {YYYY-MM-DD}
+**2. For new phase creation:**
+- Add a new phase entry to `.planning/ROADMAP.md` following the existing format:
+  ```
+  ### Phase {N}: {Name}
 
-**Source:** {N} unresolved comments from {M} synced Notion pages
-**Triaged by:** User + Claude
-**Date:** {YYYY-MM-DD}
+  **Goal**: {goal}
 
-## Themes
+  **Depends on**: {dependency}
 
-### Theme 1: {Name}
-**Decision:** {Accept / Defer / Dismiss}
-**Severity:** {blocking / important / nice-to-have}
-**Affected Phases:** Phase {X} ({name}), Phase {Y} ({name})
-**Action:** {What needs to happen, or "Deferred to v{X}" or "Dismissed: {reason}"}
+  **Requirements**: {comma-separated IDs}
 
-**Comments:**
-- "{full comment text}" — {author} on {page title} ({date})
-- "{full comment text}" — {author} on {page title} ({date})
+  **Success Criteria** (what must be TRUE):
+    1. {criterion}
 
-### Theme 2: {Name}
-...
+  **Plans**: 0 plans (not started)
 
-## Summary
+  Plans:
+  - [ ] {N}-01-PLAN.md — TBD
+  ```
+- Add new requirements to `.planning/REQUIREMENTS.md`
+- Add to the Progress table in ROADMAP.md
+- Create the phase directory: `.planning/phases/{N}-{slug}/`
 
-| Theme | Decision | Severity | Affected Phases |
-|-------|----------|----------|-----------------|
-| {name} | {decision} | {severity} | {phases} |
-
-## Accepted Actions
-
-{If any themes were accepted, list specific action items here:}
-
-- [ ] {Action item from Theme 1}
-- [ ] {Action item from Theme 2}
-
-## Deferred Items
-
-{If any themes were deferred:}
-
-- {Theme name} — Deferred to {milestone/reason}
-
----
-*Generated by /gsd:notion-comments on {YYYY-MM-DD}*
-```
-
-Write the file and commit:
-
+**3. Commit all changes:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(10): save notion comment triage results" --files .planning/notion-comments-{date}.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(16): incorporate comment feedback into planning artifacts" --files .planning/ROADMAP.md .planning/REQUIREMENTS.md
 ```
 
-Present result:
-
+**4. Present result:**
 ```
-Triage results saved to .planning/notion-comments-{date}.md
+## Changes Applied
 
-{If any accepted themes:}
-Next steps for accepted items:
-- Add requirements to next milestone via /gsd:new-milestone
+| Change | Type | Artifact Modified |
+|--------|------|-------------------|
+| {title} | Update Phase {N} | ROADMAP.md, REQUIREMENTS.md |
+| {title} | New Phase {N} | ROADMAP.md, REQUIREMENTS.md |
 
-{If all dismissed/deferred:}
-All feedback triaged — nothing requires immediate action.
+Planning artifacts updated. Run `/gsd:plan-phase` to plan any new phases.
+```
+
+If no changes were accepted (all skipped in discuss mode):
+```
+No changes applied. All recommendations were skipped.
 ```
 
 </step>
@@ -275,9 +269,12 @@ All feedback triaged — nothing requires immediate action.
 
 <success_criteria>
 - [ ] Comments fetched from all synced Notion pages
-- [ ] Comments grouped into 2-5 meaningful themes
-- [ ] Each theme mapped to affected roadmap phases
-- [ ] User walked through triage discussion for each theme
-- [ ] Dated .md file saved with full triage results
-- [ ] File committed to git
+- [ ] Comments interpreted with plain-language understanding
+- [ ] Each comment analyzed against current ROADMAP.md and mapped to existing phase update or new phase creation
+- [ ] User prompted with "Discuss changes" or "Let Claude decide" choice
+- [ ] If discussing: each change individually reviewed with accept/modify/skip
+- [ ] If auto: all recommended changes applied automatically
+- [ ] Accepted changes applied to ROADMAP.md (phase updates or new phases)
+- [ ] New requirements added to REQUIREMENTS.md with traceability
+- [ ] Changes committed to git
 </success_criteria>
