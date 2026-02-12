@@ -10,8 +10,7 @@ Display the complete GSD command reference. Output ONLY the reference content. D
 ## Quick Start
 
 1. `/gsd:new-project` - Initialize project (includes research, requirements, roadmap)
-2. `/gsd:plan-phase 1` - Create detailed plan for first phase
-3. `/gsd:complete-phase 1` - Mark phase complete and auto-advance to next
+2. `/gsd:plan-phase 1` - Plan phase, auto-complete, and auto-advance through all phases
 
 ## Staying Updated
 
@@ -24,7 +23,7 @@ npx get-shit-done-cc@latest
 ## Core Workflow
 
 ```
-/gsd:new-project → /gsd:plan-phase → /gsd:complete-phase → repeat
+/gsd:new-project → /gsd:plan-phase (auto-completes and advances through all phases)
 ```
 
 ### Project Initialization
@@ -89,20 +88,21 @@ See what Claude is planning to do before it starts.
 Usage: `/gsd:list-phase-assumptions 3`
 
 **`/gsd:plan-phase <number>`**
-Create detailed execution plan for a specific phase.
+Create detailed execution plan for a specific phase, then auto-complete and advance.
 
 - Generates `.planning/phases/XX-phase-name/XX-YY-PLAN.md`
 - Breaks phase into concrete, actionable tasks
 - Includes verification criteria and success measures
-- Multiple plans per phase supported (XX-01, XX-02, etc.)
+- After planning: auto-validates, marks phase complete, and advances to next phase
+- Loops through all phases until milestone is complete or user interrupts
 
 Usage: `/gsd:plan-phase 1`
-Result: Creates `.planning/phases/01-foundation/01-01-PLAN.md`
+Result: Plans phase 1, marks it complete, then auto-advances to plan phase 2, and so on
 
 ### Phase Completion
 
 **`/gsd:complete-phase <phase-number>`**
-Mark a phase as complete with validation and auto-advance to next phase.
+Manually mark a phase as complete (typically not needed — plan-phase auto-completes).
 
 - Validates planning artifacts exist (plans, requirement mapping)
 - Displays warnings for incomplete artifacts (non-blocking)
@@ -278,6 +278,28 @@ Create phases to close gaps identified by audit.
 
 Usage: `/gsd:plan-milestone-gaps`
 
+### Notion Integration
+
+**`/gsd:sync-notion`**
+Push .planning/ markdown files to Notion workspace.
+
+- Validates Notion config (API key format, parent page)
+- Runs notion-sync.js with live progress output
+- Creates new pages, updates changed pages, skips unchanged
+- Also triggered automatically after milestone planning completes
+
+Usage: `/gsd:sync-notion`
+
+**`/gsd:notion-comments`**
+Pull and triage unresolved comments from synced Notion pages.
+
+- Fetches comments from Notion pages
+- Identifies themes across feedback
+- Maps themes to roadmap phases
+- Interactive triage discussion
+
+Usage: `/gsd:notion-comments`
+
 ### Configuration
 
 **`/gsd:settings`**
@@ -404,9 +426,7 @@ Example config:
 ```
 /gsd:new-project        # Unified flow: questioning → research → requirements → roadmap
 /clear
-/gsd:plan-phase 1       # Create plans for first phase
-/clear
-/gsd:complete-phase 1   # Mark phase complete and advance
+/gsd:plan-phase 1       # Plans phase 1, auto-completes, auto-advances through all phases
 ```
 
 **Resuming work after a break:**
@@ -419,8 +439,7 @@ Example config:
 
 ```
 /gsd:insert-phase 5 "Critical security fix"
-/gsd:plan-phase 5.1
-/gsd:complete-phase 5.1
+/gsd:plan-phase 5.1    # Plans, auto-completes, and resumes remaining phases
 ```
 
 **Completing a milestone:**
