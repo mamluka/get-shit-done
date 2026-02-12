@@ -3,9 +3,37 @@
 **Defined:** 2026-02-12
 **Core Value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow
 
-## v1.2 Requirements
+## v1.3 Requirements
 
-Requirements for v1.2 Streamlined Workflow milestone.
+Requirements for v1.3 Comment-Driven Planning milestone.
+
+### Comment Interpretation
+
+- [ ] **CINT-01**: After comments are fetched, Claude presents a plain-language interpretation of what each comment means and what the commenter is asking for
+- [ ] **CINT-02**: Comments are grouped by the source file they were placed on (using page title from Notion)
+- [ ] **CINT-03**: Each interpretation includes the original comment text, commenter name, and Claude's understanding of the intent
+
+### Output Management
+
+- [ ] **OUTP-01**: When comment interpretation exceeds conversation-friendly length, it is saved to `.planning/notion-comments-{date}.md` and the user is told to read the file
+- [ ] **OUTP-02**: When output fits in conversation, it is presented inline without creating a file
+
+### Phase Integration
+
+- [ ] **PINT-01**: After presenting comment understanding, Claude analyzes the current roadmap and recommends whether each accepted comment should update an existing phase or create a new phase
+- [ ] **PINT-02**: For existing phase updates, Claude identifies which specific phase and what changes are needed
+- [ ] **PINT-03**: For new phase creation, Claude proposes a phase name, goal, and requirements following the existing roadmap format
+
+### User Control
+
+- [ ] **CTRL-01**: User is prompted with two options: "Discuss changes" (interactive conversation) or "Let Claude decide" (auto-incorporate)
+- [ ] **CTRL-02**: If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
+- [ ] **CTRL-03**: If "Let Claude decide", Claude auto-incorporates all accepted changes into the planning artifacts (ROADMAP.md, phase plans, REQUIREMENTS.md)
+
+## v1.2 Requirements (Complete)
+
+<details>
+<summary>All 10 requirements complete</summary>
 
 ### Setup UX
 
@@ -25,6 +53,8 @@ Requirements for v1.2 Streamlined Workflow milestone.
 - [x] **NOTION-02**: Page ID is extracted from Notion URL (handles `notion.so/{slug}-{id}` and `notion.so/{id}` formats)
 - [x] **NOTION-03**: Extracted page ID is saved to config.json as `notion.parent_page_id`
 - [x] **NOTION-04**: Auth pre-check validates Notion API key before showing sync prompt (prevents post-completion failures)
+
+</details>
 
 ## Future Requirements
 
@@ -49,6 +79,8 @@ Requirements for v1.2 Streamlined Workflow milestone.
 | Token budget enforcement per agent | Framework lacks mechanism, defer to future |
 | Settings migration on version upgrade | Not needed yet, document "last reviewed" date |
 | Bidirectional Notion sync | Conflict resolution unclear, one-way sufficient |
+| Auto-resolve comments in Notion | Destructive action, user should resolve manually |
+| Real-time comment streaming | Polling complexity, manual trigger sufficient |
 
 ## Traceability
 
@@ -64,18 +96,23 @@ Requirements for v1.2 Streamlined Workflow milestone.
 | PLAN-02 | Phase 13 | Complete |
 | PLAN-03 | Phase 14 | Complete |
 | NOTION-04 | Phase 14 | Complete |
+| CINT-01 | — | Pending |
+| CINT-02 | — | Pending |
+| CINT-03 | — | Pending |
+| OUTP-01 | — | Pending |
+| OUTP-02 | — | Pending |
+| PINT-01 | — | Pending |
+| PINT-02 | — | Pending |
+| PINT-03 | — | Pending |
+| CTRL-01 | — | Pending |
+| CTRL-02 | — | Pending |
+| CTRL-03 | — | Pending |
 
 **Coverage:**
-- v1.2 requirements: 10 total
-- Mapped to phases: 10/10 (100%)
-- Unmapped: 0
-
-**Phase breakdown:**
-- Phase 11 (Quick Settings Shortcut): 3 requirements
-- Phase 12 (Notion Parent Page Configuration): 3 requirements
-- Phase 13 (Auto-Discuss Before Planning): 2 requirements
-- Phase 14 (Notion Sync Integration): 2 requirements
+- v1.3 requirements: 11 total
+- Mapped to phases: 0/11 (awaiting roadmap)
+- Unmapped: 11
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 (Phase 14 complete — PLAN-03, NOTION-04)*
+*Last updated: 2026-02-12 after v1.3 milestone definition*
