@@ -17,14 +17,14 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 - [x] **PLAN-01**: plan-phase auto-advance loop runs discuss-phase before planning each phase when CONTEXT.md is missing
 - [x] **PLAN-02**: discuss-phase runs full interactive flow (AskUserQuestion prompts for decisions, discretion areas) before proceeding to planning
-- [ ] **PLAN-03**: After all phases are planned, user is prompted "Sync to Notion?" before displaying completion
+- [x] **PLAN-03**: After all phases are planned, user is prompted "Sync to Notion?" before displaying completion
 
 ### Notion Config
 
 - [x] **NOTION-01**: install.js asks for Notion parent page URL during setup (after API key prompt)
 - [x] **NOTION-02**: Page ID is extracted from Notion URL (handles `notion.so/{slug}-{id}` and `notion.so/{id}` formats)
 - [x] **NOTION-03**: Extracted page ID is saved to config.json as `notion.parent_page_id`
-- [ ] **NOTION-04**: Auth pre-check validates Notion API key before showing sync prompt (prevents post-completion failures)
+- [x] **NOTION-04**: Auth pre-check validates Notion API key before showing sync prompt (prevents post-completion failures)
 
 ## Future Requirements
 
@@ -62,8 +62,8 @@ Requirements for v1.2 Streamlined Workflow milestone.
 | NOTION-03 | Phase 12 | Complete |
 | PLAN-01 | Phase 13 | Complete |
 | PLAN-02 | Phase 13 | Complete |
-| PLAN-03 | Phase 14 | Pending |
-| NOTION-04 | Phase 14 | Pending |
+| PLAN-03 | Phase 14 | Complete |
+| NOTION-04 | Phase 14 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 10 total
@@ -78,4 +78,4 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 (Phase 13 complete — PLAN-01, PLAN-02)*
+*Last updated: 2026-02-12 (Phase 14 complete — PLAN-03, NOTION-04)*
