@@ -9,14 +9,14 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 
 ### Comment Interpretation
 
-- [ ] **CINT-01**: After comments are fetched, Claude presents a plain-language interpretation of what each comment means and what the commenter is asking for
-- [ ] **CINT-02**: Comments are grouped by the source file they were placed on (using page title from Notion)
-- [ ] **CINT-03**: Each interpretation includes the original comment text, commenter name, and Claude's understanding of the intent
+- [x] **CINT-01**: After comments are fetched, Claude presents a plain-language interpretation of what each comment means and what the commenter is asking for
+- [x] **CINT-02**: Comments are grouped by the source file they were placed on (using page title from Notion)
+- [x] **CINT-03**: Each interpretation includes the original comment text, commenter name, and Claude's understanding of the intent
 
 ### Output Management
 
-- [ ] **OUTP-01**: When comment interpretation exceeds conversation-friendly length, it is saved to `.planning/notion-comments-{date}.md` and the user is told to read the file
-- [ ] **OUTP-02**: When output fits in conversation, it is presented inline without creating a file
+- [x] **OUTP-01**: When comment interpretation exceeds conversation-friendly length, it is saved to `.planning/notion-comments-{date}.md` and the user is told to read the file
+- [x] **OUTP-02**: When output fits in conversation, it is presented inline without creating a file
 
 ### Phase Integration
 
@@ -96,11 +96,11 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 | PLAN-02 | Phase 13 | Complete |
 | PLAN-03 | Phase 14 | Complete |
 | NOTION-04 | Phase 14 | Complete |
-| CINT-01 | Phase 15 | Pending |
-| CINT-02 | Phase 15 | Pending |
-| CINT-03 | Phase 15 | Pending |
-| OUTP-01 | Phase 15 | Pending |
-| OUTP-02 | Phase 15 | Pending |
+| CINT-01 | Phase 15 | Complete |
+| CINT-02 | Phase 15 | Complete |
+| CINT-03 | Phase 15 | Complete |
+| OUTP-01 | Phase 15 | Complete |
+| OUTP-02 | Phase 15 | Complete |
 | PINT-01 | Phase 16 | Pending |
 | PINT-02 | Phase 16 | Pending |
 | PINT-03 | Phase 16 | Pending |
