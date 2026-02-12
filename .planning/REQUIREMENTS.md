@@ -9,9 +9,9 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 ### Setup UX
 
-- [ ] **SETUP-01**: User sees "Apply recommended settings?" option before individual settings questions during new-project
-- [ ] **SETUP-02**: Recommended settings apply depth: quick, research: true, plan_check: true, verifier: true, model_profile: balanced, commit_docs: true as a single action
-- [ ] **SETUP-03**: Recommended settings are defined in a single RECOMMENDED_SETTINGS constant (prevents drift between shortcut and interactive paths)
+- [x] **SETUP-01**: User sees "Apply recommended settings?" option before individual settings questions during new-project
+- [x] **SETUP-02**: Recommended settings apply depth: standard, research: true, plan_check: true, verifier: true, model_profile: balanced, commit_docs: true as a single action
+- [x] **SETUP-03**: Recommended settings are defined in a single RECOMMENDED_SETTINGS constant (prevents drift between shortcut and interactive paths)
 
 ### Planning Workflow
 
@@ -54,9 +54,9 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 11 | Pending |
-| SETUP-02 | Phase 11 | Pending |
-| SETUP-03 | Phase 11 | Pending |
+| SETUP-01 | Phase 11 | Complete |
+| SETUP-02 | Phase 11 | Complete |
+| SETUP-03 | Phase 11 | Complete |
 | NOTION-01 | Phase 12 | Pending |
 | NOTION-02 | Phase 12 | Pending |
 | NOTION-03 | Phase 12 | Pending |

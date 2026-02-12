@@ -51,7 +51,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 11-01-PLAN.md — Add RECOMMENDED_SETTINGS constant and Recommended/Custom gate to new-project workflow
+- [x] 11-01-PLAN.md — Add RECOMMENDED_SETTINGS constant and Recommended/Custom gate to new-project workflow — completed 2026-02-12
 
 ### Phase 12: Notion Parent Page Configuration
 
@@ -127,11 +127,11 @@ Plans:
 | 8. Page Hierarchy & Incremental Sync | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 9. Image Handling | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 2/2 | Complete | 2026-02-11 |
-| 11. Quick Settings Shortcut | v1.2 | 0/TBD | Not started | - |
+| 11. Quick Settings Shortcut | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 12. Notion Parent Page Configuration | v1.2 | 0/TBD | Not started | - |
 | 13. Auto-Discuss Before Planning | v1.2 | 0/TBD | Not started | - |
 | 14. Notion Sync Integration | v1.2 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-12 (v1.2 Streamlined Workflow milestone added)*
+*Last updated: 2026-02-12 (Phase 11 complete)*
