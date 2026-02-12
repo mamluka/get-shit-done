@@ -60,10 +60,10 @@
   4. When interpretation exceeds conversation-friendly length (>1500 tokens), output is saved to `.planning/notion-comments-{date}.md` and user is directed to read the file
   5. When interpretation fits in conversation (<1500 tokens), it is presented inline without creating a file
 
-**Plans**: 0 plans (not started)
+**Plans:** 1 plan
 
 Plans:
-- [ ] 15-01-PLAN.md — TBD
+- [ ] 15-01-PLAN.md — Add comment interpretation step with source-file grouping and smart output routing
 
 ### Phase 16: Phase Integration & User Control
 
@@ -104,7 +104,7 @@ Plans:
 | 12. Notion Parent Page Configuration | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 13. Auto-Discuss Before Planning | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 14. Notion Sync Integration | v1.2 | 1/1 | Complete | 2026-02-12 |
-| 15. Comment Understanding & Output | v1.3 | 0/? | Pending | — |
+| 15. Comment Understanding & Output | v1.3 | 0/1 | Planned | — |
 | 16. Phase Integration & User Control | v1.3 | 0/? | Pending | — |
 
 ---
