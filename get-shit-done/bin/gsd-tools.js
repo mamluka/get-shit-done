@@ -102,6 +102,15 @@
  *     --stopped-at "..."
  *     [--resume-file path]
  *
+ * Planning Status:
+ *   planning-status init              Create PLANNING-STATUS.md from roadmap
+ *   planning-status update            Mark phase planned
+ *     --phase N --status done
+ *     [--plans 3]
+ *   planning-status resume-point      Return next phase to plan
+ *   planning-status mark-in-progress  Mark phase as currently planning
+ *     --phase N
+ *
  * Compound Commands (workflow-specific initialization):
  *   init execute-phase <phase>         All context for execute-phase workflow
  *   init plan-phase <phase>            All context for plan-phase workflow
@@ -136,6 +145,19 @@ const MODEL_PROFILES = {
   'gsd-plan-checker':         { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'gsd-integration-checker':  { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
 };
+
+// ─── Recommended Settings ─────────────────────────────────────────────────────
+
+const RECOMMENDED_SETTINGS = Object.freeze({
+  mode: 'yolo',
+  depth: 'standard',
+  parallelization: true,
+  commit_docs: true,
+  model_profile: 'balanced',
+  'workflow.research': true,
+  'workflow.plan_check': true,
+  'workflow.verifier': true,
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1093,6 +1115,40 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
     const result = { updated: true, key: keyPath, value: parsedValue };
     output(result, raw, `${keyPath}=${parsedValue}`);
+  } catch (err) {
+    error('Couldn\'t save project settings. Check folder permissions and try again.', err.message);
+  }
+}
+
+function cmdConfigInitRecommended(cwd, raw) {
+  const configPath = resolvePlanning(cwd, 'config.json');
+
+  let config = {};
+  try {
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    }
+  } catch (err) {
+    error('Couldn\'t read project settings. The config file may be corrupted.', err.message);
+  }
+
+  // Apply all recommended settings
+  for (const [keyPath, value] of Object.entries(RECOMMENDED_SETTINGS)) {
+    const keys = keyPath.split('.');
+    let current = config;
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (current[key] === undefined || typeof current[key] !== 'object') {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+    current[keys[keys.length - 1]] = value;
+  }
+
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+    output({ applied: true, settings: { ...RECOMMENDED_SETTINGS } }, raw, 'Recommended settings applied');
   } catch (err) {
     error('Couldn\'t save project settings. Check folder permissions and try again.', err.message);
   }
@@ -4852,6 +4908,9 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
       }
     } catch {}
   }
+  if (includes.has('planning-status')) {
+    result.planning_status_content = safeReadFile(resolvePlanning(cwd, 'PLANNING-STATUS.md'));
+  }
 
   output(result, raw);
 }
@@ -5431,8 +5490,295 @@ function cmdInitProgress(cwd, includes, raw) {
   if (includes.has('config')) {
     result.config_content = safeReadFile(resolvePlanning(cwd, 'config.json'));
   }
+  if (includes.has('planning-status')) {
+    result.planning_status_content = safeReadFile(resolvePlanning(cwd, 'PLANNING-STATUS.md'));
+  }
 
   output(result, raw);
+}
+
+// ─── Planning Status ──────────────────────────────────────────────────────────
+
+function planningStatusPath(cwd) {
+  return resolvePlanning(cwd, 'PLANNING-STATUS.md');
+}
+
+function parsePlanningStatus(cwd) {
+  const content = safeReadFile(planningStatusPath(cwd));
+  if (!content) return null;
+
+  const phases = [];
+  const tablePattern = /\|\s*(\d+(?:\.\d+)?)\s*\|\s*(\w+)\s*\|\s*([^\|]*)\|\s*([^\|]*)\|\s*([^\|]*)\|/g;
+  let match;
+  while ((match = tablePattern.exec(content)) !== null) {
+    phases.push({
+      phase: match[1],
+      status: match[2].trim(),
+      plans: match[3].trim() === '-' ? 0 : parseInt(match[3].trim(), 10) || 0,
+      planned_date: match[4].trim() === '-' ? null : match[4].trim(),
+      notes: match[5].trim(),
+    });
+  }
+
+  const resumeMatch = content.match(/\*\*Resume with:\*\*\s*(.+)/);
+  const reasonMatch = content.match(/\*\*Reason:\*\*\s*(.+)/);
+
+  return {
+    phases,
+    resume_command: resumeMatch ? resumeMatch[1].trim() : null,
+    resume_reason: reasonMatch ? reasonMatch[1].trim() : null,
+  };
+}
+
+function writePlanningStatus(cwd, phases, milestone, sessionLog) {
+  const now = new Date();
+  const timestamp = now.toISOString().replace('T', ' ').slice(0, 16);
+
+  // Build phase rows
+  const rows = phases.map(p => {
+    const plans = p.plans > 0 ? String(p.plans) : '-';
+    const date = p.planned_date || '-';
+    const notes = p.notes || '';
+    return `| ${p.phase} | ${p.status} | ${plans} | ${date} | ${notes} |`;
+  }).join('\n');
+
+  // Determine resume point
+  const inProgress = phases.find(p => p.status === 'in_progress');
+  const nextPending = phases.find(p => p.status === 'pending');
+  let resumeCommand = 'All phases planned';
+  let resumeReason = 'Planning complete';
+
+  if (inProgress) {
+    resumeCommand = `/gsd:plan-phase ${inProgress.phase}`;
+    resumeReason = `Phase ${inProgress.phase} planning in progress`;
+  } else if (nextPending) {
+    resumeCommand = `/gsd:plan-phase ${nextPending.phase}`;
+    resumeReason = `Phase ${nextPending.phase} not yet planned`;
+  }
+
+  const content = `# Planning Status
+
+**Last updated:** ${timestamp}
+**Milestone:** ${milestone}
+
+## Planning Progress
+
+| Phase | Status | Plans | Planned Date | Notes |
+|-------|--------|-------|--------------|-------|
+${rows}
+
+## Resume Point
+
+**Resume with:** ${resumeCommand}
+**Reason:** ${resumeReason}
+
+## Session Log
+
+${sessionLog || ''}
+`;
+
+  fs.writeFileSync(planningStatusPath(cwd), content);
+}
+
+function cmdPlanningStatusInit(cwd, raw) {
+  const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
+  if (!fs.existsSync(roadmapPath)) {
+    error('ROADMAP.md not found — create a roadmap first');
+  }
+
+  const content = fs.readFileSync(roadmapPath, 'utf-8');
+  const milestone = getMilestoneInfo(cwd);
+  const phasesDir = resolvePlanning(cwd, 'phases');
+
+  // Extract phases from roadmap (### or #### headings)
+  const phasePattern = /#{3,4}\s*Phase\s+(\d+(?:\.\d+)?)\s*:\s*([^\n]+)/gi;
+  const phases = [];
+  let match;
+
+  while ((match = phasePattern.exec(content)) !== null) {
+    const phaseNum = match[1];
+
+    // Check if phase already has plans on disk
+    const normalized = normalizePhaseName(phaseNum);
+    let planCount = 0;
+    let isDone = false;
+
+    try {
+      const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
+      const dirs = entries.filter(e => e.isDirectory()).map(e => e.name);
+      const dirMatch = dirs.find(d => d.startsWith(normalized + '-') || d === normalized);
+      if (dirMatch) {
+        const phaseFiles = fs.readdirSync(path.join(phasesDir, dirMatch));
+        planCount = phaseFiles.filter(f => f.endsWith('-PLAN.md') || f === 'PLAN.md').length;
+        isDone = planCount > 0;
+      }
+    } catch {}
+
+    // Check roadmap checkbox
+    const checkboxPattern = new RegExp(`-\\s*\\[x\\]\\s*Phase\\s+${phaseNum.replace('.', '\\.')}`, 'i');
+    if (checkboxPattern.test(content)) {
+      isDone = true;
+    }
+
+    phases.push({
+      phase: phaseNum,
+      status: isDone ? 'done' : 'pending',
+      plans: planCount,
+      planned_date: isDone ? new Date().toISOString().split('T')[0] : null,
+      notes: '',
+    });
+  }
+
+  const now = new Date();
+  const timestamp = `${now.toISOString().replace('T', ' ').slice(0, 16)}`;
+  const sessionLog = `- ${timestamp} - Initialized planning status (${phases.filter(p => p.status === 'done').length} already done, ${phases.filter(p => p.status === 'pending').length} pending)`;
+
+  writePlanningStatus(cwd, phases, `${milestone.version} ${milestone.name}`, sessionLog);
+
+  const result = {
+    created: true,
+    path: planningStatusPath(cwd),
+    phase_count: phases.length,
+    done: phases.filter(p => p.status === 'done').length,
+    pending: phases.filter(p => p.status === 'pending').length,
+  };
+
+  output(result, raw);
+}
+
+function cmdPlanningStatusUpdate(cwd, args, raw) {
+  const phaseIdx = args.indexOf('--phase');
+  const statusIdx = args.indexOf('--status');
+  const plansIdx = args.indexOf('--plans');
+
+  const phaseNum = phaseIdx !== -1 ? args[phaseIdx + 1] : null;
+  const newStatus = statusIdx !== -1 ? args[statusIdx + 1] : null;
+  const planCount = plansIdx !== -1 ? parseInt(args[plansIdx + 1], 10) : null;
+
+  if (!phaseNum || !newStatus) {
+    error('Usage: planning-status update --phase N --status done [--plans 3]');
+  }
+
+  const statusPath = planningStatusPath(cwd);
+  if (!fs.existsSync(statusPath)) {
+    error('PLANNING-STATUS.md not found — run planning-status init first');
+  }
+
+  const parsed = parsePlanningStatus(cwd);
+  if (!parsed) {
+    error('Could not parse PLANNING-STATUS.md');
+  }
+
+  const phase = parsed.phases.find(p => p.phase === phaseNum);
+  if (!phase) {
+    error(`Phase ${phaseNum} not found in PLANNING-STATUS.md`);
+  }
+
+  phase.status = newStatus;
+  if (planCount !== null) phase.plans = planCount;
+  if (newStatus === 'done') {
+    phase.planned_date = new Date().toISOString().split('T')[0];
+    phase.notes = '';
+  }
+
+  // Read existing session log
+  const content = fs.readFileSync(statusPath, 'utf-8');
+  const logMatch = content.match(/## Session Log\n\n([\s\S]*?)$/);
+  const existingLog = logMatch ? logMatch[1].trim() : '';
+
+  const now = new Date();
+  const timestamp = `${now.toISOString().replace('T', ' ').slice(0, 16)}`;
+  const logEntry = `- ${timestamp} - Phase ${phaseNum} marked ${newStatus}${planCount ? ` (${planCount} plans)` : ''}`;
+  const newLog = existingLog ? `${logEntry}\n${existingLog}` : logEntry;
+
+  const milestone = getMilestoneInfo(cwd);
+  writePlanningStatus(cwd, parsed.phases, `${milestone.version} ${milestone.name}`, newLog);
+
+  output({ updated: true, phase: phaseNum, status: newStatus, plans: planCount }, raw);
+}
+
+function cmdPlanningStatusResumePoint(cwd, raw) {
+  const parsed = parsePlanningStatus(cwd);
+  if (!parsed) {
+    // No PLANNING-STATUS.md — fall back to roadmap analysis
+    output({ resume_phase: null, reason: 'No PLANNING-STATUS.md found' }, raw);
+    return;
+  }
+
+  const inProgress = parsed.phases.find(p => p.status === 'in_progress');
+  const nextPending = parsed.phases.find(p => p.status === 'pending');
+
+  if (inProgress) {
+    output({
+      resume_phase: inProgress.phase,
+      status: 'in_progress',
+      reason: `Phase ${inProgress.phase} planning was interrupted`,
+      command: `/gsd:plan-phase ${inProgress.phase}`,
+    }, raw);
+  } else if (nextPending) {
+    output({
+      resume_phase: nextPending.phase,
+      status: 'pending',
+      reason: `Phase ${nextPending.phase} is next to plan`,
+      command: `/gsd:plan-phase ${nextPending.phase}`,
+    }, raw);
+  } else {
+    output({
+      resume_phase: null,
+      status: 'all_done',
+      reason: 'All phases have been planned',
+      command: '/gsd:complete-milestone',
+    }, raw);
+  }
+}
+
+function cmdPlanningStatusMarkInProgress(cwd, args, raw) {
+  const phaseIdx = args.indexOf('--phase');
+  const phaseNum = phaseIdx !== -1 ? args[phaseIdx + 1] : null;
+
+  if (!phaseNum) {
+    error('Usage: planning-status mark-in-progress --phase N');
+  }
+
+  const statusPath = planningStatusPath(cwd);
+  if (!fs.existsSync(statusPath)) {
+    error('PLANNING-STATUS.md not found — run planning-status init first');
+  }
+
+  const parsed = parsePlanningStatus(cwd);
+  if (!parsed) {
+    error('Could not parse PLANNING-STATUS.md');
+  }
+
+  const phase = parsed.phases.find(p => p.phase === phaseNum);
+  if (!phase) {
+    error(`Phase ${phaseNum} not found in PLANNING-STATUS.md`);
+  }
+
+  // Reset any other in_progress phases back to pending (only one at a time)
+  for (const p of parsed.phases) {
+    if (p.status === 'in_progress' && p.phase !== phaseNum) {
+      p.status = 'pending';
+    }
+  }
+
+  phase.status = 'in_progress';
+  phase.notes = 'Planning now';
+
+  // Read existing session log
+  const content = fs.readFileSync(statusPath, 'utf-8');
+  const logMatch = content.match(/## Session Log\n\n([\s\S]*?)$/);
+  const existingLog = logMatch ? logMatch[1].trim() : '';
+
+  const now = new Date();
+  const timestamp = `${now.toISOString().replace('T', ' ').slice(0, 16)}`;
+  const logEntry = `- ${timestamp} - Started planning Phase ${phaseNum}`;
+  const newLog = existingLog ? `${logEntry}\n${existingLog}` : logEntry;
+
+  const milestone = getMilestoneInfo(cwd);
+  writePlanningStatus(cwd, parsed.phases, `${milestone.version} ${milestone.name}`, newLog);
+
+  output({ marked: true, phase: phaseNum, status: 'in_progress' }, raw);
 }
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -5635,6 +5981,16 @@ async function main() {
 
     case 'config-set': {
       cmdConfigSet(cwd, args[1], args[2], raw);
+      break;
+    }
+
+    case 'config-init-recommended': {
+      cmdConfigInitRecommended(cwd, raw);
+      break;
+    }
+
+    case 'recommended-settings': {
+      output({ ...RECOMMENDED_SETTINGS }, raw, Object.entries(RECOMMENDED_SETTINGS).map(([k,v]) => `${k}=${v}`).join('\n'));
       break;
     }
 
@@ -5906,6 +6262,22 @@ async function main() {
         limit: limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : 10,
         freshness: freshnessIdx !== -1 ? args[freshnessIdx + 1] : null,
       }, raw);
+      break;
+    }
+
+    case 'planning-status': {
+      const subcommand = args[1];
+      if (subcommand === 'init') {
+        cmdPlanningStatusInit(cwd, raw);
+      } else if (subcommand === 'update') {
+        cmdPlanningStatusUpdate(cwd, args.slice(2), raw);
+      } else if (subcommand === 'resume-point') {
+        cmdPlanningStatusResumePoint(cwd, raw);
+      } else if (subcommand === 'mark-in-progress') {
+        cmdPlanningStatusMarkInProgress(cwd, args.slice(2), raw);
+      } else {
+        error('Usage: planning-status <init|update|resume-point|mark-in-progress>');
+      }
       break;
     }
 
