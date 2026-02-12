@@ -21,9 +21,9 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 ### Notion Config
 
-- [ ] **NOTION-01**: install.js asks for Notion parent page URL during setup (after API key prompt)
-- [ ] **NOTION-02**: Page ID is extracted from Notion URL (handles `notion.so/{slug}-{id}` and `notion.so/{id}` formats)
-- [ ] **NOTION-03**: Extracted page ID is saved to config.json as `notion.parent_page_id`
+- [x] **NOTION-01**: install.js asks for Notion parent page URL during setup (after API key prompt)
+- [x] **NOTION-02**: Page ID is extracted from Notion URL (handles `notion.so/{slug}-{id}` and `notion.so/{id}` formats)
+- [x] **NOTION-03**: Extracted page ID is saved to config.json as `notion.parent_page_id`
 - [ ] **NOTION-04**: Auth pre-check validates Notion API key before showing sync prompt (prevents post-completion failures)
 
 ## Future Requirements
@@ -57,9 +57,9 @@ Requirements for v1.2 Streamlined Workflow milestone.
 | SETUP-01 | Phase 11 | Complete |
 | SETUP-02 | Phase 11 | Complete |
 | SETUP-03 | Phase 11 | Complete |
-| NOTION-01 | Phase 12 | Pending |
-| NOTION-02 | Phase 12 | Pending |
-| NOTION-03 | Phase 12 | Pending |
+| NOTION-01 | Phase 12 | Complete |
+| NOTION-02 | Phase 12 | Complete |
+| NOTION-03 | Phase 12 | Complete |
 | PLAN-01 | Phase 13 | Pending |
 | PLAN-02 | Phase 13 | Pending |
 | PLAN-03 | Phase 14 | Pending |

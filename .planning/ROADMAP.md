@@ -71,7 +71,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 12-01-PLAN.md — Add Notion parent page URL prompt with ID extraction, validation, and config persistence
+- [x] 12-01-PLAN.md — Add Notion parent page URL prompt with ID extraction, validation, and config persistence — completed 2026-02-12
 
 ### Phase 13: Auto-Discuss Before Planning
 
@@ -128,10 +128,10 @@ Plans:
 | 9. Image Handling | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 10. Workflow Integration & Comment Retrieval | v1.1 | 2/2 | Complete | 2026-02-11 |
 | 11. Quick Settings Shortcut | v1.2 | 1/1 | Complete | 2026-02-12 |
-| 12. Notion Parent Page Configuration | v1.2 | 0/TBD | Not started | - |
+| 12. Notion Parent Page Configuration | v1.2 | 1/1 | Complete | 2026-02-12 |
 | 13. Auto-Discuss Before Planning | v1.2 | 0/TBD | Not started | - |
 | 14. Notion Sync Integration | v1.2 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-12 (Phase 11 complete)*
+*Last updated: 2026-02-12 (Phase 12 complete)*
