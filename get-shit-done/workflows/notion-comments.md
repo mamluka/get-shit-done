@@ -5,6 +5,7 @@ Retrieve unresolved comments from synced Notion pages, interpret each comment, a
 <required_reading>
 1. `.planning/ROADMAP.md`
 2. `.planning/STATE.md`
+3. `.planning/REQUIREMENTS.md`
 </required_reading>
 
 <process>
@@ -27,7 +28,7 @@ This means either:
 - No one has commented on your Notion pages yet
 - All existing comments have been resolved in Notion
 
-Nothing to triage. You're all clear!
+No comments to process. You're all clear!
 ```
 Exit workflow.
 
