@@ -3,9 +3,47 @@
 **Defined:** 2026-02-12
 **Core Value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow
 
-## v1.3 Requirements
+## v1.4 Requirements
 
-Requirements for v1.3 Comment-Driven Planning milestone.
+Requirements for v1.4 Jira Sync milestone. Each maps to roadmap phases.
+
+### Setup & Detection
+
+- [ ] **SETUP-01**: User sees Jira MCP install command if MCP is not available
+- [ ] **SETUP-02**: User is blocked with clear message if notion-sync.json doesn't exist (Notion sync required first)
+- [ ] **SETUP-03**: User can select target Jira project from available projects
+
+### Granularity & Mapping
+
+- [ ] **GRAN-01**: User can choose ticket granularity per run (phase-level, category-level, requirement-level)
+- [ ] **GRAN-02**: Phase-level creates one ticket per phase with requirements listed in description
+- [ ] **GRAN-03**: Category-level creates one ticket per requirement category with individual requirements as checklist
+- [ ] **GRAN-04**: Requirement-level creates one ticket per REQ-ID with phase context in description
+
+### Ticket Creation
+
+- [ ] **TICK-01**: Epic is created per milestone as parent for all tickets
+- [ ] **TICK-02**: Tickets are created as children of the epic
+- [ ] **TICK-03**: Each ticket includes Notion page link as remote link (from notion-sync.json)
+- [ ] **TICK-04**: Ticket descriptions include relevant planning content (requirements, success criteria)
+- [ ] **TICK-05**: User sees full ticket preview before any Jira writes
+
+### Team Assignment
+
+- [ ] **TEAM-01**: User sees list of Jira project team members
+- [ ] **TEAM-02**: User can assign epic to self or a team member
+- [ ] **TEAM-03**: User can assign tickets to self or team members (bulk or individual)
+
+### Update & Tracking
+
+- [ ] **SYNC-01**: Ticket-to-Jira mapping is persisted in .planning/jira-sync.json
+- [ ] **SYNC-02**: Re-running sync updates existing tickets instead of creating duplicates
+- [ ] **SYNC-03**: New requirements/phases detected on re-run create new tickets
+
+## v1.3 Requirements (Complete)
+
+<details>
+<summary>All 11 requirements complete</summary>
 
 ### Comment Interpretation
 
@@ -29,6 +67,8 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 - [x] **CTRL-01**: User is prompted with two options: "Discuss changes" (interactive conversation) or "Let Claude decide" (auto-incorporate)
 - [x] **CTRL-02**: If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
 - [x] **CTRL-03**: If "Let Claude decide", Claude auto-incorporates all accepted changes into the planning artifacts (ROADMAP.md, phase plans, REQUIREMENTS.md)
+
+</details>
 
 ## v1.2 Requirements (Complete)
 
@@ -70,49 +110,38 @@ Requirements for v1.3 Comment-Driven Planning milestone.
 - Selective sync filtering (ESYNC-03)
 - Sync delete detection (ESYNC-04)
 
+### Enhanced Jira Sync
+
+- **EJIRA-01**: Bidirectional status sync (Jira status changes reflected in planning docs)
+- **EJIRA-02**: Automatic ticket updates when planning artifacts change
+- **EJIRA-03**: Sprint mapping (assign tickets to Jira sprints)
+
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
+| Bidirectional Jira sync (Jira → planning docs) | One-way push only, avoids divergence |
+| Sprint management | Jira sprint workflows vary too much across teams |
+| Custom Jira fields mapping | Keep simple with standard fields first |
+| Jira webhooks/listeners | Requires server infrastructure, out of CLI scope |
 | Inquirer.js or other prompt library | readline sufficient, 200KB+ dependency not justified |
 | Auto-sync on every file change | Rate limiting concerns, users lose control |
-| Token budget enforcement per agent | Framework lacks mechanism, defer to future |
-| Settings migration on version upgrade | Not needed yet, document "last reviewed" date |
 | Bidirectional Notion sync | Conflict resolution unclear, one-way sufficient |
 | Auto-resolve comments in Notion | Destructive action, user should resolve manually |
-| Real-time comment streaming | Polling complexity, manual trigger sufficient |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 11 | Complete |
-| SETUP-02 | Phase 11 | Complete |
-| SETUP-03 | Phase 11 | Complete |
-| NOTION-01 | Phase 12 | Complete |
-| NOTION-02 | Phase 12 | Complete |
-| NOTION-03 | Phase 12 | Complete |
-| PLAN-01 | Phase 13 | Complete |
-| PLAN-02 | Phase 13 | Complete |
-| PLAN-03 | Phase 14 | Complete |
-| NOTION-04 | Phase 14 | Complete |
-| CINT-01 | Phase 15 | Complete |
-| CINT-02 | Phase 15 | Complete |
-| CINT-03 | Phase 15 | Complete |
-| OUTP-01 | Phase 15 | Complete |
-| OUTP-02 | Phase 15 | Complete |
-| PINT-01 | Phase 16 | Complete |
-| PINT-02 | Phase 16 | Complete |
-| PINT-03 | Phase 16 | Complete |
-| CTRL-01 | Phase 16 | Complete |
-| CTRL-02 | Phase 16 | Complete |
-| CTRL-03 | Phase 16 | Complete |
+| (populated by roadmapper) | | |
 
 **Coverage:**
-- v1.3 requirements: 11 total
-- Mapped to phases: 11/11 (100%)
-- Unmapped: 0
+- v1.4 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16 ⚠️
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 after v1.3 roadmap creation*
+*Last updated: 2026-02-12 after v1.4 initial definition*
