@@ -88,10 +88,10 @@ Plans:
   4. Planning steps (research, plan, check) receive CONTEXT.md content to inform their work
   5. User can skip discussion and proceed to planning directly if context is already clear
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 13-01: TBD
+- [ ] 13-01-PLAN.md — Add discussion gate to plan-phase workflow with --skip-discussion flag
 
 ### Phase 14: Notion Sync Integration
 
