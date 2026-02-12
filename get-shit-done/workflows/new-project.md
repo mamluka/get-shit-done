@@ -335,6 +335,55 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: initialize project" 
 
 ## 6. Workflow Preferences
 
+**Round 0 — Recommended vs Custom:**
+
+Present two equal options. Neither is hidden or secondary. Brief context before the choice.
+
+Use AskUserQuestion:
+- header: "Settings"
+- question: "We have recommended settings that work well for most projects. You can also configure each setting individually."
+- multiSelect: false
+- options:
+  - { label: "Recommended", description: "Apply balanced defaults — you'll see a summary of what's set" }
+  - { label: "Custom", description: "Configure each setting individually" }
+
+**If "Recommended":**
+
+Apply all recommended settings in one action:
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js config-init-recommended
+```
+
+Parse result JSON. If `applied: true`, display the summary:
+
+```
+✓ Applied recommended settings:
+
+  Setting          Value
+  ───────────────  ────────────
+  Mode             YOLO
+  Depth            Standard
+  Parallelization  Enabled
+  Research         Enabled
+  Plan Check       Enabled
+  Verifier         Enabled
+  Model Profile    Balanced
+  Commit Docs      Enabled
+
+  You can change these anytime with /gsd:settings
+```
+
+If error: Display error message and fall back to Custom flow.
+
+Skip Round 1 and Round 2 entirely. Proceed to Step 6.5 (Resolve Model Profile).
+
+**If "Custom":**
+
+Proceed through existing Round 1 and Round 2 below. No changes to current behavior.
+
+**If auto mode:** Skip Round 0 prompt. Call `config-init-recommended` directly (recommended settings are the auto-mode defaults). Display summary. Proceed to Step 6.5.
+
 **Round 1 — Core workflow settings (4 questions):**
 
 ```
