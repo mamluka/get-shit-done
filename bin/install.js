@@ -1128,6 +1128,54 @@ function verifyFileInstalled(filePath, description) {
 }
 
 /**
+ * Extract page ID from Notion URL
+ * Supports various Notion URL formats and returns the 32-character hex ID
+ * @param {string} url - Notion page URL
+ * @returns {string|null} - 32-char hex page ID (lowercase), or null if not found
+ */
+function extractPageIdFromUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  // Strip query parameters
+  const urlWithoutQuery = url.split('?')[0];
+
+  // Strip trailing slashes
+  const cleanUrl = urlWithoutQuery.replace(/\/+$/, '');
+
+  // Match 32-character hex string at end of path
+  const match = cleanUrl.match(/([a-f0-9]{32})$/i);
+
+  return match ? match[1].toLowerCase() : null;
+}
+
+/**
+ * Validate a Notion page ID
+ * @param {string} pageId - Page ID to validate
+ * @returns {object} - { valid: boolean, pageId?: string, error?: string }
+ */
+function validatePageId(pageId) {
+  if (!pageId) {
+    return { valid: false, error: 'No page ID found in URL' };
+  }
+
+  // Test for 32-char hex pattern (no dashes)
+  if (/^[a-f0-9]{32}$/i.test(pageId)) {
+    return { valid: true, pageId: pageId.toLowerCase() };
+  }
+
+  // Also accept UUID format with dashes
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(pageId)) {
+    // Normalize: remove dashes and lowercase
+    const normalized = pageId.toLowerCase().replace(/-/g, '');
+    return { valid: true, pageId: normalized };
+  }
+
+  return { valid: false, error: 'Page ID must be 32 hex characters' };
+}
+
+/**
  * Install to the specified directory for a specific runtime
  * @param {boolean} isGlobal - Whether to install globally or locally
  * @param {string} runtime - Target runtime ('claude', 'opencode', 'gemini')
@@ -1492,19 +1540,13 @@ function install(isGlobal, runtime = 'claude') {
  * Prompt for optional Notion API key configuration
  */
 function promptNotionKey(callback) {
-  // Check if we're in a GSD project (has .planning/ directory)
-  const planningDir = path.join(process.cwd(), '.planning');
-  if (!fs.existsSync(planningDir)) {
-    // Not in a project directory, skip silently
-    callback();
-    return;
-  }
-
   if (!process.stdin.isTTY) {
     // Non-interactive, skip
     callback();
     return;
   }
+
+  const planningDir = path.join(process.cwd(), '.planning');
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -1545,6 +1587,11 @@ function promptNotionKey(callback) {
         rl.close();
 
         try {
+          // Create .planning/ if it doesn't exist yet
+          if (!fs.existsSync(planningDir)) {
+            fs.mkdirSync(planningDir, { recursive: true });
+          }
+
           const configPath = path.join(planningDir, 'config.json');
           let config = {};
 
