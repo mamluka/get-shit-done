@@ -54,22 +54,28 @@ Requirements for v1.2 Streamlined Workflow milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | TBD | Pending |
-| SETUP-02 | TBD | Pending |
-| SETUP-03 | TBD | Pending |
-| PLAN-01 | TBD | Pending |
-| PLAN-02 | TBD | Pending |
-| PLAN-03 | TBD | Pending |
-| NOTION-01 | TBD | Pending |
-| NOTION-02 | TBD | Pending |
-| NOTION-03 | TBD | Pending |
-| NOTION-04 | TBD | Pending |
+| SETUP-01 | Phase 11 | Pending |
+| SETUP-02 | Phase 11 | Pending |
+| SETUP-03 | Phase 11 | Pending |
+| NOTION-01 | Phase 12 | Pending |
+| NOTION-02 | Phase 12 | Pending |
+| NOTION-03 | Phase 12 | Pending |
+| PLAN-01 | Phase 13 | Pending |
+| PLAN-02 | Phase 13 | Pending |
+| PLAN-03 | Phase 14 | Pending |
+| NOTION-04 | Phase 14 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10/10 (100%)
+- Unmapped: 0
+
+**Phase breakdown:**
+- Phase 11 (Quick Settings Shortcut): 3 requirements
+- Phase 12 (Notion Parent Page Configuration): 3 requirements
+- Phase 13 (Auto-Discuss Before Planning): 2 requirements
+- Phase 14 (Notion Sync Integration): 2 requirements
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 after initial definition*
+*Last updated: 2026-02-12 (roadmap traceability added)*

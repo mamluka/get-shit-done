@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.2 Streamlined Workflow
+**Current focus:** v1.2 Streamlined Workflow — Phase 11 (Quick Settings Shortcut)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-12 — Milestone v1.2 started
+Phase: 11 of 14 (Quick Settings Shortcut)
+Plan: Ready to plan
+Status: Roadmap created, ready for phase planning
+Last activity: 2026-02-12 — v1.2 roadmap created with 4 phases
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████░░░░] 71% (23/32 plans complete across all milestones)
 
 ## Performance Metrics
 
@@ -32,6 +32,11 @@ Progress: [░░░░░░░░░░] 0%
 - Files modified: 55
 - Notion module LOC: 3,371
 
+**v1.2 Status:**
+- Total plans: TBD (estimated 4-6 plans)
+- Completed: 0
+- Progress: Not started
+
 **By Phase:**
 
 | Phase | Plans | Total | Milestone |
@@ -46,6 +51,10 @@ Progress: [░░░░░░░░░░] 0%
 | 8. Page Hierarchy & Incremental Sync | 2 | Complete | v1.1 |
 | 9. Image Handling | 2 | Complete | v1.1 |
 | 10. Workflow Integration & Comment Retrieval | 2 | Complete | v1.1 |
+| 11. Quick Settings Shortcut | TBD | Not started | v1.2 |
+| 12. Notion Parent Page Configuration | TBD | Not started | v1.2 |
+| 13. Auto-Discuss Before Planning | TBD | Not started | v1.2 |
+| 14. Notion Sync Integration | TBD | Not started | v1.2 |
 
 ## Accumulated Context
 
@@ -53,18 +62,29 @@ Progress: [░░░░░░░░░░] 0%
 
 Decisions are logged in PROJECT.md Key Decisions table. All v1.0 and v1.1 decisions marked as ✓ Good.
 
+**Recent decisions affecting v1.2:**
+- Node.js built-in readline for prompts — zero new dependencies, reuses install.js patterns
+- Single-source-of-truth for recommended settings — prevents drift between shortcut and interactive flow
+- Auto-discuss as opt-in before planning — improves plan quality without forcing all phases
+- Auth pre-check before Notion sync prompt — prevents post-completion failures
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None — all v1.1 research concerns resolved during implementation.
+**Research gaps addressed:**
+- Context window tracking needed in Phase 13 (warn at 15K+ tokens, suggest /clear at 20K+)
+- Notion URL format edge cases covered in Phase 12 (workspace vs page URL detection)
+- Recommended settings versioning documented (manual review process, future CI/CD lint rule)
+
+No current blockers — all patterns validated via existing code and research.
 
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Defining v1.2 requirements
+Stopped at: v1.2 roadmap creation complete
 Resume file: None
 
-**Next step:** Define requirements, create roadmap
+**Next step:** `/gsd:plan-phase 11` to plan Quick Settings Shortcut
