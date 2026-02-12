@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.3 Comment-Driven Planning — All phases complete
+**Current focus:** v1.4 Jira Sync — Defining requirements
 
 ## Current Position
 
-Phase: 16 of 16 (Phase Integration & User Control) — Complete
-Plan: 1 of 1 complete
-Status: Phase 16 complete. v1.3 milestone complete.
-Last activity: 2026-02-12 — Completed 16-01-PLAN.md (Phase integration workflow)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-12 — Milestone v1.4 started
 
-Progress: [███████████████] 100% (29/29 plans complete across all milestones)
+Progress: [░░░░░░░░░░░░░░░] 0% (v1.4)
 
 ## Performance Metrics
 
@@ -92,22 +92,12 @@ None.
 
 ### Blockers/Concerns
 
-**Research considerations for Phase 15:**
-- Token estimation strategy — Need to count tokens in interpretation output before deciding inline vs file
-- Conversation length threshold — 1500 tokens chosen as balance (may need tuning based on user feedback)
-
-**Resolved in Phase 16:**
-- Roadmap mutation patterns — Workflow includes instructions for safely adding/updating phases in ROADMAP.md
-- Traceability updates — Workflow includes instructions for updating REQUIREMENTS.md with new requirements and traceability table
-
-No current blockers — v1.3 complete.
+None — milestone just started.
 
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Phase 16 verified and complete. v1.3 milestone done.
+Stopped at: v1.4 milestone started, defining requirements.
 Resume file: None
 
-**Next step:** `/gsd:complete-milestone` to mark v1.3 as shipped and archive
-
-**Next step:** v1.3 milestone complete. Review ROADMAP.md for next milestone planning.
+**Next step:** Define requirements → create roadmap

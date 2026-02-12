@@ -45,18 +45,25 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 - ✓ Auto-discuss before planning (full interactive discussion per phase) — v1.2
 - ✓ Notion sync prompt after all phases planned with auth pre-check — v1.2
 - ✓ Notion parent page URL collection during install with format detection — v1.2
+- ✓ Comment understanding with Claude interpretation of stakeholder feedback — v1.3
+- ✓ Long output overflow to .md file when too verbose for conversation — v1.3
+- ✓ Intelligent phase integration (update existing phases vs create new phases) — v1.3
+- ✓ User choice: discuss changes interactively or let Claude auto-incorporate — v1.3
 
 ### Active
 
-#### Current Milestone: v1.3 Comment-Driven Planning
+#### Current Milestone: v1.4 Jira Sync
 
-**Goal:** Transform the notion-comments workflow from a passive triage tool into an active planning driver — Claude interprets comments, recommends planning changes, and can auto-incorporate feedback into phases.
+**Goal:** Push planning artifacts (requirements + phases) into Jira as actionable tickets under an epic, with Notion page links, team assignment, and create+update semantics.
 
 **Target features:**
-- Comment understanding presentation (Claude interprets what each comment means)
-- Long output overflow to .md file when too verbose for conversation
-- Intelligent phase integration (decide: update existing phases vs create new phases)
-- User choice: discuss changes interactively or let Claude auto-incorporate
+- Jira MCP detection with install command guidance
+- Granularity choice per run (phase-level, category-level, requirement-level)
+- Epic creation per milestone as parent for all tickets
+- Ticket preview before pushing to Jira
+- Notion page links on each ticket (requires Notion sync first)
+- Team member retrieval and assignment (epic + tickets)
+- Create + update with local ID tracking (jira-sync.json)
 
 ### Deferred
 
@@ -73,7 +80,7 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ### Out of Scope
 
-- Jira sync (pushing artifacts to Jira) — deferred, one-way sync creates divergence
+- Bidirectional Jira sync (Jira → planning docs) — one-way push only, avoids divergence
 - Cross-project search — grows important at scale but not needed yet
 - Cross-project learning — high complexity, requires multi-project pattern matching
 - Web UI or dashboard — CLI-based workflow is sufficient
@@ -86,7 +93,7 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ## Context
 
-Shipped v1.2 with 27 plans across 14 phases over 3 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration.
+Shipped v1.3 with 29 plans across 16 phases over 4 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration. v1.3 added comment-driven planning with interpretation, overflow handling, and phase integration workflow.
 
 Tech stack: Node.js, @notionhq/client, @tryfabric/martian, mime-types, git-backed planning artifacts.
 
@@ -133,4 +140,7 @@ Key patterns established:
 | Error accumulation pattern | Conversion errors become warnings, never lose content | ✓ Good — partial success preferred over batch failure |
 
 ---
-*Last updated: 2026-02-12 after v1.3 milestone start*
+| Jira MCP for ticket creation | MCP provides authenticated Jira access; no SDK dependency needed | — Pending |
+
+---
+*Last updated: 2026-02-12 after v1.4 milestone start*
