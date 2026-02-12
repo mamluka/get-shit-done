@@ -1625,6 +1625,111 @@ function promptNotionKey(callback) {
 }
 
 /**
+ * Prompt for optional Notion parent page configuration
+ */
+function promptNotionParentPage(callback) {
+  // Skip if non-interactive
+  if (!process.stdin.isTTY) {
+    callback();
+    return;
+  }
+
+  const planningDir = path.join(process.cwd(), '.planning');
+  const configPath = path.join(planningDir, 'config.json');
+
+  // Check if Notion API key exists
+  let hasApiKey = false;
+  if (fs.existsSync(configPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      hasApiKey = config.notion && config.notion.api_key;
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+
+  // Skip silently if no API key configured
+  if (!hasApiKey) {
+    callback();
+    return;
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log(`\n  ${cyan}Notion Parent Page (optional)${reset}\n`);
+  console.log(`  If you want synced pages created under a specific parent page,`);
+  console.log(`  provide its URL below.\n`);
+
+  const askForUrl = (retriesLeft) => {
+    rl.question(`  Parent page URL (or Enter to skip): `, (url) => {
+      const trimmed = url.trim();
+
+      // User pressed Enter - skip
+      if (!trimmed) {
+        rl.close();
+        console.log(`  Skipped. You can add parent_page_id later to .planning/config.json\n`);
+        callback();
+        return;
+      }
+
+      // Extract and validate page ID
+      const pageId = extractPageIdFromUrl(trimmed);
+      const validation = validatePageId(pageId);
+
+      if (!validation.valid) {
+        if (retriesLeft > 0) {
+          console.log(`  ${yellow}⚠${reset} ${validation.error}`);
+          console.log(`  ${dim}Example: https://notion.so/My-Page-abc123def456...${reset}`);
+          console.log(`  ${dim}Hint: URL should contain a 32-character page ID${reset}`);
+          askForUrl(retriesLeft - 1);
+        } else {
+          console.log(`  Too many invalid attempts. Skipping.\n`);
+          rl.close();
+          callback();
+        }
+        return;
+      }
+
+      // Valid page ID - save to config
+      rl.close();
+
+      try {
+        // Read existing config fresh
+        let config = {};
+        if (fs.existsSync(configPath)) {
+          try {
+            config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+
+        // Ensure notion object exists (don't overwrite)
+        if (!config.notion) {
+          config.notion = {};
+        }
+
+        // Add parent_page_id
+        config.notion.parent_page_id = validation.pageId;
+
+        // Write back to config
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
+        console.log(`  ${green}✓${reset} Parent page ID saved to .planning/config.json\n`);
+      } catch (e) {
+        console.log(`  ${yellow}⚠${reset} Failed to save config: ${e.message}\n`);
+      }
+
+      callback();
+    });
+  };
+
+  askForUrl(2); // Allow 2 retries
+}
+
+/**
  * Apply statusline config, then print completion message
  */
 function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallStatusline, runtime = 'claude') {
@@ -1654,11 +1759,13 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
 
   // Prompt for optional Notion configuration before final message
   promptNotionKey(() => {
-    console.log(`
+    promptNotionParentPage(() => {
+      console.log(`
   ${green}Done!${reset} Launch ${program} and run ${cyan}${command}${reset}.
 
   ${cyan}Join the community:${reset} https://discord.gg/5JJgD5svVS
 `);
+    });
   });
 }
 
