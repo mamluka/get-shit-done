@@ -133,15 +133,41 @@ Requirements for v1.4 Jira Sync milestone. Each maps to roadmap phases.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
+### v1.4 Jira Sync
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| SETUP-01 | Phase 17 | Pending |
+| SETUP-02 | Phase 17 | Pending |
+| SETUP-03 | Phase 17 | Pending |
+| GRAN-01 | Phase 18 | Pending |
+| GRAN-02 | Phase 18 | Pending |
+| GRAN-03 | Phase 18 | Pending |
+| GRAN-04 | Phase 18 | Pending |
+| TICK-01 | Phase 19 | Pending |
+| TICK-02 | Phase 19 | Pending |
+| TICK-03 | Phase 19 | Pending |
+| TICK-04 | Phase 19 | Pending |
+| TICK-05 | Phase 19 | Pending |
+| TEAM-01 | Phase 20 | Pending |
+| TEAM-02 | Phase 20 | Pending |
+| TEAM-03 | Phase 20 | Pending |
+| SYNC-01 | Phase 21 | Pending |
+| SYNC-02 | Phase 21 | Pending |
+| SYNC-03 | Phase 21 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16/16 (100%)
+- Unmapped: 0
+
+**Phase breakdown:**
+- Phase 17 (Jira MCP Detection & Prerequisites): 3 requirements
+- Phase 18 (Granularity Strategy & Ticket Mapping): 4 requirements
+- Phase 19 (Epic & Ticket Creation): 5 requirements
+- Phase 20 (Team Assignment): 3 requirements
+- Phase 21 (Update Semantics & Tracking): 3 requirements
 
 ---
 *Requirements defined: 2026-02-12*
-*Last updated: 2026-02-12 after v1.4 initial definition*
+*Last updated: 2026-02-12 (v1.4 roadmap traceability added)*

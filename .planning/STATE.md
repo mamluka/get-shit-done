@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.4 Jira Sync — Defining requirements
+**Current focus:** v1.4 Jira Sync — Phase 17: Jira MCP Detection & Prerequisites
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-12 — Milestone v1.4 started
+Phase: 17 of 21 (Jira MCP Detection & Prerequisites)
+Plan: 0 of 1 in current phase
+Status: Ready to plan
+Last activity: 2026-02-12 — v1.4 roadmap created
 
-Progress: [░░░░░░░░░░░░░░░] 0% (v1.4)
+Progress: [███████████████████████████████████████████████████████████░░░░░░░░░] 76% (16/21 phases shipped across v1.0-v1.3)
 
 ## Performance Metrics
 
@@ -45,6 +45,11 @@ Progress: [░░░░░░░░░░░░░░░] 0% (v1.4)
 - Timeline: 1 day (2026-02-12)
 - All phases complete
 
+**v1.4 Status:**
+- Phases: 17-21 (5 phases total)
+- Plans: 0/5 complete
+- Status: Ready to plan Phase 17
+
 **By Phase:**
 
 | Phase | Plans | Total | Milestone |
@@ -65,26 +70,23 @@ Progress: [░░░░░░░░░░░░░░░] 0% (v1.4)
 | 14. Notion Sync Integration | 1 | Complete | v1.2 |
 | 15. Comment Understanding & Output | 1 | Complete | v1.3 |
 | 16. Phase Integration & User Control | 1 | Complete | v1.3 |
-| Phase 15 P01 | 67 | 2 tasks | 1 files |
-| Phase 16 P01 | 128 | 2 tasks | 1 files |
+| 17. Jira MCP Detection & Prerequisites | 0/1 | Not started | v1.4 |
+| 18. Granularity Strategy & Ticket Mapping | 0/1 | Not started | v1.4 |
+| 19. Epic & Ticket Creation | 0/1 | Not started | v1.4 |
+| 20. Team Assignment | 0/1 | Not started | v1.4 |
+| 21. Update Semantics & Tracking | 0/1 | Not started | v1.4 |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table. All v1.0, v1.1, and v1.2 decisions marked as ✓ Good.
+Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.3 decisions marked as ✓ Good.
 
-**Recent decisions affecting v1.3:**
-- Phase 15 token threshold: 1500 tokens — Balances conversation readability with overflow prevention
-- Two-phase structure for v1.3 — Natural separation: understand comments (Phase 15), then act on them (Phase 16)
-- Dependency on Phase 10 — Comment retrieval infrastructure already exists, Phase 15 extends interpretation layer
-- Discuss vs auto-incorporate choice — User control over planning changes (CTRL-01, CTRL-02, CTRL-03)
-- [Phase 15]: Use 1500 token threshold for interpretation output routing
-- [Phase 15]: Use characters ÷ 4 heuristic for token estimation
-- [Phase 15]: Group comments by source_page_title with source_file fallback
-- [Phase 16]: Replace theme clustering with direct phase mapping
-- [Phase 16]: Two-path decision (discuss vs auto) with convergent artifact mutation
-- [Phase 16]: Direct artifact mutation (modify ROADMAP.md and REQUIREMENTS.md in-place)
+**Recent decisions affecting v1.4:**
+- [v1.4 Planning]: Jira MCP as integration mechanism (existing pattern from v1.0)
+- [v1.4 Planning]: Notion sync as prerequisite (page links on tickets require notion-sync.json)
+- [v1.4 Planning]: One-way push only (avoids bidirectional sync complexity)
+- [v1.4 Planning]: Five-phase structure: Setup → Mapping → Creation → Assignment → Tracking
 
 ### Pending Todos
 
@@ -92,12 +94,16 @@ None.
 
 ### Blockers/Concerns
 
-None — milestone just started.
+None — roadmap defined, ready to plan Phase 17.
 
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: v1.4 milestone started, defining requirements.
+Stopped at: v1.4 roadmap created (5 phases: 17-21)
 Resume file: None
 
-**Next step:** Define requirements → create roadmap
+**Next step:** /gsd:plan-phase 17
+
+---
+*State initialized: 2026-02-12*
+*Last updated: 2026-02-12 (v1.4 roadmap created)*
