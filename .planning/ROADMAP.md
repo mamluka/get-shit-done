@@ -81,10 +81,10 @@ Plans:
   5. If "Discuss changes", Claude walks through each proposed change for user approval/modification before applying
   6. If "Let Claude decide", Claude auto-incorporates all accepted changes into planning artifacts (ROADMAP.md, phase PLAN.md files, REQUIREMENTS.md traceability)
 
-**Plans**: 0 plans (not started)
+**Plans:** 1 plan
 
 Plans:
-- [ ] 16-01-PLAN.md — TBD
+- [ ] 16-01-PLAN.md — Replace triage flow with phase-integration analysis and user-controlled incorporation
 
 ## Progress
 
