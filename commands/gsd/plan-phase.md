@@ -1,7 +1,7 @@
 ---
 name: gsd:plan-phase
 description: Create detailed execution plan for a phase (PLAN.md) with verification loop
-argument-hint: "[phase] [--research] [--skip-research] [--gaps] [--skip-verify]"
+argument-hint: "[phase] [--research] [--skip-research] [--gaps] [--skip-verify] [--skip-discussion]"
 agent: gsd-planner
 allowed-tools:
   - Read
@@ -14,11 +14,11 @@ allowed-tools:
   - mcp__context7__*
 ---
 <objective>
-Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification.
+Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. After planning completes, automatically marks the phase complete and advances to planning the next phase.
 
-**Default flow:** Research (if needed) → Plan → Verify → Done
+**Default flow:** Research (if needed) → Plan → Verify → Auto-Complete → Auto-Advance to next phase
 
-**Orchestrator role:** Parse arguments, validate phase, research domain (unless skipped), spawn gsd-planner, verify with gsd-plan-checker, iterate until pass or max iterations, present results.
+**Orchestrator role:** Parse arguments, validate phase, research domain (unless skipped), spawn gsd-planner, verify with gsd-plan-checker, iterate until pass or max iterations, auto-complete phase, auto-advance to next phase (loops until all phases planned or milestone complete).
 </objective>
 
 <execution_context>
@@ -34,6 +34,7 @@ Phase number: $ARGUMENTS (optional — auto-detects next unplanned phase if omit
 - `--skip-research` — Skip research, go straight to planning
 - `--gaps` — Gap closure mode (reads VERIFICATION.md, skips research)
 - `--skip-verify` — Skip verification loop
+- `--skip-discussion` — Skip discussion gate, plan directly without prompting
 
 Normalize phase input in step 2 before any directory lookups.
 </context>

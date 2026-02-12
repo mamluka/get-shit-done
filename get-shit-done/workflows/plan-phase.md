@@ -15,18 +15,23 @@ Read all files referenced by the invoking prompt's execution_context before star
 Load all context in one call (include file contents to avoid redundant reads):
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init plan-phase "$PHASE" --include state,roadmap,requirements,context,research,verification,uat)
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init plan-phase "$PHASE" --include state,roadmap,requirements,context,research,verification,uat,planning-status)
 ```
 
 Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`.
 
-**File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `uat_content`. These are null if files don't exist.
+**File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `uat_content`, `planning_status_content`. These are null if files don't exist.
 
 **If `planning_exists` is false:** Error — run `/gsd:new-project` first.
 
+**If `planning_status_content` is null (PLANNING-STATUS.md missing):**
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status init
+```
+
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-discussion`).
 
 **If no phase number:** Detect next unplanned phase from roadmap.
 
@@ -52,6 +57,73 @@ Use `context_content` from init JSON (already loaded via `--include context`).
 **CRITICAL:** Use `context_content` from INIT — pass to researcher, planner, checker, and revision agents.
 
 If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
+
+## 3b. Offer Discussion (if CONTEXT.md missing)
+
+**Skip this step entirely if any of these are true:**
+- `has_context` is true (CONTEXT.md already exists — from init JSON)
+- `--skip-discussion` flag was passed
+- `--gaps` flag was passed (gap closure mode skips discussion)
+
+**If CONTEXT.md is missing (has_context is false) and no skip flags:**
+
+Display this banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PHASE {X} CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No context file found for Phase {X}: {Name}.
+
+Discussion helps clarify:
+• UI/UX decisions you care about
+• Behavior preferences
+• Areas where you want control vs Claude's discretion
+
+This is OPTIONAL — skip if you're ready to plan directly.
+```
+
+Then use AskUserQuestion:
+- header: "Phase {X} Context"
+- question: "Discuss phase context before planning?"
+- options:
+  - "Discuss context" — Run interactive discussion to capture decisions
+  - "Plan directly" — Skip to planning (Claude uses best judgment)
+
+**If "Discuss context":**
+
+Spawn the discuss-phase workflow via Task():
+
+```
+Task(
+  prompt="First, read ~/.claude/get-shit-done/workflows/discuss-phase.md for your role and instructions.\n\n<context>\nPhase number: {phase_number}\n\nLoad project state:\n@.planning/STATE.md\n\nLoad roadmap:\n@.planning/ROADMAP.md\n</context>",
+  subagent_type="general-purpose",
+  model="{planner_model}",
+  description="Discuss Phase {phase} context"
+)
+```
+
+After Task() returns, **reload init** to pick up the newly-created CONTEXT.md:
+
+```bash
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init plan-phase "${PHASE}" --include state,roadmap,requirements,context,research,verification,uat,planning-status)
+```
+
+Extract the updated `context_content` from the reloaded INIT JSON. This is critical — the original init from step 1 will have `context_content: null` because CONTEXT.md didn't exist yet. The reload ensures all downstream agents (researcher, planner, checker) receive the discussion output.
+
+If `has_context` is still false after reload, log a warning: `"Warning: CONTEXT.md not created during discussion — proceeding without context"`
+
+Display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
+
+**If "Plan directly":**
+
+Proceed to step 4b without any context content. No warning needed — this is a valid user choice.
+
+## 4b. Mark Phase In Progress
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status mark-in-progress --phase "${PHASE}"
+```
 
 ## 5. Handle Research
 
@@ -319,11 +391,6 @@ Offer: 1) Force proceed, 2) Provide guidance and retry, 3) Abandon
 
 ## 13. Present Final Status
 
-Route to `<offer_next>`.
-
-</process>
-
-<offer_next>
 Output this markdown directly (not as a code block):
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -340,30 +407,87 @@ Output this markdown directly (not as a code block):
 Research: {Completed | Used existing | Skipped}
 Verification: {Passed | Passed with override | Skipped}
 
+Then proceed directly to step 14 (auto-complete).
+
+## 14. Auto-Complete Phase
+
+Automatically mark the phase complete and advance — do NOT wait for the user to run `/gsd:complete-phase`.
+
+### 14a. Validate Phase
+
+```bash
+VALIDATION=$(node ~/.claude/get-shit-done/bin/gsd-tools.js phase validate "${PHASE}" --raw)
+```
+
+Parse JSON for `valid`, `warnings`, `errors`.
+
+**If errors (valid === false):** Display errors and STOP. User must fix issues manually.
+
+**If warnings:** Display warnings. In YOLO mode, auto-approve. In interactive mode, ask user to confirm.
+
+**If clean:** Continue.
+
+### 14b. Mark Phase Complete
+
+```bash
+COMPLETE_RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js phase complete "${PHASE}" --raw)
+```
+
+Parse: `completed_phase`, `phase_name`, `plans_executed`, `next_phase`, `next_phase_name`, `is_last_phase`, `date`, `milestone_complete`.
+
+**Update planning status:**
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status update --phase "${PHASE}" --status done --plans "${PLAN_COUNT}"
+```
+
+### 14c. Commit Completion
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${PHASE}): mark phase complete" --files .planning/ROADMAP.md .planning/STATE.md
+```
+
+### 14d. Route to Next
+
+**If `milestone_complete === true`:**
+
+Display:
+
+```
 ───────────────────────────────────────────────────────────────
 
-## ▶ Next Up
+## 🎉 All Phases Complete
 
-**Complete Phase {X}** — mark phase as complete and advance
+This was the last phase in the current roadmap.
 
-/gsd:complete-phase {X}
-
-<sub>Plans ready for engineering handoff</sub>
-
-───────────────────────────────────────────────────────────────
-
-**Also available:**
-- cat .planning/phases/{phase-dir}/*-PLAN.md — review plans
-- /gsd:edit-phase {X} — revise planning artifacts
-- /gsd:plan-phase {X} --research — re-research and replan
+**Options:**
+- `/gsd:complete-milestone` — Mark milestone as shipped and archive
+- `/gsd:add-phase` — Add more phases to current milestone
 
 ───────────────────────────────────────────────────────────────
-</offer_next>
+```
+
+STOP here.
+
+**If more phases remain (`milestone_complete === false`):**
+
+Display:
+
+```
+───────────────────────────────────────────────────────────────
+
+## ▶ Auto-advancing to Phase {next_phase}: {next_phase_name}
+
+───────────────────────────────────────────────────────────────
+```
+
+Then **automatically start planning the next phase** by looping back to step 1 with `PHASE` set to `next_phase`. This creates a continuous plan-complete-advance cycle until all phases are planned or the user interrupts.
 
 <success_criteria>
 - [ ] .planning/ directory validated
 - [ ] Phase validated against roadmap
 - [ ] Phase directory created if needed
+- [ ] Discussion offered when CONTEXT.md missing (step 3b)
 - [ ] CONTEXT.md loaded early (step 4) and passed to ALL agents
 - [ ] Research completed (unless --skip-research or --gaps or exists)
 - [ ] gsd-phase-researcher spawned with CONTEXT.md
