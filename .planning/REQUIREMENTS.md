@@ -15,10 +15,10 @@ Requirements for v1.4 Jira Sync milestone. Each maps to roadmap phases.
 
 ### Granularity & Mapping
 
-- [ ] **GRAN-01**: User can choose ticket granularity per run (phase-level, category-level, requirement-level)
-- [ ] **GRAN-02**: Phase-level creates one ticket per phase with requirements listed in description
-- [ ] **GRAN-03**: Category-level creates one ticket per requirement category with individual requirements as checklist
-- [ ] **GRAN-04**: Requirement-level creates one ticket per REQ-ID with phase context in description
+- [x] **GRAN-01**: User can choose ticket granularity per run (phase-level, category-level, requirement-level)
+- [x] **GRAN-02**: Phase-level creates one ticket per phase with requirements listed in description
+- [x] **GRAN-03**: Category-level creates one ticket per requirement category with individual requirements as checklist
+- [x] **GRAN-04**: Requirement-level creates one ticket per REQ-ID with phase context in description
 
 ### Ticket Creation
 
@@ -140,10 +140,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETUP-01 | Phase 17 | Complete |
 | SETUP-02 | Phase 17 | Complete |
 | SETUP-03 | Phase 17 | Complete |
-| GRAN-01 | Phase 18 | Pending |
-| GRAN-02 | Phase 18 | Pending |
-| GRAN-03 | Phase 18 | Pending |
-| GRAN-04 | Phase 18 | Pending |
+| GRAN-01 | Phase 18 | Complete |
+| GRAN-02 | Phase 18 | Complete |
+| GRAN-03 | Phase 18 | Complete |
+| GRAN-04 | Phase 18 | Complete |
 | TICK-01 | Phase 19 | Pending |
 | TICK-02 | Phase 19 | Pending |
 | TICK-03 | Phase 19 | Pending |
