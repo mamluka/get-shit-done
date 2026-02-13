@@ -178,17 +178,103 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira.project_id "{proje
 node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira.project_key "{project_key}"
 ```
 
-Display success banner:
+Display:
+
+```
+✓ Jira project configured: {key} - {name}
+```
+
+Continue to next step.
+
+</step>
+
+<step name="choose_granularity">
+
+Display granularity selection prompt:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► JIRA SYNC CONFIGURED
+ TICKET GRANULARITY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Project: {key} - {name}
-Cloud ID: {cloud_id}
+How should planning artifacts map to Jira tickets?
 
-✓ Ready for ticket creation. This workflow will be extended in future phases.
+1. Phase-level     — One ticket per phase (fewest tickets, broadest scope)
+2. Category-level  — One ticket per requirement category (grouped by theme)
+3. Requirement-level — One ticket per requirement (most granular)
+```
+
+Use `AskUserQuestion` to prompt:
+
+```
+Select granularity (1, 2, or 3):
+```
+
+Validate that the selection is 1, 2, or 3.
+
+Map the selection to granularity string:
+- 1 → `phase`
+- 2 → `category`
+- 3 → `requirement`
+
+Save the granularity to config:
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira.granularity "{granularity}"
+```
+
+Store the granularity value for the next step.
+
+</step>
+
+<step name="map_tickets">
+
+Call the ticket-mapper module to generate the ticket structure:
+
+```bash
+TICKETS=$(node -e '
+var mapper = require("./lib/jira/ticket-mapper.js");
+var result = mapper.mapTickets(process.cwd(), "{granularity}");
+console.log(JSON.stringify(result));
+')
+```
+
+Parse the result to extract:
+- `milestone`
+- `ticket_count`
+- `tickets` array
+
+Display the ticket preview banner:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ TICKET PREVIEW ({granularity}-level)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Milestone: {milestone}
+Tickets: {ticket_count}
+```
+
+For each ticket in the tickets array, display:
+
+```
+  [{N}] {ticket.title}
+      {first 100 chars of description}...
+```
+
+Display completion message:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► TICKET MAPPING COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Ticket mapping complete. {ticket_count} tickets ready for Jira sync.
+
+  Granularity: {granularity}-level
+  Project: {key} - {name}
+
+Run /gsd:sync-jira again after Phase 19 is implemented to create tickets in Jira.
 ```
 
 </step>
