@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-12)
 ## Current Position
 
 Phase: 17 of 21 (Jira MCP Detection & Prerequisites)
-Plan: 0 of 1 in current phase
-Status: Ready to plan
-Last activity: 2026-02-12 — v1.4 roadmap created
+Plan: 1 of 1 in current phase
+Status: Phase complete — ready for verification
+Last activity: 2026-02-13 — Phase 17 Plan 01 completed
 
 Progress: [███████████████████████████████████████████████████████████░░░░░░░░░] 76% (16/21 phases shipped across v1.0-v1.3)
 
@@ -47,8 +47,8 @@ Progress: [███████████████████████
 
 **v1.4 Status:**
 - Phases: 17-21 (5 phases total)
-- Plans: 0/5 complete
-- Status: Ready to plan Phase 17
+- Plans: 1/5 complete
+- Status: Phase 17 complete, ready for Phase 18
 
 **By Phase:**
 
@@ -70,7 +70,7 @@ Progress: [███████████████████████
 | 14. Notion Sync Integration | 1 | Complete | v1.2 |
 | 15. Comment Understanding & Output | 1 | Complete | v1.3 |
 | 16. Phase Integration & User Control | 1 | Complete | v1.3 |
-| 17. Jira MCP Detection & Prerequisites | 0/1 | Not started | v1.4 |
+| 17. Jira MCP Detection & Prerequisites | 1/1 | Complete | v1.4 |
 | 18. Granularity Strategy & Ticket Mapping | 0/1 | Not started | v1.4 |
 | 19. Epic & Ticket Creation | 0/1 | Not started | v1.4 |
 | 20. Team Assignment | 0/1 | Not started | v1.4 |
@@ -87,6 +87,9 @@ Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.3 decisions 
 - [v1.4 Planning]: Notion sync as prerequisite (page links on tickets require notion-sync.json)
 - [v1.4 Planning]: One-way push only (avoids bidirectional sync complexity)
 - [v1.4 Planning]: Five-phase structure: Setup → Mapping → Creation → Assignment → Tracking
+- [Phase 17-01]: Store cloud_id alongside project_id and project_key for MCP call requirements
+- [Phase 17-01]: Block sync if notion-sync.json missing to ensure page links available for tickets
+- [Phase 17-01]: Use multi-project-aware path resolution for notion-sync.json (matches lib/notion/sync-state.js)
 
 ### Pending Todos
 
@@ -98,12 +101,12 @@ None — roadmap defined, ready to plan Phase 17.
 
 ## Session Continuity
 
-Last session: 2026-02-12
-Stopped at: v1.4 roadmap created (5 phases: 17-21)
+Last session: 2026-02-13
+Stopped at: Completed Phase 17 Plan 01 (Jira MCP Detection & Prerequisites)
 Resume file: None
 
-**Next step:** /gsd:plan-phase 17
+**Next step:** /gsd:plan-phase 18
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-12 (v1.4 roadmap created)*
+*Last updated: 2026-02-13 (Phase 17 Plan 01 completed)*
