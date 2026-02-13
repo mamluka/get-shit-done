@@ -132,10 +132,10 @@ Plans:
   4. Ticket descriptions include relevant planning content (requirements, success criteria, phase context)
   5. User sees full ticket preview (epic + all tickets) before any writes to Jira
   6. User can approve or cancel the sync operation after preview
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 19-01-PLAN.md
+- [ ] 19-01-PLAN.md — Create issue-creator module and extend sync-jira workflow with preview+approve gate and Jira epic/ticket creation
 
 #### Phase 20: Team Assignment
 **Goal**: Enable epic and ticket assignment to team members for workload distribution
