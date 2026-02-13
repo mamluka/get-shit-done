@@ -116,10 +116,10 @@ Plans:
   3. Category-level creates one ticket per requirement category with individual requirements as checklist items
   4. Requirement-level creates one ticket per REQ-ID with phase context included in description
   5. Ticket structure matches user's selected granularity choice without manual configuration
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 18-01-PLAN.md
+- [ ] 18-01-PLAN.md — Create ticket-mapper module and extend sync-jira workflow with granularity selection and ticket preview
 
 #### Phase 19: Epic & Ticket Creation
 **Goal**: Push planning artifacts to Jira as structured epic and tickets with Notion links and preview workflow
