@@ -227,54 +227,194 @@ Store the granularity value for the next step.
 
 </step>
 
-<step name="map_tickets">
+<step name="preview_and_approve">
 
-Call the ticket-mapper module to generate the ticket structure:
+First, read Jira config values saved in step 4:
 
 ```bash
-TICKETS=$(node -e '
-var mapper = require("./lib/jira/ticket-mapper.js");
-var result = mapper.mapTickets(process.cwd(), "{granularity}");
-console.log(JSON.stringify(result));
+CLOUD_ID=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.cloud_id)
+PROJECT_KEY=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.project_key)
+PROJECT_ID=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.project_id)
+```
+
+Call the issue-creator module to build a preview:
+
+```bash
+PREVIEW=$(node -e '
+var creator = require("./lib/jira/issue-creator.js");
+var result = creator.buildPreview(process.cwd(), "{granularity}");
+if (result.error) {
+  console.log(JSON.stringify({ error: result.error }));
+} else {
+  console.log(JSON.stringify(result));
+}
 ')
 ```
 
-Parse the result to extract:
-- `milestone`
-- `ticket_count`
-- `tickets` array
+Check if preview contains an error:
 
-Display the ticket preview banner:
+```bash
+PREVIEW_ERROR=$(echo "$PREVIEW" | jq -r '.error // ""')
+```
+
+**If PREVIEW_ERROR is not empty:**
+
+Display:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- TICKET PREVIEW ({granularity}-level)
+ PREVIEW ERROR
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Milestone: {milestone}
-Tickets: {ticket_count}
+{PREVIEW_ERROR}
 ```
 
-For each ticket in the tickets array, display:
+Stop.
+
+**If preview is valid:**
+
+Call `formatPreviewDisplay` to render the preview:
+
+```bash
+DISPLAY=$(node -e '
+var creator = require("./lib/jira/issue-creator.js");
+var preview = JSON.parse(process.argv[1]);
+console.log(creator.formatPreviewDisplay(preview));
+' "$PREVIEW")
+```
+
+Display the formatted preview to the user:
 
 ```
-  [{N}] {ticket.title}
-      {first 100 chars of description}...
+{DISPLAY}
 ```
 
-Display completion message:
+Extract ticket count from preview:
+
+```bash
+TICKET_COUNT=$(echo "$PREVIEW" | jq -r '.ticket_count')
+```
+
+Use `AskUserQuestion` to prompt:
+
+```
+Proceed with Jira sync? This will create 1 epic + {TICKET_COUNT} tickets in {PROJECT_KEY}.
+
+Type "yes" to proceed or "cancel" to abort:
+```
+
+**If user types anything other than "yes" (case-insensitive):**
+
+Display:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► TICKET MAPPING COMPLETE
+ SYNC CANCELLED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✓ Ticket mapping complete. {ticket_count} tickets ready for Jira sync.
+No changes made to Jira. Run /gsd:sync-jira again to retry.
+```
 
+Stop.
+
+**If user types "yes":**
+
+Continue to step 7.
+
+</step>
+
+<step name="create_tickets">
+
+**Detect the Epic issue type name:**
+
+Different Jira projects may use different names for Epics. Call `mcp__jira__getJiraProjectIssueTypesMetadata` with the `CLOUD_ID` and `PROJECT_ID` to get available issue types.
+
+Find the issue type with name containing "Epic" (case-insensitive). If no Epic type found, display error and stop.
+
+Store the Epic type name (e.g., "Epic" or "epic") for use in creation.
+
+Also find a standard task type (look for "Task", "Story", or "Sub-task" in that order). Store the task type name.
+
+**Create the Epic:**
+
+Extract epic summary and description from preview:
+
+```bash
+EPIC_SUMMARY=$(echo "$PREVIEW" | jq -r '.epic.summary')
+EPIC_DESCRIPTION=$(echo "$PREVIEW" | jq -r '.epic.description')
+```
+
+Call `mcp__jira__createJiraIssue` with:
+- `cloudId`: `CLOUD_ID`
+- `projectKey`: `PROJECT_KEY`
+- `issueTypeName`: The Epic type name found above
+- `summary`: `EPIC_SUMMARY`
+- `description`: `EPIC_DESCRIPTION`
+
+Extract the created epic's `key` from the response.
+
+Display:
+
+```
+✓ Epic created: {epic_key} — {EPIC_SUMMARY}
+```
+
+**Create child tickets:**
+
+For each ticket in the preview's tickets array:
+
+1. Extract ticket data:
+   - `summary`: from `ticket.summary`
+   - `description`: from `ticket.description`
+   - `notion_link`: from `ticket.notion_link`
+
+2. If `notion_link` is not null, prepend Notion link to description:
+   ```
+   **📎 Notion Page:** [View in Notion]({notion_link})
+
+   {original description}
+   ```
+
+3. Call `mcp__jira__createJiraIssue` with:
+   - `cloudId`: `CLOUD_ID`
+   - `projectKey`: `PROJECT_KEY`
+   - `issueTypeName`: The task type name found above
+   - `summary`: ticket summary
+   - `description`: ticket description (with Notion link if available)
+   - `parent`: the epic key created above
+
+4. After each ticket creation, display progress:
+   ```
+   ✓ [{N}/{TICKET_COUNT}] {ticket_key} — {ticket_summary}
+   ```
+
+**Handle errors gracefully:**
+
+If any ticket creation fails, display the error, continue with remaining tickets, and track the failure count.
+
+**Display completion banner:**
+
+Collect all created ticket keys into a comma-separated list.
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► JIRA SYNC COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Created 1 epic + {TICKET_COUNT} tickets in {PROJECT_KEY}
+
+  Epic: {epic_key}
+  Tickets: {comma-separated list of ticket keys}
   Granularity: {granularity}-level
-  Project: {key} - {name}
 
-Run /gsd:sync-jira again after Phase 19 is implemented to create tickets in Jira.
+All planning artifacts are now in Jira.
+```
+
+If there were any failures, append:
+
+```
+
+⚠ {failure_count} ticket(s) failed to create. See errors above.
 ```
 
 </step>
