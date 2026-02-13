@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.4 Jira Sync — Phase 17: Jira MCP Detection & Prerequisites
+**Current focus:** v1.4 Jira Sync — Phase 17 complete, ready for Phase 18
 
 ## Current Position
 
-Phase: 17 of 21 (Jira MCP Detection & Prerequisites)
-Plan: 1 of 1 in current phase
-Status: Phase complete — ready for verification
-Last activity: 2026-02-13 — Phase 17 Plan 01 completed
+Phase: 17 of 21 (Jira MCP Detection & Prerequisites) — Complete
+Plan: 1 of 1 complete
+Status: Phase 17 verified and complete
+Last activity: 2026-02-13 — Phase 17 verified (4/4 must-haves passed)
 
-Progress: [███████████████████████████████████████████████████████████░░░░░░░░░] 76% (16/21 phases shipped across v1.0-v1.3)
+Progress: [████████████████████████████████████████████████████████████████░░░░] 81% (17/21 phases complete)
 
 ## Performance Metrics
 

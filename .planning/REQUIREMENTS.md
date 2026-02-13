@@ -137,9 +137,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | Phase 17 | Pending |
-| SETUP-02 | Phase 17 | Pending |
-| SETUP-03 | Phase 17 | Pending |
+| SETUP-01 | Phase 17 | Complete |
+| SETUP-02 | Phase 17 | Complete |
+| SETUP-03 | Phase 17 | Complete |
 | GRAN-01 | Phase 18 | Pending |
 | GRAN-02 | Phase 18 | Pending |
 | GRAN-03 | Phase 18 | Pending |
