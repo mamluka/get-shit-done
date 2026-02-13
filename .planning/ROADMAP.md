@@ -101,10 +101,10 @@ Plans:
   2. User is blocked with actionable message if notion-sync.json doesn't exist (with guidance to run sync-notion first)
   3. User can view and select target Jira project from available projects
   4. Selected Jira project ID is saved for the sync operation
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 17-01-PLAN.md
+- [ ] 17-01-PLAN.md — Create sync-jira command and workflow with MCP detection, Notion prerequisite check, and Jira project selection
 
 #### Phase 18: Granularity Strategy & Ticket Mapping
 **Goal**: Enable flexible ticket creation at phase, category, or requirement level based on team workflow preferences
