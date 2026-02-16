@@ -129,6 +129,36 @@ Display banner:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+**Check for saved default project:**
+
+```bash
+SAVED_KEY=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.project_key 2>/dev/null || echo "")
+SAVED_ID=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.project_id 2>/dev/null || echo "")
+SAVED_CLOUD=$(node ~/.claude/get-shit-done/bin/gsd-tools.js config-get jira.cloud_id 2>/dev/null || echo "")
+```
+
+**If SAVED_KEY, SAVED_ID, and SAVED_CLOUD are all non-empty:**
+
+Display:
+
+```
+Default Jira project: {SAVED_KEY}
+```
+
+Use `AskUserQuestion` to prompt:
+
+```
+Use default project {SAVED_KEY}?
+- Yes, use {SAVED_KEY}
+- No, choose a different project
+```
+
+If user selects "Yes": use the saved `cloudId`, `project_id`, and `project_key` values. Skip to end of this step.
+
+If user selects "No": continue with project selection below.
+
+**Project selection (runs when no default or user chose a different project):**
+
 Get accessible Atlassian resources to obtain cloud ID:
 
 Call `mcp__jira__getAccessibleAtlassianResources` tool.
@@ -166,6 +196,20 @@ Extract the selected project's:
 
 Store these values along with the `cloudId` for the next step.
 
+**Ask to save as default:**
+
+Use `AskUserQuestion` to prompt:
+
+```
+Save {KEY} as default Jira project for future syncs?
+- Yes (Recommended)
+- No
+```
+
+If user selects "Yes": save to config (next step will persist it).
+
+If user selects "No": use the selection for this session only — skip the `save_jira_config` step.
+
 </step>
 
 <step name="save_jira_config">
@@ -181,7 +225,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira.project_key "{proj
 Display:
 
 ```
-✓ Jira project configured: {key} - {name}
+✓ Jira project saved as default: {key} - {name}
 ```
 
 Continue to next step.
@@ -415,6 +459,47 @@ If there were any failures, append:
 ```
 
 ⚠ {failure_count} ticket(s) failed to create. See errors above.
+```
+
+</step>
+
+<step name="save_sync_state">
+
+Save the created Jira issue keys to `.planning/jira-sync.json` for future update/tracking operations:
+
+```bash
+node -e '
+var fs = require("fs");
+var path = require("path");
+var syncData = {
+  milestone: "{milestone_version}",
+  granularity: "{granularity}",
+  project_key: "{PROJECT_KEY}",
+  cloud_id: "{CLOUD_ID}",
+  epic: {
+    key: "{epic_key}",
+    summary: "{EPIC_SUMMARY}"
+  },
+  tickets: [
+    // For each successfully created ticket:
+    { key: "{ticket_key}", summary: "{ticket_summary}", phase: "{phase_number}" }
+  ],
+  synced_at: new Date().toISOString(),
+  failed_count: {failure_count}
+};
+fs.writeFileSync(
+  path.join(process.cwd(), ".planning", "jira-sync.json"),
+  JSON.stringify(syncData, null, 2) + "\n"
+);
+'
+```
+
+Build the `tickets` array from all successfully created tickets during step 7, including each ticket's `key`, `summary`, and the `phase` number extracted from the ticket-mapper output.
+
+Display:
+
+```
+✓ Sync state saved to .planning/jira-sync.json
 ```
 
 </step>
