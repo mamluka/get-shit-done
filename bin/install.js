@@ -107,14 +107,14 @@ function getGlobalDir(runtime, explicitDir = null) {
 }
 
 const banner = '\n' +
-  cyan + '   ██████╗ ███████╗██████╗\n' +
-  '  ██╔════╝ ██╔════╝██╔══██╗\n' +
-  '  ██║  ███╗███████╗██║  ██║\n' +
-  '  ██║   ██║╚════██║██║  ██║\n' +
-  '  ╚██████╔╝███████║██████╔╝\n' +
-  '   ╚═════╝ ╚══════╝╚═════╝' + reset + '\n' +
+  cyan + ' ██████╗ ███████╗██████╗         ██████╗ ███╗   ███╗\n' +
+  '██╔════╝ ██╔════╝██╔══██╗        ██╔══██╗████╗ ████║\n' +
+  '██║  ███╗███████╗██║  ██║ █████╗ ██████╔╝██╔████╔██║\n' +
+  '██║   ██║╚════██║██║  ██║ ╚════╝ ██╔═══╝ ██║╚██╔╝██║\n' +
+  '╚██████╔╝███████║██████╔╝        ██║     ██║ ╚═╝ ██║\n' +
+  ' ╚═════╝ ╚══════╝╚═════╝         ╚═╝     ╚═╝     ╚═╝' + reset + '\n' +
   '\n' +
-  '  Get Shit Done ' + dim + 'v' + pkg.version + reset + '\n' +
+  '  Get Shit Done for PMs ' + dim + 'v' + pkg.version + reset + '\n' +
   '  A meta-prompting, context engineering and spec-driven\n' +
   '  development system for Claude Code, OpenCode, and Gemini by TÂCHES.\n';
 
@@ -1547,7 +1547,78 @@ function promptNotionKey(callback) {
   }
 
   const planningDir = path.join(process.cwd(), '.planning');
+  const configPath = path.join(planningDir, 'config.json');
 
+  // Check for existing Notion config
+  let existingKey = null;
+  let existingPageId = null;
+  try {
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (config.notion && config.notion.api_key) {
+        existingKey = config.notion.api_key;
+        existingPageId = config.notion.parent_page_id || null;
+      }
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+
+  // If existing config found, offer to keep it
+  if (existingKey) {
+    const masked = existingKey.length > 8
+      ? existingKey.slice(0, existingKey.indexOf('_') + 1) + '****' + existingKey.slice(-4)
+      : '****';
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    console.log(`\n  ${cyan}Notion Integration${reset}\n`);
+    console.log(`  Existing API key: ${dim}${masked}${reset}`);
+    if (existingPageId) {
+      console.log(`  Existing parent page: ${dim}${existingPageId}${reset}`);
+    }
+
+    if (existingKey && existingPageId) {
+      // Both key and page exist — offer to keep entire config
+      rl.question(`\n  Keep existing Notion configuration? ${dim}[Y/n]${reset}: `, (answer) => {
+        rl.close();
+        const decline = answer.trim().toLowerCase() === 'n';
+        if (decline) {
+          // User wants to reconfigure — fall through to normal flow
+          promptNotionKeyFresh(planningDir, callback);
+        } else {
+          // Keep everything, skip both key and parent page prompts
+          console.log(`  ${green}✓${reset} Keeping existing Notion configuration\n`);
+          callback(true); // true = skip parent page prompt
+        }
+      });
+    } else {
+      // Key exists but no parent page
+      rl.question(`\n  Keep existing Notion API key? ${dim}[Y/n]${reset}: `, (answer) => {
+        rl.close();
+        const decline = answer.trim().toLowerCase() === 'n';
+        if (decline) {
+          promptNotionKeyFresh(planningDir, callback);
+        } else {
+          console.log(`  ${green}✓${reset} Keeping existing Notion API key\n`);
+          callback(); // proceed to promptNotionParentPage normally
+        }
+      });
+    }
+    return;
+  }
+
+  // No existing config — normal fresh flow
+  promptNotionKeyFresh(planningDir, callback);
+}
+
+/**
+ * Fresh Notion key prompt (no existing config or user declined to keep)
+ */
+function promptNotionKeyFresh(planningDir, callback) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -1758,14 +1829,20 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
   const command = isOpencode ? '/gsd-help' : '/gsd:help';
 
   // Prompt for optional Notion configuration before final message
-  promptNotionKey(() => {
-    promptNotionParentPage(() => {
-      console.log(`
+  const done = () => {
+    console.log(`
   ${green}Done!${reset} Launch ${program} and run ${cyan}${command}${reset}.
 
   ${cyan}Join the community:${reset} https://discord.gg/5JJgD5svVS
 `);
-    });
+  };
+
+  promptNotionKey((skipParentPage) => {
+    if (skipParentPage) {
+      done();
+    } else {
+      promptNotionParentPage(done);
+    }
   });
 }
 

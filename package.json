@@ -1,9 +1,9 @@
 {
-  "name": "get-shit-done-cc",
+  "name": "gsd-pm",
   "version": "1.18.0",
-  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini by TÂCHES.",
+  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini. Fork of get-shit-done-cc by TÂCHES.",
   "bin": {
-    "get-shit-done-cc": "bin/install.js"
+    "gsd-pm": "bin/install.js"
   },
   "files": [
     "bin",
@@ -28,14 +28,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/glittercowboy/get-shit-done.git"
+    "url": "git+https://github.com/davidmz/gsd-pm.git"
   },
-  "homepage": "https://github.com/glittercowboy/get-shit-done",
+  "homepage": "https://github.com/davidmz/gsd-pm",
   "bugs": {
-    "url": "https://github.com/glittercowboy/get-shit-done/issues"
+    "url": "https://github.com/davidmz/gsd-pm/issues"
   },
   "engines": {
-    "node": ">=16.7.0"
+    "node": ">=22"
   },
   "dependencies": {
     "@notionhq/client": "^5.9.0",
@@ -47,7 +47,9 @@
   },
   "scripts": {
     "build:hooks": "node scripts/build-hooks.js",
-    "prepublishOnly": "npm run build:hooks",
-    "test": "node --test get-shit-done/bin/gsd-tools.test.js"
+    "build:notion-sync": "node scripts/build-notion-sync.js",
+    "prepublishOnly": "npm run build:hooks && npm run build:notion-sync",
+    "test": "node --test get-shit-done/bin/gsd-tools.test.js",
+    "deploy": "bash scripts/deploy.sh"
   }
 }
