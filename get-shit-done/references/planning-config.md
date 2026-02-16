@@ -47,7 +47,7 @@ INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js state load)
 # commit_docs is available in the JSON output
 
 # Or use init commands which include commit_docs:
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "1")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init phase-op "1")
 # commit_docs is included in all init command outputs
 ```
 
@@ -110,22 +110,22 @@ To use uncommitted mode:
 | Strategy | When branch created | Branch scope | Merge point |
 |----------|---------------------|--------------|-------------|
 | `none` | Never | N/A | N/A |
-| `phase` | At `execute-phase` start | Single phase | User merges after phase |
-| `milestone` | At first `execute-phase` of milestone | Entire milestone | At `complete-milestone` |
+| `phase` | At phase execution start | Single phase | User merges after phase |
+| `milestone` | At first phase execution of milestone | Entire milestone | At `complete-milestone` |
 
 **When `git.branching_strategy: "none"` (default):**
 - All work commits to current branch
 - Standard GSD behavior
 
 **When `git.branching_strategy: "phase"`:**
-- `execute-phase` creates/switches to a branch before execution
+- Phase execution creates/switches to a branch before execution
 - Branch name from `phase_branch_template` (e.g., `gsd/phase-03-authentication`)
 - All plan commits go to that branch
 - User merges branches manually after phase completion
 - `complete-milestone` offers to merge all phase branches
 
 **When `git.branching_strategy: "milestone"`:**
-- First `execute-phase` of milestone creates the milestone branch
+- First phase execution of milestone creates the milestone branch
 - Branch name from `milestone_branch_template` (e.g., `gsd/v1.0-mvp`)
 - All phases in milestone commit to same branch
 - `complete-milestone` offers to merge milestone branch to main
@@ -140,9 +140,9 @@ To use uncommitted mode:
 
 **Checking the config:**
 
-Use `init execute-phase` which returns all config as JSON:
+Use `init phase-op` which returns all config as JSON:
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "1")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init phase-op "1")
 # JSON output includes: branching_strategy, phase_branch_template, milestone_branch_template
 ```
 

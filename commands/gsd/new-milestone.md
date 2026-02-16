@@ -1,7 +1,7 @@
 ---
 name: gsd:new-milestone
 description: Start a new milestone cycle — update PROJECT.md and route to requirements
-argument-hint: "[milestone name, e.g., 'v1.1 Notifications']"
+argument-hint: "[milestone name, e.g., 'v1.1 Notifications'] [--auto]"
 allowed-tools:
   - Read
   - Write
@@ -9,6 +9,11 @@ allowed-tools:
   - Task
   - AskUserQuestion
 ---
+<context>
+**Flags:**
+- `--auto` — Automatic mode. After config, runs research → requirements → roadmap without further interaction. Expects idea document via @ reference or `.planning/external-spec.md`.
+</context>
+
 <objective>
 Start a new milestone: questioning → research (optional) → requirements → roadmap.
 
@@ -43,6 +48,9 @@ Milestone name: $ARGUMENTS (optional - will prompt if not provided)
 
 **Load milestone context (if exists, from /gsd:discuss-milestone):**
 @.planning/MILESTONE-CONTEXT.md
+
+**Load external spec (if exists, from fetch workflows):**
+@.planning/external-spec.md
 </context>
 
 <process>

@@ -2971,10 +2971,9 @@ function cmdRoadmapAnalyze(cwd, raw) {
       }
     } catch {}
 
-    // Check ROADMAP checkbox status
-    const checkboxPattern = new RegExp(`-\\s*\\[(x| )\\]\\s*.*Phase\\s+${phaseNum.replace('.', '\\.')}`, 'i');
-    const checkboxMatch = content.match(checkboxPattern);
-    const roadmapComplete = checkboxMatch ? checkboxMatch[1] === 'x' : false;
+    // Check ROADMAP completion status (look for "completed" marker on phase line)
+    const completionPattern = new RegExp(`-\\s*\\[[ x]\\]\\s*.*Phase\\s+${phaseNum.replace('.', '\\.')}.*completed`, 'i');
+    const roadmapComplete = completionPattern.test(content);
 
     phases.push({
       number: phaseNum,
@@ -3497,12 +3496,12 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
   if (fs.existsSync(roadmapPath)) {
     let roadmapContent = fs.readFileSync(roadmapPath, 'utf-8');
 
-    // Checkbox: - [ ] Phase N: → - [x] Phase N: (...completed DATE)
-    const checkboxPattern = new RegExp(
-      `(-\\s*\\[)[ ](\\]\\s*.*Phase\\s+${phaseNum.replace('.', '\\.')}[:\\s][^\\n]*)`,
+    // Append completion date to phase line (no checkbox marking)
+    const phaseLinePattern = new RegExp(
+      `(-\\s*\\[[ x]\\]\\s*.*Phase\\s+${phaseNum.replace('.', '\\.')}[:\\s][^\\n]*)`,
       'i'
     );
-    roadmapContent = roadmapContent.replace(checkboxPattern, `$1x$2 (completed ${today})`);
+    roadmapContent = roadmapContent.replace(phaseLinePattern, `$1 — completed ${today}`);
 
     // Progress table: update Status to Complete, add date
     const phaseEscaped = phaseNum.replace('.', '\\.');
@@ -5614,9 +5613,9 @@ function cmdPlanningStatusInit(cwd, raw) {
       }
     } catch {}
 
-    // Check roadmap checkbox
-    const checkboxPattern = new RegExp(`-\\s*\\[x\\]\\s*Phase\\s+${phaseNum.replace('.', '\\.')}`, 'i');
-    if (checkboxPattern.test(content)) {
+    // Check roadmap completion status (look for "completed" marker on phase line)
+    const completionPattern = new RegExp(`-\\s*\\[[ x]\\]\\s*.*Phase\\s+${phaseNum.replace('.', '\\.')}.*completed`, 'i');
+    if (completionPattern.test(content)) {
       isDone = true;
     }
 

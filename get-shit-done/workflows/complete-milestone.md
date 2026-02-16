@@ -447,7 +447,7 @@ Check branching strategy and offer merge options.
 Use `init milestone-op` for context, or load config directly:
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "1")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init milestone-op)
 ```
 
 Extract `branching_strategy`, `phase_branch_template`, `milestone_branch_template` from init JSON.
@@ -588,17 +588,17 @@ git push origin --tags
 Check if Notion integration is configured:
 
 ```bash
-node -e "
-const fs = require('fs');
-const configPath = require('path').join(process.cwd(), '.planning', 'config.json');
+node -e '
+var fs = require("fs");
+var configPath = require("path").join(process.cwd(), ".planning", "config.json");
 try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
+  var config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  var hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim().length > 0;
   console.log(JSON.stringify({ configured: hasKey }));
 } catch (e) {
   console.log(JSON.stringify({ configured: false }));
 }
-"
+'
 ```
 
 **If Notion is NOT configured:** Skip this step silently. Do not prompt.
@@ -627,7 +627,7 @@ AskUserQuestion and wait for response.
 Run the sync automatically:
 
 ```bash
-node bin/notion-sync.js sync --cwd "$(pwd)"
+node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"
 ```
 
 Report the sync results to the user (created/updated/skipped counts from CLI output).

@@ -20,6 +20,7 @@ Check if `--auto` flag is present in $ARGUMENTS.
   - Requirements: Include all table stakes + features from provided document
   - Requirements approval: Auto-approve
   - Roadmap approval: Auto-approve
+- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd:discuss-phase` first, never `/gsd:plan-phase` directly
 
 **Document requirement:**
 Auto mode requires an idea document via @ reference (e.g., `/gsd:new-project --auto @prd.md`). If no document provided, error:
@@ -1070,14 +1071,9 @@ Present completion with next steps:
 
 **Phase 1: [Phase Name]** — [Goal from ROADMAP.md]
 
-/gsd:discuss-phase 1 — gather context and clarify approach
+`/gsd:discuss-phase 1` — gather context and clarify approach
 
-<sub>/clear first → fresh context window</sub>
-
----
-
-**Also available:**
-- /gsd:plan-phase 1 — skip discussion, plan directly
+<sub>`/clear` first → fresh context window</sub>
 
 ───────────────────────────────────────────────────────────────
 ```

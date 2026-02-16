@@ -10,6 +10,32 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 </required_reading>
 
+<auto_mode>
+## Auto Mode Detection
+
+Check if `--auto` flag is present in $ARGUMENTS.
+
+**If auto mode:**
+- Skip deep questioning (extract context from provided document)
+- Skip research decision prompt — always run research
+- Requirements: Include all table stakes + features from provided document
+- Requirements approval: Auto-approve
+- Roadmap approval: Auto-approve
+- Auto-derive milestone version from MILESTONES.md (next minor bump)
+- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd:discuss-phase` first, never `/gsd:plan-phase` directly
+
+**Document requirement:**
+Auto mode requires an idea document via @ reference or `.planning/external-spec.md`. If neither is provided, error:
+
+```
+Problem: --auto requires an idea document via @ reference or .planning/external-spec.md.
+
+Usage: /gsd:new-milestone --auto @your-spec.md
+
+The document should describe what you want to build next.
+```
+</auto_mode>
+
 <process>
 
 ## 1. Load Context
@@ -20,6 +46,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 - Check for MILESTONE-CONTEXT.md (from /gsd:discuss-milestone)
 
 ## 2. Gather Milestone Goals
+
+**If auto mode:** Skip this step. Extract milestone goals from the provided document or `.planning/external-spec.md`.
 
 **If MILESTONE-CONTEXT.md exists:**
 - Use features and scope from discuss-milestone
@@ -34,7 +62,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 - Parse last version from MILESTONES.md
 - Suggest next version (v1.0 → v1.1, or v2.0 for major)
-- Confirm with user
+- **If auto mode:** Auto-select next minor version without confirmation
+- **If interactive:** Confirm with user
 
 ## 4. Update PROJECT.md
 
@@ -83,6 +112,8 @@ INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init new-milestone)
 Extract from init JSON: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `research_enabled`, `current_milestone`, `project_exists`, `roadmap_exists`.
 
 ## 8. Research Decision
+
+**If auto mode:** Default to "Research first" without asking. Persist and continue.
 
 AskUserQuestion: "Research the domain ecosystem for new features before defining requirements?"
 - "Research first (Recommended)" — Discover patterns, features, architecture for NEW capabilities
@@ -185,6 +216,15 @@ Display key findings from SUMMARY.md:
  GSD ► DEFINING REQUIREMENTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+**If auto mode:**
+- Auto-include all table stakes features
+- Include features explicitly mentioned in provided document
+- Auto-defer differentiators not mentioned in document
+- Skip per-category AskUserQuestion loops
+- Skip "Any additions?" question
+- Skip requirements approval gate
+- Generate REQUIREMENTS.md and commit directly
 
 Read PROJECT.md: core value, current milestone goals, validated requirements (what exists).
 
@@ -311,7 +351,9 @@ Success criteria:
 2. [criterion]
 ```
 
-**Ask for approval** via AskUserQuestion:
+**If auto mode:** Skip approval gate — auto-approve and commit directly.
+
+**Ask for approval (interactive mode only)** via AskUserQuestion:
 - "Approve" — Commit and continue
 - "Adjust phases" — Tell me what to change
 - "Review full file" — Show raw ROADMAP.md
@@ -322,6 +364,11 @@ Success criteria:
 **Commit roadmap** (after approval):
 ```bash
 node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+```
+
+**Initialize planning status tracking:**
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status init
 ```
 
 ## 11. Done
@@ -349,8 +396,6 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create milestone v[X
 `/gsd:discuss-phase [N]` — gather context and clarify approach
 
 <sub>`/clear` first → fresh context window</sub>
-
-Also: `/gsd:plan-phase [N]` — skip discussion, plan directly
 ```
 
 </process>

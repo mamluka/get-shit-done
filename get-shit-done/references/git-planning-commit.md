@@ -24,8 +24,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "" --files .planning/codeba
 
 | Command | Scope | Example |
 |---------|-------|---------|
-| plan-phase | phase | `docs(phase-03): create authentication plans` |
-| execute-phase | phase | `docs(phase-03): complete authentication phase` |
+| plan-phase | phase | `docs(phase-03): create and execute authentication phase` |
 | new-milestone | milestone | `docs: start milestone v1.1` |
 | remove-phase | chore | `chore: remove phase 17 (dashboard)` |
 | insert-phase | phase | `docs: insert phase 16.1 (critical fix)` |

@@ -12,12 +12,12 @@ Read all files referenced by the invoking prompt's execution_context before star
 **Load progress context (with file contents to avoid redundant reads):**
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init progress --include state,roadmap,project,config)
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init progress --include state,roadmap,project,config,planning-status)
 ```
 
 Extract from init JSON: `project_exists`, `roadmap_exists`, `state_exists`, `phases`, `current_phase`, `next_phase`, `milestone_version`, `completed_count`, `phase_count`, `paused_at`.
 
-**File contents (from --include):** `state_content`, `roadmap_content`, `project_content`, `config_content`. These are null if files don't exist.
+**File contents (from --include):** `state_content`, `roadmap_content`, `project_content`, `config_content`, `planning_status_content`. These are null if files don't exist.
 
 If `project_exists` is false (no `.planning/` directory):
 
@@ -117,6 +117,15 @@ CONTEXT: [✓ if has_context | - if not]
 - [decision 1 from STATE.md]
 - [decision 2]
 
+## Planning Status
+[If planning_status_content is not null, parse and display:]
+| Phase | Status | Plans | Planned Date |
+|-------|--------|-------|--------------|
+| [phase] | [status] | [plans] | [date] |
+
+Resume: [resume command from planning-status resume-point]
+[If planning_status_content is null, omit this section]
+
 ## Blockers/Concerns
 - [any blockers or concerns from STATE.md]
 
@@ -135,6 +144,14 @@ CONTEXT: [✓ if has_context | - if not]
 
 <step name="route">
 **Determine next action based on verified counts.**
+
+**Step 0: Check planning status resume point**
+
+If `planning_status_content` is not null:
+```bash
+RESUME=$(node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status resume-point)
+```
+Parse JSON. If `status` is `in_progress`, use the `command` field for routing instead of the normal count-based logic below.
 
 **Step 1: Count plans, summaries, and issues in current phase**
 

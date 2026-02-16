@@ -458,24 +458,24 @@ Proceed to step 14e (Notion sync prompt).
 First, run a fast local pre-check (no network calls) to validate Notion configuration:
 
 ```bash
-NOTION_CHECK=$(node -e "
-const fs = require('fs');
-const path = require('path');
-const configPath = path.join(process.cwd(), '.planning', 'config.json');
+NOTION_CHECK=$(node -e '
+var fs = require("fs");
+var path = require("path");
+var configPath = path.join(process.cwd(), ".planning", "config.json");
 try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
-  const validPrefix = hasKey && (config.notion.api_key.startsWith('secret_') || config.notion.api_key.startsWith('ntn_'));
-  const hasParent = config.notion && config.notion.parent_page_id;
+  var config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  var hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim().length > 0;
+  var validPrefix = hasKey && (config.notion.api_key.startsWith("secret_") || config.notion.api_key.startsWith("ntn_"));
+  var hasParent = config.notion && config.notion.parent_page_id;
   console.log(JSON.stringify({
     configured: hasKey && validPrefix,
-    has_parent: !!hasParent,
-    reason: !hasKey ? 'no_api_key' : !validPrefix ? 'invalid_prefix' : 'valid'
+    has_parent: Boolean(hasParent),
+    reason: hasKey === false ? "no_api_key" : validPrefix === false ? "invalid_prefix" : "valid"
   }));
 } catch (e) {
-  console.log(JSON.stringify({ configured: false, reason: 'no_config' }));
+  console.log(JSON.stringify({ configured: false, reason: "no_config" }));
 }
-" 2>/dev/null || echo '{"configured":false,"reason":"exec_error"}')
+' 2>/dev/null || echo '{"configured":false,"reason":"exec_error"}')
 
 CONFIGURED=$(echo "$NOTION_CHECK" | jq -r '.configured')
 ```
@@ -513,7 +513,7 @@ echo ""
 echo "Syncing to Notion..."
 echo ""
 
-if node bin/notion-sync.js sync --cwd "$(pwd)"; then
+if node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"; then
   echo ""
   echo "Planning docs synced to Notion"
 else

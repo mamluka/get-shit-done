@@ -127,7 +127,7 @@ TRANSITION=$(node ~/.claude/get-shit-done/bin/gsd-tools.js phase complete "${cur
 ```
 
 The CLI handles:
-- Marking the phase checkbox as `[x]` complete with today's date
+- Appending completion date to the phase line (no checkbox marking)
 - Updating plan count to final (e.g., "3/3 plans complete")
 - Updating the Progress table (Status → Complete, adding date)
 - Advancing STATE.md to next phase (Current Phase, Status → Ready to plan, Current Plan → Not started)

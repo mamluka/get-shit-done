@@ -207,7 +207,7 @@ For each external service, determine:
 2. **Account setup** — Does user need to create an account?
 3. **Dashboard config** — What must be configured in external UI?
 
-Record in `user_setup` frontmatter. Only include what Claude literally cannot do. Do NOT surface in planning output — execute-plan handles presentation.
+Record in `user_setup` frontmatter. Only include what Claude literally cannot do.
 
 </task_breakdown>
 
@@ -361,7 +361,6 @@ Output: [Artifacts created]
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/execute-plan.md
 @~/.claude/get-shit-done/templates/summary.md
 </execution_context>
 
@@ -1089,11 +1088,6 @@ Return structured planning outcome to orchestrator.
 | {phase}-01 | [brief] | 2 | [files] |
 | {phase}-02 | [brief] | 3 | [files] |
 
-### Next Steps
-
-Execute: `/gsd:execute-phase {phase}`
-
-<sub>`/clear` first - fresh context window</sub>
 ```
 
 ## Gap Closure Plans Created
@@ -1109,10 +1103,6 @@ Execute: `/gsd:execute-phase {phase}`
 | Plan | Gaps Addressed | Files |
 |------|----------------|-------|
 | {phase}-04 | [gap truths] | [files] |
-
-### Next Steps
-
-Execute: `/gsd:execute-phase {phase} --gaps-only`
 ```
 
 ## Checkpoint Reached / Revision Complete
@@ -1152,6 +1142,6 @@ Planning complete when:
 - [ ] PLAN file(s) exist with gap_closure: true
 - [ ] Each plan: tasks derived from gap.missing items
 - [ ] PLAN file(s) committed to git
-- [ ] User knows to run `/gsd:execute-phase {X}` next
+- [ ] User informed of plans created
 
 </success_criteria>

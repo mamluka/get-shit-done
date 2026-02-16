@@ -35,53 +35,6 @@ Standard format for presenting next steps after completing a command or workflow
 
 ## Variants
 
-### Execute Next Plan
-
-```
----
-
-## ▶ Next Up
-
-**02-03: Refresh Token Rotation** — Add /api/auth/refresh with sliding expiry
-
-`/gsd:execute-phase 2`
-
-<sub>`/clear` first → fresh context window</sub>
-
----
-
-**Also available:**
-- Review plan before executing
-- `/gsd:list-phase-assumptions 2` — check assumptions
-
----
-```
-
-### Execute Final Plan in Phase
-
-Add note that this is the last plan and what comes after:
-
-```
----
-
-## ▶ Next Up
-
-**02-03: Refresh Token Rotation** — Add /api/auth/refresh with sliding expiry
-<sub>Final plan in Phase 2</sub>
-
-`/gsd:execute-phase 2`
-
-<sub>`/clear` first → fresh context window</sub>
-
----
-
-**After this completes:**
-- Phase 2 → Phase 3 transition
-- Next: **Phase 3: Core Features** — User dashboard and settings
-
----
-```
-
 ### Plan a Phase
 
 ```
@@ -214,10 +167,10 @@ Extract: `**02-03: Refresh Token Rotation** — Add /api/auth/refresh with slidi
 ## To Continue
 
 Run `/clear`, then paste:
-/gsd:execute-phase 2
+/gsd:plan-phase 2
 ```
 
-User has no idea what 02-03 is about.
+User has no idea what Phase 2 is about.
 
 ### Don't: Missing /clear explanation
 

@@ -58,6 +58,31 @@ cat .planning/PROJECT.md
 
 </step>
 
+<step name="check_planning_status">
+Check for interrupted planning session:
+
+```bash
+RESUME=$(node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status resume-point)
+```
+
+Parse JSON for: `resume_phase`, `status`, `reason`, `command`.
+
+**If `status` is `in_progress`:** Planning was interrupted mid-phase. Flag prominently:
+
+```
+⚠️  Interrupted planning session detected:
+    Phase {resume_phase} was being planned when session ended.
+
+    Resume with: {command}
+```
+
+**If `status` is `pending`:** Normal resume — next phase to plan is available.
+
+**If `status` is `all_done`:** All phases planned.
+
+**If `resume_phase` is null (no PLANNING-STATUS.md):** Skip this check, proceed normally.
+</step>
+
 <step name="check_incomplete_work">
 Look for incomplete work that needs attention:
 
@@ -140,6 +165,10 @@ Present complete project status to user:
 <step name="determine_next_action">
 Based on project state, determine the most logical next action:
 
+**If interrupted planning session detected (from check_planning_status):**
+→ Primary: Resume planning from interrupted phase (`{command}` from resume-point)
+→ Option: Start fresh on a different phase
+
 **If interrupted agent exists:**
 → Primary: Resume interrupted agent (Task tool with resume parameter)
 → Option: Start fresh (abandon agent work)
@@ -180,11 +209,9 @@ What would you like to do?
 [Primary action based on state - e.g.:]
 1. Resume interrupted agent [if interrupted agent found]
    OR
-1. Execute phase (/gsd:execute-phase {phase})
+1. Plan Phase 3 (auto-executes) [if ready to plan]
    OR
 1. Discuss Phase 3 context (/gsd:discuss-phase 3) [if CONTEXT.md missing]
-   OR
-1. Plan Phase 3 (/gsd:plan-phase 3) [if CONTEXT.md exists or discuss option declined]
 
 [Secondary options:]
 2. Review current phase status
@@ -201,27 +228,15 @@ ls .planning/phases/XX-name/*-CONTEXT.md 2>/dev/null
 
 If missing, suggest discuss-phase before plan. If exists, offer plan directly.
 
+Phase planning now auto-advances through execution, so no separate execute command is needed.
+
 Wait for user selection.
 </step>
 
 <step name="route_to_workflow">
 Based on user selection, route to appropriate workflow:
 
-- **Execute plan** → Show command for user to run after clearing:
-  ```
-  ---
-
-  ## ▶ Next Up
-
-  **{phase}-{plan}: [Plan Name]** — [objective from PLAN.md]
-
-  `/gsd:execute-phase {phase}`
-
-  <sub>`/clear` first → fresh context window</sub>
-
-  ---
-  ```
-- **Plan phase** → Show command for user to run after clearing:
+- **Plan phase** → Show command for user to run after clearing (note: plan-phase now auto-executes):
   ```
   ---
 

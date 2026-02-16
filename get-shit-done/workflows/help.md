@@ -278,6 +278,53 @@ Create phases to close gaps identified by audit.
 
 Usage: `/gsd:plan-milestone-gaps`
 
+### External Spec Import
+
+**`/gsd:use-external-spec`**
+Import a spec from Jira or Notion into a new project or milestone.
+
+- Interactive router: asks source (Jira/Notion) and target (project/milestone)
+- Fetches content, writes `.planning/external-spec.md`, then runs target in auto mode
+- Combines fetch + create in one command
+
+Usage: `/gsd:use-external-spec`
+
+**`/gsd:new-project-from-jira [PROJ-123]`**
+Import a Jira issue as spec and initialize a new project.
+
+- Fetches Jira issue content (handles epics with children)
+- Writes `.planning/external-spec.md`
+- Runs `/gsd:new-project --auto` with the imported spec
+
+Usage: `/gsd:new-project-from-jira PROJ-123`
+
+**`/gsd:new-milestone-from-jira [PROJ-123]`**
+Import a Jira issue as spec and start a new milestone.
+
+- Fetches Jira issue content (handles epics with children)
+- Writes `.planning/external-spec.md`
+- Runs `/gsd:new-milestone --auto` with the imported spec
+
+Usage: `/gsd:new-milestone-from-jira PROJ-123`
+
+**`/gsd:new-project-from-notion [notion-url]`**
+Import a Notion page as spec and initialize a new project.
+
+- Fetches Notion page content (includes sub-pages)
+- Writes `.planning/external-spec.md`
+- Runs `/gsd:new-project --auto` with the imported spec
+
+Usage: `/gsd:new-project-from-notion https://notion.so/my-spec-page`
+
+**`/gsd:new-milestone-from-notion [notion-url]`**
+Import a Notion page as spec and start a new milestone.
+
+- Fetches Notion page content (includes sub-pages)
+- Writes `.planning/external-spec.md`
+- Runs `/gsd:new-milestone --auto` with the imported spec
+
+Usage: `/gsd:new-milestone-from-notion https://notion.so/my-spec-page`
+
 ### Notion Integration
 
 **`/gsd:sync-notion`**
