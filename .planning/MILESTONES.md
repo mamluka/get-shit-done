@@ -21,3 +21,24 @@
 
 ---
 
+
+## v1.1 Notion Integration (Shipped: 2026-02-11)
+
+**Phases:** 6-10 | **Plans:** 11 | **Tasks:** 21
+**Timeline:** 1 day (2026-02-11)
+**LOC:** 3,371 (Notion modules) | **Files modified:** 55
+**Git range:** feat(06-01) → feat(10-02)
+
+**Delivered:** Full bidirectional Notion integration — push planning docs to Notion with page hierarchy, pull stakeholder comments for interactive triage, with local image upload and incremental sync support.
+
+**Key accomplishments:**
+1. Notion SDK integration with secure token handling and install flow prompt
+2. Full markdown-to-Notion conversion pipeline with TDD coverage (preprocessor, text splitter, block utils, chunker, orchestrator)
+3. Page hierarchy & incremental sync with hash-based change detection and breadth-first creation
+4. Local image upload with SHA-256 deduplication and just-in-time upload for 1-hour expiry compliance
+5. Milestone workflow Notion sync prompt and interactive comment triage workflow with theme clustering
+
+**Archive:** [milestones/v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md) | [milestones/v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md)
+
+---
+
