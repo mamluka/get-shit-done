@@ -13,26 +13,26 @@ Sync .planning/ markdown files to Notion. Validates Notion configuration, runs a
 Check Notion configuration exists and is valid:
 
 ```bash
-NOTION_CHECK=$(node -e "
-const fs = require('fs');
-const path = require('path');
-const configPath = path.join(process.cwd(), '.planning', 'config.json');
+NOTION_CHECK=$(node -e '
+var fs = require("fs");
+var path = require("path");
+var configPath = path.join(process.cwd(), ".planning", "config.json");
 
 try {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim() !== '';
-  const validPrefix = hasKey && (config.notion.api_key.startsWith('secret_') || config.notion.api_key.startsWith('ntn_'));
-  const hasParent = !!(config.notion && config.notion.parent_page_id);
+  var config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  var hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim().length > 0;
+  var validPrefix = hasKey && (config.notion.api_key.startsWith("secret_") || config.notion.api_key.startsWith("ntn_"));
+  var hasParent = Boolean(config.notion && config.notion.parent_page_id);
 
   console.log(JSON.stringify({
     configured: hasKey && validPrefix,
     has_parent: hasParent,
-    reason: !hasKey ? 'no_api_key' : !validPrefix ? 'invalid_prefix' : 'valid'
+    reason: hasKey === false ? "no_api_key" : validPrefix === false ? "invalid_prefix" : "valid"
   }));
 } catch (e) {
-  console.log(JSON.stringify({ configured: false, has_parent: false, reason: 'no_config' }));
+  console.log(JSON.stringify({ configured: false, has_parent: false, reason: "no_config" }));
 }
-" 2>/dev/null || echo '{"configured":false,"has_parent":false,"reason":"exec_error"}')
+' 2>/dev/null || echo '{"configured":false,"has_parent":false,"reason":"exec_error"}')
 
 CONFIGURED=$(echo "$NOTION_CHECK" | jq -r '.configured')
 REASON=$(echo "$NOTION_CHECK" | jq -r '.reason')
@@ -66,7 +66,7 @@ Display banner:
 Run sync with live progress:
 
 ```bash
-node bin/notion-sync.js sync --cwd "$(pwd)"
+node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"
 ```
 
 **If exit code 0:**
@@ -81,7 +81,7 @@ node bin/notion-sync.js sync --cwd "$(pwd)"
 ⚠ Sync encountered errors. Check the output above for details.
 
 Common fixes:
-- Verify API key: node bin/notion-sync.js auth-check
+- Verify API key: node ~/.claude/get-shit-done/bin/notion-sync.js auth-check
 - Check parent page access in Notion sharing settings
 - Retry: /gsd:sync-notion
 ```

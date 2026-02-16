@@ -35,6 +35,7 @@ ${cyan}Commands:${reset}
   ${green}convert [path]${reset}    Convert .planning/ markdown to Notion blocks
   ${green}sync${reset}              Push .planning/ markdown to Notion pages
   ${green}comments${reset}          Fetch unresolved comments from synced Notion pages
+  ${green}clear${reset}             Archive all synced pages and reset sync state
   ${green}help${reset}              Show this help message
 
 ${cyan}Options:${reset}
@@ -278,6 +279,92 @@ async function handleComments(options) {
 }
 
 /**
+ * Handle clear subcommand — archive all synced pages and reset sync state
+ */
+async function handleClear(options) {
+  const { cwd, projectSlug } = options;
+
+  try {
+    const syncState = loadSyncState(cwd);
+    const project = syncState.projects[projectSlug];
+
+    if (!project) {
+      console.log(`${dim}No sync state found for project "${projectSlug}". Nothing to clear.${reset}`);
+      process.exit(0);
+    }
+
+    const notion = createNotionClient(cwd);
+
+    // Collect all page IDs to archive
+    const pageIds = [];
+
+    // Doc pages
+    if (project.doc_pages) {
+      for (const [filePath, entry] of Object.entries(project.doc_pages)) {
+        const pageId = typeof entry === 'string' ? entry : entry?.page_id;
+        if (pageId) {
+          pageIds.push({ id: pageId, label: filePath });
+        }
+      }
+    }
+
+    // Phase pages
+    if (project.phase_pages) {
+      for (const [folderName, pageId] of Object.entries(project.phase_pages)) {
+        if (pageId) {
+          pageIds.push({ id: pageId, label: `phase: ${folderName}` });
+        }
+      }
+    }
+
+    // Root page
+    if (project.root_page_id) {
+      pageIds.push({ id: project.root_page_id, label: 'root page' });
+    }
+
+    if (pageIds.length === 0) {
+      console.log(`${dim}No synced pages found. Nothing to clear.${reset}`);
+      process.exit(0);
+    }
+
+    console.log(`${cyan}Archiving ${pageIds.length} synced pages...${reset}\n`);
+
+    let archived = 0;
+    let skipped = 0;
+
+    for (let i = 0; i < pageIds.length; i++) {
+      const { id, label } = pageIds[i];
+      try {
+        await notion.pages.update({ page_id: id, archived: true });
+        archived++;
+        console.log(`${green}✓ Archived${reset}  ${label} ${dim}(${i + 1}/${pageIds.length})${reset}`);
+      } catch (error) {
+        // Page already deleted/archived or not accessible — skip silently
+        skipped++;
+        console.log(`${dim}○ Skipped   ${label} (${i + 1}/${pageIds.length}) — already removed${reset}`);
+      }
+    }
+
+    // Reset project sync state
+    syncState.projects[projectSlug] = {
+      root_page_id: null,
+      phase_pages: {},
+      doc_pages: {},
+      image_uploads: {}
+    };
+    saveSyncState(cwd, syncState);
+
+    console.log(`\n${green}✓ Clear complete:${reset} ${archived} archived, ${skipped} skipped`);
+    console.log(`${dim}Sync state reset. Run /gsd:sync-notion to resync.${reset}`);
+    process.exit(0);
+
+  } catch (error) {
+    console.error(`${red}✗ Error:${reset} ${error.message}`);
+    process.exit(1);
+  }
+}
+
+/**
  * Handle sync subcommand
  */
 async function handleSync(options) {
@@ -412,9 +499,21 @@ async function main() {
   const parentPageIndex = args.indexOf('--parent-page');
   const parentPage = parentPageIndex !== -1 && args[parentPageIndex + 1] ? args[parentPageIndex + 1] : null;
 
-  // Extract --project flag
+  // Extract --project flag (auto-detect from .active-project if not specified)
   const projectIndex = args.indexOf('--project');
-  const projectSlug = projectIndex !== -1 && args[projectIndex + 1] ? args[projectIndex + 1] : 'default';
+  let projectSlug = 'default';
+  if (projectIndex !== -1 && args[projectIndex + 1]) {
+    projectSlug = args[projectIndex + 1];
+  } else {
+    // Auto-detect from .active-project
+    const activeProjectPath = path.join(cwd, '.planning', '.active-project');
+    try {
+      const slug = fs.readFileSync(activeProjectPath, 'utf8').trim();
+      if (slug) projectSlug = slug;
+    } catch (e) {
+      // No .active-project file, keep 'default'
+    }
+  }
 
   // Find the command (first non-flag argument)
   const command = args.find(arg => !arg.startsWith('--') && arg !== cwd && arg !== parentPage && arg !== projectSlug);
@@ -447,6 +546,11 @@ async function main() {
 
   if (command === 'comments') {
     await handleComments({ cwd, projectSlug });
+    return;
+  }
+
+  if (command === 'clear') {
+    await handleClear({ cwd, projectSlug });
     return;
   }
 
