@@ -1068,41 +1068,13 @@ describe('init commands with --include flag', () => {
     cleanup(tmpDir);
   });
 
-  test('init execute-phase includes state and config content', () => {
+  test('init execute-phase returns removal error', () => {
     const phaseDir = path.join(tmpDir, '.planning', 'phases', '03-api');
     fs.mkdirSync(phaseDir, { recursive: true });
     fs.writeFileSync(path.join(phaseDir, '03-01-PLAN.md'), '# Plan');
-    fs.writeFileSync(
-      path.join(tmpDir, '.planning', 'STATE.md'),
-      '# State\n\n**Current Phase:** 03\n**Status:** In progress'
-    );
-    fs.writeFileSync(
-      path.join(tmpDir, '.planning', 'config.json'),
-      JSON.stringify({ model_profile: 'balanced' })
-    );
 
     const result = runGsdTools('init execute-phase 03 --include state,config', tmpDir);
-    assert.ok(result.success, `Command failed: ${result.error}`);
-
-    const output = JSON.parse(result.output);
-    assert.ok(output.state_content, 'state_content should be included');
-    assert.ok(output.state_content.includes('Current Phase'), 'state content correct');
-    assert.ok(output.config_content, 'config_content should be included');
-    assert.ok(output.config_content.includes('model_profile'), 'config content correct');
-  });
-
-  test('init execute-phase without --include omits content', () => {
-    const phaseDir = path.join(tmpDir, '.planning', 'phases', '03-api');
-    fs.mkdirSync(phaseDir, { recursive: true });
-    fs.writeFileSync(path.join(phaseDir, '03-01-PLAN.md'), '# Plan');
-    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State');
-
-    const result = runGsdTools('init execute-phase 03', tmpDir);
-    assert.ok(result.success, `Command failed: ${result.error}`);
-
-    const output = JSON.parse(result.output);
-    assert.strictEqual(output.state_content, undefined, 'state_content should be omitted');
-    assert.strictEqual(output.config_content, undefined, 'config_content should be omitted');
+    assert.ok(!result.success, 'should fail since workflow is removed');
   });
 
   test('init plan-phase includes multiple file contents', () => {
@@ -1165,25 +1137,22 @@ describe('init commands with --include flag', () => {
   test('missing files return null in content fields', () => {
     const phaseDir = path.join(tmpDir, '.planning', 'phases', '03-api');
     fs.mkdirSync(phaseDir, { recursive: true });
-    fs.writeFileSync(path.join(phaseDir, '03-01-PLAN.md'), '# Plan');
 
-    const result = runGsdTools('init execute-phase 03 --include state,config', tmpDir);
+    const result = runGsdTools('init plan-phase 03 --include state', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
     assert.strictEqual(output.state_content, null, 'missing state returns null');
-    assert.strictEqual(output.config_content, null, 'missing config returns null');
   });
 
   test('partial includes work correctly', () => {
     const phaseDir = path.join(tmpDir, '.planning', 'phases', '03-api');
     fs.mkdirSync(phaseDir, { recursive: true });
-    fs.writeFileSync(path.join(phaseDir, '03-01-PLAN.md'), '# Plan');
     fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State');
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap');
 
     // Only request state, not roadmap
-    const result = runGsdTools('init execute-phase 03 --include state', tmpDir);
+    const result = runGsdTools('init plan-phase 03 --include state', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -1422,7 +1391,7 @@ describe('phase insert command', () => {
 
     const result = runGsdTools('phase insert 99 Fix Something', tmpDir);
     assert.ok(!result.success, 'should fail for missing phase');
-    assert.ok(result.error.includes('not found'), 'error mentions not found');
+    assert.ok(result.error.includes("doesn't exist"), 'error mentions phase does not exist');
   });
 });
 
@@ -1517,7 +1486,7 @@ describe('phase remove command', () => {
     // Should fail without --force
     const result = runGsdTools('phase remove 1', tmpDir);
     assert.ok(!result.success, 'should fail without --force');
-    assert.ok(result.error.includes('executed plan'), 'error mentions executed plans');
+    assert.ok(result.error.includes('completed plan'), 'error mentions completed plans');
 
     // Should succeed with --force
     const forceResult = runGsdTools('phase remove 1 --force', tmpDir);
@@ -1625,9 +1594,8 @@ describe('phase complete command', () => {
     assert.ok(state.includes('**Status:** Ready to plan'), 'status should be ready to plan');
     assert.ok(state.includes('**Current Plan:** Not started'), 'plan should be reset');
 
-    // Verify ROADMAP checkbox
+    // Verify ROADMAP completion annotation
     const roadmap = fs.readFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), 'utf-8');
-    assert.ok(roadmap.includes('[x]'), 'phase should be checked off');
     assert.ok(roadmap.includes('completed'), 'completion date should be added');
   });
 
@@ -1935,7 +1903,7 @@ describe('todo complete command', () => {
   test('fails for nonexistent todo', () => {
     const result = runGsdTools('todo complete nonexistent.md', tmpDir);
     assert.ok(!result.success, 'should fail');
-    assert.ok(result.error.includes('not found'), 'error mentions not found');
+    assert.ok(result.error.includes('find todo'), 'error mentions todo not found');
   });
 });
 
