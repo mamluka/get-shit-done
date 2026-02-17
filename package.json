@@ -1,5 +1,5 @@
 {
-  "name": "gsd-pm",
+  "name": "@david-xpn/gsd-pm",
   "version": "1.18.1",
   "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini. Fork of get-shit-done-cc by TÂCHES.",
   "bin": {
