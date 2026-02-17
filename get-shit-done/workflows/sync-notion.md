@@ -42,7 +42,7 @@ REASON=$(echo "$NOTION_CHECK" | jq -r '.reason')
 
 Display error based on reason:
 
-- `no_config` → "No .planning/config.json found. Run `/gsd:new-project` first."
+- `no_config` → "No .planning/config.json found. Run `/gsd-pm:new-project` first."
 - `no_api_key` → "No Notion API key configured. Run `node bin/install.js` to set up Notion integration."
 - `invalid_prefix` → "Notion API key has invalid format. Keys should start with `secret_` or `ntn_`. Run `node bin/install.js` to reconfigure."
 - `exec_error` → "Failed to read configuration. Check .planning/config.json exists and is valid JSON."
@@ -83,7 +83,7 @@ node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"
 Common fixes:
 - Verify API key: node ~/.claude/get-shit-done/bin/notion-sync.js auth-check
 - Check parent page access in Notion sharing settings
-- Retry: /gsd:sync-notion
+- Retry: /gsd-pm:sync-notion
 ```
 
 </step>

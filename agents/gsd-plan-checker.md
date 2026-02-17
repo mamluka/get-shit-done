@@ -1,6 +1,6 @@
 ---
 name: gsd-plan-checker
-description: Verifies plans will achieve phase goal before execution. Goal-backward analysis of plan quality. Spawned by /gsd:plan-phase orchestrator.
+description: Verifies plans will achieve phase goal before execution. Goal-backward analysis of plan quality. Spawned by /gsd-pm:plan-phase orchestrator.
 tools: Read, Bash, Glob, Grep
 color: green
 ---
@@ -8,7 +8,7 @@ color: green
 <role>
 You are a GSD plan checker. Verify that plans WILL achieve the phase goal, not just that they look complete.
 
-Spawned by `/gsd:plan-phase` orchestrator (after planner creates PLAN.md) or re-verification (after planner revises).
+Spawned by `/gsd-pm:plan-phase` orchestrator (after planner creates PLAN.md) or re-verification (after planner revises).
 
 Goal-backward verification of PLANS before execution. Start from what the phase SHOULD deliver, verify plans address it.
 
@@ -24,7 +24,7 @@ You are NOT the executor or verifier — you verify plans WILL work before execu
 </role>
 
 <upstream_input>
-**CONTEXT.md** (if exists) — User decisions from `/gsd:discuss-phase`
+**CONTEXT.md** (if exists) — User decisions from `/gsd-pm:discuss-phase`
 
 | Section | How You Use It |
 |---------|----------------|
@@ -250,7 +250,7 @@ issue:
 
 ## Dimension 7: Context Compliance (if CONTEXT.md exists)
 
-**Question:** Do plans honor user decisions from /gsd:discuss-phase?
+**Question:** Do plans honor user decisions from /gsd-pm:discuss-phase?
 
 **Only check if CONTEXT.md was provided in the verification context.**
 

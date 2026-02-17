@@ -9,26 +9,26 @@ Display the complete GSD command reference. Output ONLY the reference content. D
 
 ## Quick Start
 
-1. `/gsd:new-project` - Initialize project (includes research, requirements, roadmap)
-2. `/gsd:plan-phase 1` - Plan phase, auto-complete, and auto-advance through all phases
+1. `/gsd-pm:new-project` - Initialize project (includes research, requirements, roadmap)
+2. `/gsd-pm:plan-phase 1` - Plan phase, auto-complete, and auto-advance through all phases
 
 ## Staying Updated
 
 GSD evolves fast. Update periodically:
 
 ```bash
-npx get-shit-done-cc@latest
+npx @david-xpn/gsd-pm@latest
 ```
 
 ## Core Workflow
 
 ```
-/gsd:new-project → /gsd:plan-phase (auto-completes and advances through all phases)
+/gsd-pm:new-project → /gsd-pm:plan-phase (auto-completes and advances through all phases)
 ```
 
 ### Project Initialization
 
-**`/gsd:new-project`**
+**`/gsd-pm:new-project`**
 Initialize new project through unified flow.
 
 One command takes you from idea to ready-for-planning:
@@ -45,30 +45,30 @@ Creates all `.planning/` artifacts:
 - `ROADMAP.md` — phases mapped to requirements
 - `STATE.md` — project memory
 
-Usage: `/gsd:new-project`
+Usage: `/gsd-pm:new-project`
 
-**`/gsd:map-codebase`**
+**`/gsd-pm:map-codebase`**
 Map an existing codebase for brownfield projects.
 
 - Analyzes codebase with parallel Explore agents
 - Creates `.planning/codebase/` with 7 focused documents
 - Covers stack, architecture, structure, conventions, testing, integrations, concerns
-- Use before `/gsd:new-project` on existing codebases
+- Use before `/gsd-pm:new-project` on existing codebases
 
-Usage: `/gsd:map-codebase`
+Usage: `/gsd-pm:map-codebase`
 
 ### Phase Planning
 
-**`/gsd:discuss-phase <number>`**
+**`/gsd-pm:discuss-phase <number>`**
 Help articulate your vision for a phase before planning.
 
 - Captures how you imagine this phase working
 - Creates CONTEXT.md with your vision, essentials, and boundaries
 - Use when you have ideas about how something should look/feel
 
-Usage: `/gsd:discuss-phase 2`
+Usage: `/gsd-pm:discuss-phase 2`
 
-**`/gsd:research-phase <number>`**
+**`/gsd-pm:research-phase <number>`**
 Comprehensive ecosystem research for niche/complex domains.
 
 - Discovers standard stack, architecture patterns, pitfalls
@@ -76,18 +76,18 @@ Comprehensive ecosystem research for niche/complex domains.
 - Use for 3D, games, audio, shaders, ML, and other specialized domains
 - Goes beyond "which library" to ecosystem knowledge
 
-Usage: `/gsd:research-phase 3`
+Usage: `/gsd-pm:research-phase 3`
 
-**`/gsd:list-phase-assumptions <number>`**
+**`/gsd-pm:list-phase-assumptions <number>`**
 See what Claude is planning to do before it starts.
 
 - Shows Claude's intended approach for a phase
 - Lets you course-correct if Claude misunderstood your vision
 - No files created - conversational output only
 
-Usage: `/gsd:list-phase-assumptions 3`
+Usage: `/gsd-pm:list-phase-assumptions 3`
 
-**`/gsd:plan-phase <number>`**
+**`/gsd-pm:plan-phase <number>`**
 Create detailed execution plan for a specific phase, then auto-complete and advance.
 
 - Generates `.planning/phases/XX-phase-name/XX-YY-PLAN.md`
@@ -96,12 +96,12 @@ Create detailed execution plan for a specific phase, then auto-complete and adva
 - After planning: auto-validates, marks phase complete, and advances to next phase
 - Loops through all phases until milestone is complete or user interrupts
 
-Usage: `/gsd:plan-phase 1`
+Usage: `/gsd-pm:plan-phase 1`
 Result: Plans phase 1, marks it complete, then auto-advances to plan phase 2, and so on
 
 ### Phase Completion
 
-**`/gsd:complete-phase <phase-number>`**
+**`/gsd-pm:complete-phase <phase-number>`**
 Manually mark a phase as complete (typically not needed — plan-phase auto-completes).
 
 - Validates planning artifacts exist (plans, requirement mapping)
@@ -110,11 +110,11 @@ Manually mark a phase as complete (typically not needed — plan-phase auto-comp
 - Auto-advances to next phase or prompts for milestone completion
 - Commits changes with proper tracking
 
-Usage: `/gsd:complete-phase 1`
+Usage: `/gsd-pm:complete-phase 1`
 
 ### Editing
 
-**`/gsd:edit-phase <phase-number> [artifact-type]`**
+**`/gsd-pm:edit-phase <phase-number> [artifact-type]`**
 Revise planning artifacts for any phase.
 
 - Discovers available artifacts (plans, research, context, roadmap)
@@ -123,31 +123,31 @@ Revise planning artifacts for any phase.
 - Commits changes with descriptive message
 - Allows iterating on planning artifacts after initial creation
 
-Usage: `/gsd:edit-phase 2`
-Usage: `/gsd:edit-phase 2 plan` - Edit plan directly
+Usage: `/gsd-pm:edit-phase 2`
+Usage: `/gsd-pm:edit-phase 2 plan` - Edit plan directly
 
 ### Roadmap Management
 
-**`/gsd:add-phase <description>`**
+**`/gsd-pm:add-phase <description>`**
 Add new phase to end of current milestone.
 
 - Appends to ROADMAP.md
 - Uses next sequential number
 - Updates phase directory structure
 
-Usage: `/gsd:add-phase "Add admin dashboard"`
+Usage: `/gsd-pm:add-phase "Add admin dashboard"`
 
-**`/gsd:insert-phase <after> <description>`**
+**`/gsd-pm:insert-phase <after> <description>`**
 Insert urgent work as decimal phase between existing phases.
 
 - Creates intermediate phase (e.g., 7.1 between 7 and 8)
 - Useful for discovered work that must happen mid-milestone
 - Maintains phase ordering
 
-Usage: `/gsd:insert-phase 7 "Fix critical auth bug"`
+Usage: `/gsd-pm:insert-phase 7 "Fix critical auth bug"`
 Result: Creates Phase 7.1
 
-**`/gsd:remove-phase <number>`**
+**`/gsd-pm:remove-phase <number>`**
 Remove a future phase and renumber subsequent phases.
 
 - Deletes phase directory and all references
@@ -155,12 +155,12 @@ Remove a future phase and renumber subsequent phases.
 - Only works on future (unstarted) phases
 - Git commit preserves historical record
 
-Usage: `/gsd:remove-phase 17`
+Usage: `/gsd-pm:remove-phase 17`
 Result: Phase 17 deleted, phases 18-20 become 17-19
 
 ### Milestone Management
 
-**`/gsd:new-milestone <name>`**
+**`/gsd-pm:new-milestone <name>`**
 Start a new milestone through unified flow.
 
 - Deep questioning to understand what you're building next
@@ -168,11 +168,11 @@ Start a new milestone through unified flow.
 - Requirements definition with scoping
 - Roadmap creation with phase breakdown
 
-Mirrors `/gsd:new-project` flow for brownfield projects (existing PROJECT.md).
+Mirrors `/gsd-pm:new-project` flow for brownfield projects (existing PROJECT.md).
 
-Usage: `/gsd:new-milestone "v2.0 Features"`
+Usage: `/gsd-pm:new-milestone "v2.0 Features"`
 
-**`/gsd:complete-milestone <version>`**
+**`/gsd-pm:complete-milestone <version>`**
 Archive completed milestone and prepare for next version.
 
 - Creates MILESTONES.md entry with stats
@@ -180,11 +180,11 @@ Archive completed milestone and prepare for next version.
 - Creates git tag for the release
 - Prepares workspace for next version
 
-Usage: `/gsd:complete-milestone 1.0.0`
+Usage: `/gsd-pm:complete-milestone 1.0.0`
 
 ### Progress Tracking
 
-**`/gsd:progress`**
+**`/gsd-pm:progress`**
 Check project status and intelligently route to next action.
 
 - Shows visual progress bar and completion percentage
@@ -194,45 +194,45 @@ Check project status and intelligently route to next action.
 - Offers to execute next plan or create it if missing
 - Detects 100% milestone completion
 
-Usage: `/gsd:progress`
+Usage: `/gsd-pm:progress`
 
 ### Session Management
 
-**`/gsd:resume-work`**
+**`/gsd-pm:resume-work`**
 Resume work from previous session with full context restoration.
 
 - Reads STATE.md for project context
 - Shows current position and recent progress
 - Offers next actions based on project state
 
-Usage: `/gsd:resume-work`
+Usage: `/gsd-pm:resume-work`
 
-**`/gsd:pause-work`**
+**`/gsd-pm:pause-work`**
 Create context handoff when pausing work mid-phase.
 
 - Creates .continue-here file with current state
 - Updates STATE.md session continuity section
 - Captures in-progress work context
 
-Usage: `/gsd:pause-work`
+Usage: `/gsd-pm:pause-work`
 
 ### Debugging
 
-**`/gsd:debug [issue description]`**
+**`/gsd-pm:debug [issue description]`**
 Systematic debugging with persistent state across context resets.
 
 - Gathers symptoms through adaptive questioning
 - Creates `.planning/debug/[slug].md` to track investigation
 - Investigates using scientific method (evidence → hypothesis → test)
-- Survives `/clear` — run `/gsd:debug` with no args to resume
+- Survives `/clear` — run `/gsd-pm:debug` with no args to resume
 - Archives resolved issues to `.planning/debug/resolved/`
 
-Usage: `/gsd:debug "login button doesn't work"`
-Usage: `/gsd:debug` (resume active session)
+Usage: `/gsd-pm:debug "login button doesn't work"`
+Usage: `/gsd-pm:debug` (resume active session)
 
 ### Todo Management
 
-**`/gsd:add-todo [description]`**
+**`/gsd-pm:add-todo [description]`**
 Capture idea or task as todo from current conversation.
 
 - Extracts context from conversation (or uses provided description)
@@ -241,24 +241,24 @@ Capture idea or task as todo from current conversation.
 - Checks for duplicates before creating
 - Updates STATE.md todo count
 
-Usage: `/gsd:add-todo` (infers from conversation)
-Usage: `/gsd:add-todo Add auth token refresh`
+Usage: `/gsd-pm:add-todo` (infers from conversation)
+Usage: `/gsd-pm:add-todo Add auth token refresh`
 
-**`/gsd:check-todos [area]`**
+**`/gsd-pm:check-todos [area]`**
 List pending todos and select one to work on.
 
 - Lists all pending todos with title, area, age
-- Optional area filter (e.g., `/gsd:check-todos api`)
+- Optional area filter (e.g., `/gsd-pm:check-todos api`)
 - Loads full context for selected todo
 - Routes to appropriate action (work now, add to phase, brainstorm)
 - Moves todo to done/ when work begins
 
-Usage: `/gsd:check-todos`
-Usage: `/gsd:check-todos api`
+Usage: `/gsd-pm:check-todos`
+Usage: `/gsd-pm:check-todos api`
 
 ### Milestone Auditing
 
-**`/gsd:audit-milestone [version]`**
+**`/gsd-pm:audit-milestone [version]`**
 Audit milestone completion against original intent.
 
 - Reads all phase VERIFICATION.md files
@@ -266,68 +266,68 @@ Audit milestone completion against original intent.
 - Spawns integration checker for cross-phase wiring
 - Creates MILESTONE-AUDIT.md with gaps and tech debt
 
-Usage: `/gsd:audit-milestone`
+Usage: `/gsd-pm:audit-milestone`
 
-**`/gsd:plan-milestone-gaps`**
+**`/gsd-pm:plan-milestone-gaps`**
 Create phases to close gaps identified by audit.
 
 - Reads MILESTONE-AUDIT.md and groups gaps into phases
 - Prioritizes by requirement priority (must/should/nice)
 - Adds gap closure phases to ROADMAP.md
-- Ready for `/gsd:plan-phase` on new phases
+- Ready for `/gsd-pm:plan-phase` on new phases
 
-Usage: `/gsd:plan-milestone-gaps`
+Usage: `/gsd-pm:plan-milestone-gaps`
 
 ### External Spec Import
 
-**`/gsd:use-external-spec`**
+**`/gsd-pm:use-external-spec`**
 Import a spec from Jira or Notion into a new project or milestone.
 
 - Interactive router: asks source (Jira/Notion) and target (project/milestone)
 - Fetches content, writes `.planning/external-spec.md`, then runs target in auto mode
 - Combines fetch + create in one command
 
-Usage: `/gsd:use-external-spec`
+Usage: `/gsd-pm:use-external-spec`
 
-**`/gsd:new-project-from-jira [PROJ-123]`**
+**`/gsd-pm:new-project-from-jira [PROJ-123]`**
 Import a Jira issue as spec and initialize a new project.
 
 - Fetches Jira issue content (handles epics with children)
 - Writes `.planning/external-spec.md`
-- Runs `/gsd:new-project --auto` with the imported spec
+- Runs `/gsd-pm:new-project --auto` with the imported spec
 
-Usage: `/gsd:new-project-from-jira PROJ-123`
+Usage: `/gsd-pm:new-project-from-jira PROJ-123`
 
-**`/gsd:new-milestone-from-jira [PROJ-123]`**
+**`/gsd-pm:new-milestone-from-jira [PROJ-123]`**
 Import a Jira issue as spec and start a new milestone.
 
 - Fetches Jira issue content (handles epics with children)
 - Writes `.planning/external-spec.md`
-- Runs `/gsd:new-milestone --auto` with the imported spec
+- Runs `/gsd-pm:new-milestone --auto` with the imported spec
 
-Usage: `/gsd:new-milestone-from-jira PROJ-123`
+Usage: `/gsd-pm:new-milestone-from-jira PROJ-123`
 
-**`/gsd:new-project-from-notion [notion-url]`**
+**`/gsd-pm:new-project-from-notion [notion-url]`**
 Import a Notion page as spec and initialize a new project.
 
 - Fetches Notion page content (includes sub-pages)
 - Writes `.planning/external-spec.md`
-- Runs `/gsd:new-project --auto` with the imported spec
+- Runs `/gsd-pm:new-project --auto` with the imported spec
 
-Usage: `/gsd:new-project-from-notion https://notion.so/my-spec-page`
+Usage: `/gsd-pm:new-project-from-notion https://notion.so/my-spec-page`
 
-**`/gsd:new-milestone-from-notion [notion-url]`**
+**`/gsd-pm:new-milestone-from-notion [notion-url]`**
 Import a Notion page as spec and start a new milestone.
 
 - Fetches Notion page content (includes sub-pages)
 - Writes `.planning/external-spec.md`
-- Runs `/gsd:new-milestone --auto` with the imported spec
+- Runs `/gsd-pm:new-milestone --auto` with the imported spec
 
-Usage: `/gsd:new-milestone-from-notion https://notion.so/my-spec-page`
+Usage: `/gsd-pm:new-milestone-from-notion https://notion.so/my-spec-page`
 
 ### Notion Integration
 
-**`/gsd:sync-notion`**
+**`/gsd-pm:sync-notion`**
 Push .planning/ markdown files to Notion workspace.
 
 - Validates Notion config (API key format, parent page)
@@ -335,9 +335,9 @@ Push .planning/ markdown files to Notion workspace.
 - Creates new pages, updates changed pages, skips unchanged
 - Also triggered automatically after milestone planning completes
 
-Usage: `/gsd:sync-notion`
+Usage: `/gsd-pm:sync-notion`
 
-**`/gsd:notion-comments`**
+**`/gsd-pm:notion-comments`**
 Pull and triage unresolved comments from synced Notion pages.
 
 - Fetches comments from Notion pages
@@ -345,51 +345,43 @@ Pull and triage unresolved comments from synced Notion pages.
 - Maps themes to roadmap phases
 - Interactive triage discussion
 
-Usage: `/gsd:notion-comments`
+Usage: `/gsd-pm:notion-comments`
 
 ### Configuration
 
-**`/gsd:settings`**
+**`/gsd-pm:settings`**
 Configure workflow toggles and model profile interactively.
 
 - Toggle researcher, plan checker, verifier agents
 - Select model profile (quality/balanced/budget)
 - Updates `.planning/config.json`
 
-Usage: `/gsd:settings`
+Usage: `/gsd-pm:settings`
 
-**`/gsd:set-profile <profile>`**
+**`/gsd-pm:set-profile <profile>`**
 Quick switch model profile for GSD agents.
 
 - `quality` — Opus everywhere except verification
 - `balanced` — Opus for planning, Sonnet for execution (default)
 - `budget` — Sonnet for writing, Haiku for research/verification
 
-Usage: `/gsd:set-profile budget`
+Usage: `/gsd-pm:set-profile budget`
 
 ### Utility Commands
 
-**`/gsd:help`**
+**`/gsd-pm:help`**
 Show this command reference.
 
-**`/gsd:update`**
+**`/gsd-pm:update`**
 Update GSD to latest version with changelog preview.
 
 - Shows installed vs latest version comparison
 - Displays changelog entries for versions you've missed
 - Highlights breaking changes
 - Confirms before running install
-- Better than raw `npx get-shit-done-cc`
+- Better than raw `npx @david-xpn/gsd-pm`
 
-Usage: `/gsd:update`
-
-**`/gsd:join-discord`**
-Join the GSD Discord community.
-
-- Get help, share what you're building, stay updated
-- Connect with other GSD users
-
-Usage: `/gsd:join-discord`
+Usage: `/gsd-pm:update`
 
 ## Files & Structure
 
@@ -423,7 +415,7 @@ Usage: `/gsd:join-discord`
 
 ## Workflow Modes
 
-Set during `/gsd:new-project`:
+Set during `/gsd-pm:new-project`:
 
 **Interactive Mode**
 
@@ -471,48 +463,48 @@ Example config:
 **Starting a new project:**
 
 ```
-/gsd:new-project        # Unified flow: questioning → research → requirements → roadmap
+/gsd-pm:new-project        # Unified flow: questioning → research → requirements → roadmap
 /clear
-/gsd:plan-phase 1       # Plans phase 1, auto-completes, auto-advances through all phases
+/gsd-pm:plan-phase 1       # Plans phase 1, auto-completes, auto-advances through all phases
 ```
 
 **Resuming work after a break:**
 
 ```
-/gsd:progress  # See where you left off and continue
+/gsd-pm:progress  # See where you left off and continue
 ```
 
 **Adding urgent mid-milestone work:**
 
 ```
-/gsd:insert-phase 5 "Critical security fix"
-/gsd:plan-phase 5.1    # Plans, auto-completes, and resumes remaining phases
+/gsd-pm:insert-phase 5 "Critical security fix"
+/gsd-pm:plan-phase 5.1    # Plans, auto-completes, and resumes remaining phases
 ```
 
 **Completing a milestone:**
 
 ```
-/gsd:complete-milestone 1.0.0
+/gsd-pm:complete-milestone 1.0.0
 /clear
-/gsd:new-milestone  # Start next milestone (questioning → research → requirements → roadmap)
+/gsd-pm:new-milestone  # Start next milestone (questioning → research → requirements → roadmap)
 ```
 
 **Capturing ideas during work:**
 
 ```
-/gsd:add-todo                    # Capture from conversation context
-/gsd:add-todo Fix modal z-index  # Capture with explicit description
-/gsd:check-todos                 # Review and work on todos
-/gsd:check-todos api             # Filter by area
+/gsd-pm:add-todo                    # Capture from conversation context
+/gsd-pm:add-todo Fix modal z-index  # Capture with explicit description
+/gsd-pm:check-todos                 # Review and work on todos
+/gsd-pm:check-todos api             # Filter by area
 ```
 
 **Debugging an issue:**
 
 ```
-/gsd:debug "form submission fails silently"  # Start debug session
+/gsd-pm:debug "form submission fails silently"  # Start debug session
 # ... investigation happens, context fills up ...
 /clear
-/gsd:debug                                    # Resume from where you left off
+/gsd-pm:debug                                    # Resume from where you left off
 ```
 
 ## Getting Help
@@ -520,5 +512,5 @@ Example config:
 - Read `.planning/PROJECT.md` for project vision
 - Read `.planning/STATE.md` for current context
 - Check `.planning/ROADMAP.md` for phase status
-- Run `/gsd:progress` to check where you're up to
+- Run `/gsd-pm:progress` to check where you're up to
 </reference>

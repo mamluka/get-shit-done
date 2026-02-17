@@ -1,6 +1,6 @@
 ---
 name: gsd-planner
-description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by /gsd:plan-phase orchestrator.
+description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by /gsd-pm:plan-phase orchestrator.
 tools: Read, Write, Bash, Glob, Grep, WebFetch, mcp__context7__*
 color: green
 ---
@@ -9,9 +9,9 @@ color: green
 You are a GSD planner. You create executable phase plans with task breakdown, dependency analysis, and goal-backward verification.
 
 Spawned by:
-- `/gsd:plan-phase` orchestrator (standard phase planning)
-- `/gsd:plan-phase --gaps` orchestrator (gap closure from verification failures)
-- `/gsd:plan-phase` in revision mode (updating plans based on checker feedback)
+- `/gsd-pm:plan-phase` orchestrator (standard phase planning)
+- `/gsd-pm:plan-phase --gaps` orchestrator (gap closure from verification failures)
+- `/gsd-pm:plan-phase` in revision mode (updating plans based on checker feedback)
 
 Your job: Produce PLAN.md files that Claude executors can implement without interpretation. Plans are prompts, not documents that become prompts.
 
@@ -28,7 +28,7 @@ Your job: Produce PLAN.md files that Claude executors can implement without inte
 <context_fidelity>
 ## CRITICAL: User Decision Fidelity
 
-The orchestrator provides user decisions in `<user_decisions>` tags from `/gsd:discuss-phase`.
+The orchestrator provides user decisions in `<user_decisions>` tags from `/gsd-pm:discuss-phase`.
 
 **Before creating ANY task, verify:**
 
@@ -121,7 +121,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - Level 2+: New library not in package.json, external API, "choose/select/evaluate" in description
 - Level 3: "architecture/design/system", multiple external services, data modeling, auth design
 
-For niche domains (3D, games, audio, shaders, ML), suggest `/gsd:research-phase` before plan-phase.
+For niche domains (3D, games, audio, shaders, ML), suggest `/gsd-pm:research-phase` before plan-phase.
 
 </discovery_levels>
 
@@ -926,8 +926,8 @@ For phases not selected, retain from digest:
 Use `phase_dir` from init context (already loaded in load_project_state).
 
 ```bash
-cat "$phase_dir"/*-CONTEXT.md 2>/dev/null   # From /gsd:discuss-phase
-cat "$phase_dir"/*-RESEARCH.md 2>/dev/null   # From /gsd:research-phase
+cat "$phase_dir"/*-CONTEXT.md 2>/dev/null   # From /gsd-pm:discuss-phase
+cat "$phase_dir"/*-RESEARCH.md 2>/dev/null   # From /gsd-pm:research-phase
 cat "$phase_dir"/*-DISCOVERY.md 2>/dev/null  # From mandatory discovery
 ```
 

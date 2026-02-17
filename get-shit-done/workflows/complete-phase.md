@@ -36,7 +36,7 @@ Normalize phase number input (handle "3", "03", "3.1", "03.1" formats):
 PHASE_NUM="${PHASE_INPUT}"
 ```
 
-If phase not provided in arguments, error: "Phase number required. Usage: /gsd:complete-phase {N}"
+If phase not provided in arguments, error: "Phase number required. Usage: /gsd-pm:complete-phase {N}"
 
 </step>
 
@@ -165,8 +165,8 @@ Phase ${completed_phase} is complete. Auto-advancing to Phase ${next_phase}...
 **Next Phase:** ${next_phase}: ${next_phase_name}
 
 **Options:**
-- `/gsd:plan-phase ${next_phase}` — Create execution plan for next phase
-- `/gsd:discuss-phase ${next_phase}` — Gather context before planning
+- `/gsd-pm:plan-phase ${next_phase}` — Create execution plan for next phase
+- `/gsd-pm:discuss-phase ${next_phase}` — Gather context before planning
 
 ---
 ```
@@ -181,8 +181,8 @@ Display:
 This was the last phase in the current roadmap.
 
 **Options:**
-- `/gsd:complete-milestone` — Mark milestone as shipped and archive
-- `/gsd:add-phase` — Add more phases to current milestone
+- `/gsd-pm:complete-milestone` — Mark milestone as shipped and archive
+- `/gsd-pm:add-phase` — Add more phases to current milestone
 
 ---
 ```

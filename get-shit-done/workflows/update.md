@@ -47,14 +47,14 @@ Proceed to install step (treat as version 0.0.0 for comparison).
 Check npm for latest version:
 
 ```bash
-npm view get-shit-done-cc version 2>/dev/null
+npm view @david-xpn/gsd-pm version 2>/dev/null
 ```
 
 **If npm check fails:**
 ```
 Couldn't check for updates (offline or npm unavailable).
 
-To update manually: `npx get-shit-done-cc --global`
+To update manually: `npx @david-xpn/gsd-pm --global`
 ```
 
 Exit.
@@ -117,19 +117,19 @@ Exit.
 ────────────────────────────────────────────────────────────
 
 ⚠️  **Note:** The installer performs a clean install of GSD folders:
-- `commands/gsd/` will be wiped and replaced
+- `commands/gsd-pm/` will be wiped and replaced
 - `get-shit-done/` will be wiped and replaced
 - `agents/gsd-*` files will be replaced
 
 (Paths are relative to your install location: `~/.claude/` for global, `./.claude/` for local)
 
 Your custom files in other locations are preserved:
-- Custom commands not in `commands/gsd/` ✓
+- Custom commands not in `commands/gsd-pm/` ✓
 - Custom agents not prefixed with `gsd-` ✓
 - Custom hooks ✓
 - Your CLAUDE.md files ✓
 
-If you've modified any GSD files directly, they'll be automatically backed up to `gsd-local-patches/` and can be reapplied with `/gsd:reapply-patches` after the update.
+If you've modified any GSD files directly, they'll be automatically backed up to `gsd-local-patches/` and can be reapplied with `/gsd-pm:reapply-patches` after the update.
 ```
 
 Use AskUserQuestion:
@@ -146,12 +146,12 @@ Run the update using the install type detected in step 1:
 
 **If LOCAL install:**
 ```bash
-npx get-shit-done-cc --local
+npx @david-xpn/gsd-pm --local
 ```
 
 **If GLOBAL install (or unknown):**
 ```bash
-npx get-shit-done-cc --global
+npx @david-xpn/gsd-pm --global
 ```
 
 Capture output. If install fails, show error and exit.
@@ -193,7 +193,7 @@ Check for gsd-local-patches/backup-meta.json in the config directory.
 
 ```
 Local patches were backed up before the update.
-Run /gsd:reapply-patches to merge your modifications into the new version.
+Run /gsd-pm:reapply-patches to merge your modifications into the new version.
 ```
 
 **If no patches:** Continue normally.

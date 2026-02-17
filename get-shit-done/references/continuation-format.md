@@ -44,15 +44,15 @@ Standard format for presenting next steps after completing a command or workflow
 
 **Phase 2: Authentication** — JWT login flow with refresh tokens
 
-`/gsd:plan-phase 2`
+`/gsd-pm:plan-phase 2`
 
 <sub>`/clear` first → fresh context window</sub>
 
 ---
 
 **Also available:**
-- `/gsd:discuss-phase 2` — gather context first
-- `/gsd:research-phase 2` — investigate unknowns
+- `/gsd-pm:discuss-phase 2` — gather context first
+- `/gsd-pm:research-phase 2` — investigate unknowns
 - Review roadmap
 
 ---
@@ -73,15 +73,15 @@ Show completion status before next action:
 
 **Phase 3: Core Features** — User dashboard, settings, and data export
 
-`/gsd:plan-phase 3`
+`/gsd-pm:plan-phase 3`
 
 <sub>`/clear` first → fresh context window</sub>
 
 ---
 
 **Also available:**
-- `/gsd:discuss-phase 3` — gather context first
-- `/gsd:research-phase 3` — investigate unknowns
+- `/gsd-pm:discuss-phase 3` — gather context first
+- `/gsd-pm:research-phase 3` — investigate unknowns
 - Review what Phase 2 built
 
 ---
@@ -98,11 +98,11 @@ When there's no clear primary action:
 
 **Phase 3: Core Features** — User dashboard, settings, and data export
 
-**To plan directly:** `/gsd:plan-phase 3`
+**To plan directly:** `/gsd-pm:plan-phase 3`
 
-**To discuss context first:** `/gsd:discuss-phase 3`
+**To discuss context first:** `/gsd-pm:discuss-phase 3`
 
-**To research unknowns:** `/gsd:research-phase 3`
+**To research unknowns:** `/gsd-pm:research-phase 3`
 
 <sub>`/clear` first → fresh context window</sub>
 
@@ -122,7 +122,7 @@ All 4 phases shipped
 
 **Start v1.1** — questioning → research → requirements → roadmap
 
-`/gsd:new-milestone`
+`/gsd-pm:new-milestone`
 
 <sub>`/clear` first → fresh context window</sub>
 
@@ -167,7 +167,7 @@ Extract: `**02-03: Refresh Token Rotation** — Add /api/auth/refresh with slidi
 ## To Continue
 
 Run `/clear`, then paste:
-/gsd:plan-phase 2
+/gsd-pm:plan-phase 2
 ```
 
 User has no idea what Phase 2 is about.
@@ -175,7 +175,7 @@ User has no idea what Phase 2 is about.
 ### Don't: Missing /clear explanation
 
 ```
-`/gsd:plan-phase 3`
+`/gsd-pm:plan-phase 3`
 
 Run /clear first.
 ```
@@ -195,7 +195,7 @@ Sounds like an afterthought. Use "Also available:" instead.
 
 ```
 ```
-/gsd:plan-phase 3
+/gsd-pm:plan-phase 3
 ```
 ```
 

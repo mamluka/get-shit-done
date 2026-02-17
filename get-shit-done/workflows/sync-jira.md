@@ -31,7 +31,7 @@ Jira MCP is not configured. Install it with:
 
   claude mcp add jira --transport http https://mcp.atlassian.com/v1/mcp
 
-Then restart Claude Code and run /gsd:sync-jira again.
+Then restart Claude Code and run /gsd-pm:sync-jira again.
 ```
 
 Stop.
@@ -100,9 +100,9 @@ Display:
 Notion sync is required before Jira sync. Planning docs must be
 synced to Notion first so Jira tickets can include Notion page links.
 
-Run: /gsd:sync-notion
+Run: /gsd-pm:sync-notion
 
-Then run /gsd:sync-jira again.
+Then run /gsd-pm:sync-jira again.
 ```
 
 Stop.
@@ -356,7 +356,7 @@ Display:
  SYNC CANCELLED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-No changes made to Jira. Run /gsd:sync-jira again to retry.
+No changes made to Jira. Run /gsd-pm:sync-jira again to retry.
 ```
 
 Stop.

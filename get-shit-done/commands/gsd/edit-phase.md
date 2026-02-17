@@ -1,5 +1,5 @@
 ---
-name: gsd:edit-phase
+name: gsd-pm:edit-phase
 description: Revise planning artifacts (plans, research, context) for a phase
 argument-hint: "{phase-number} [artifact-type]"
 agent: gsd-orchestrator

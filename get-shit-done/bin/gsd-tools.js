@@ -391,7 +391,7 @@ function createMilestoneTag(cwd, projectSlug, version, tagMessage) {
     // but we note the mismatch
     return {
       exitCode: 1,
-      error: `Not on project branch. Expected ${expectedBranch}, currently on ${currentBranch}. Switch to the project branch first with /gsd:switch-project.`,
+      error: `Not on project branch. Expected ${expectedBranch}, currently on ${currentBranch}. Switch to the project branch first with /gsd-pm:switch-project.`,
       expected_branch: expectedBranch,
       current_branch: currentBranch,
     };
@@ -776,7 +776,7 @@ class PathResolver {
     try {
       const activeSlug = fs.readFileSync(activeProjectPath, 'utf-8').trim();
       if (!activeSlug) {
-        throw new Error('The current project is not set up correctly. Run /gsd:list-projects to see available projects, then /gsd:switch-project {name}');
+        throw new Error('The current project is not set up correctly. Run /gsd-pm:list-projects to see available projects, then /gsd-pm:switch-project {name}');
       }
 
       this.currentProject = activeSlug;
@@ -808,7 +808,7 @@ class PathResolver {
 
     } catch (err) {
       // If we can't read .active-project in nested mode, that's an error
-      throw new Error(`Couldn't read current project settings. The project file may be corrupted. Run /gsd:list-projects to choose a project`);
+      throw new Error(`Couldn't read current project settings. The project file may be corrupted. Run /gsd-pm:list-projects to choose a project`);
     }
   }
 
@@ -833,7 +833,7 @@ class PathResolver {
 
     // Nested mode requires active project
     if (!this.currentProject || !this.currentVersion) {
-      throw new Error('No project is currently active. Choose a project with /gsd:switch-project {name} or create one with /gsd:new-project');
+      throw new Error('No project is currently active. Choose a project with /gsd-pm:switch-project {name} or create one with /gsd-pm:new-project');
     }
 
     // PROJECT.md lives at project root, not in version folder
@@ -1514,7 +1514,7 @@ function cmdStateGet(cwd, section, raw) {
 
     output({ error: `Section or field "${section}" not found` }, raw, '');
   } catch {
-    error('Project state file not found. Run /gsd:new-project to set up a project');
+    error('Project state file not found. Run /gsd-pm:new-project to set up a project');
   }
 }
 
@@ -1542,7 +1542,7 @@ function cmdStatePatch(cwd, patches, raw) {
 
     output(results, raw, results.updated.length > 0 ? 'true' : 'false');
   } catch {
-    error('Project state file not found. Run /gsd:new-project to set up a project');
+    error('Project state file not found. Run /gsd-pm:new-project to set up a project');
   }
 }
 
@@ -1564,7 +1564,7 @@ function cmdStateUpdate(cwd, field, value) {
       output({ updated: false, reason: `Field "${field}" not found in STATE.md` });
     }
   } catch {
-    output({ updated: false, reason: 'Project state file not found', action: 'Run /gsd:new-project to set up a project' });
+    output({ updated: false, reason: 'Project state file not found', action: 'Run /gsd-pm:new-project to set up a project' });
   }
 }
 
@@ -1587,7 +1587,7 @@ function stateReplaceField(content, fieldName, newValue) {
 
 function cmdStateAdvancePlan(cwd, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const currentPlan = parseInt(stateExtractField(content, 'Current Plan'), 10);
@@ -1616,7 +1616,7 @@ function cmdStateAdvancePlan(cwd, raw) {
 
 function cmdStateRecordMetric(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const { phase, plan, duration, tasks, files } = options;
@@ -1651,7 +1651,7 @@ function cmdStateRecordMetric(cwd, options, raw) {
 
 function cmdStateUpdateProgress(cwd, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
 
@@ -1688,7 +1688,7 @@ function cmdStateUpdateProgress(cwd, raw) {
 
 function cmdStateAddDecision(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
 
   const { phase, summary, rationale } = options;
   if (!summary) { output({ error: 'summary required' }, raw); return; }
@@ -1715,7 +1715,7 @@ function cmdStateAddDecision(cwd, options, raw) {
 
 function cmdStateAddBlocker(cwd, text, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1738,7 +1738,7 @@ function cmdStateAddBlocker(cwd, text, raw) {
 
 function cmdStateResolveBlocker(cwd, text, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
   if (!text) { output({ error: 'text required' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
@@ -1770,7 +1770,7 @@ function cmdStateResolveBlocker(cwd, text, raw) {
 
 function cmdStateRecordSession(cwd, options, raw) {
   const statePath = resolvePlanning(cwd, 'STATE.md');
-  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd:new-project to set up a project' }, raw); return; }
+  if (!fs.existsSync(statePath)) { output({ error: 'Project state not found', action: 'Run /gsd-pm:new-project to set up a project' }, raw); return; }
 
   let content = fs.readFileSync(statePath, 'utf-8');
   const now = new Date().toISOString();
@@ -3033,7 +3033,7 @@ function cmdPhaseAdd(cwd, description, raw) {
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
-    error('Roadmap not found. Run /gsd:new-project to set up a project first');
+    error('Roadmap not found. Run /gsd-pm:new-project to set up a project first');
   }
 
   const content = fs.readFileSync(roadmapPath, 'utf-8');
@@ -3057,7 +3057,7 @@ function cmdPhaseAdd(cwd, description, raw) {
   fs.mkdirSync(dirPath, { recursive: true });
 
   // Build phase entry
-  const phaseEntry = `\n### Phase ${newPhaseNum}: ${description}\n\n**Goal:** [To be planned]\n**Depends on:** Phase ${maxPhase}\n**Plans:** 0 plans\n\nPlans:\n- [ ] TBD (run /gsd:plan-phase ${newPhaseNum} to break down)\n`;
+  const phaseEntry = `\n### Phase ${newPhaseNum}: ${description}\n\n**Goal:** [To be planned]\n**Depends on:** Phase ${maxPhase}\n**Plans:** 0 plans\n\nPlans:\n- [ ] TBD (run /gsd-pm:plan-phase ${newPhaseNum} to break down)\n`;
 
   // Find insertion point: before last "---" or at end
   let updatedContent;
@@ -3090,7 +3090,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
 
   const roadmapPath = resolvePlanning(cwd, 'ROADMAP.md');
   if (!fs.existsSync(roadmapPath)) {
-    error('Roadmap not found. Run /gsd:new-project to set up a project first');
+    error('Roadmap not found. Run /gsd-pm:new-project to set up a project first');
   }
 
   const content = fs.readFileSync(roadmapPath, 'utf-8');
@@ -3100,7 +3100,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   const afterPhaseEscaped = afterPhase.replace(/\./g, '\\.');
   const targetPattern = new RegExp(`###\\s*Phase\\s+${afterPhaseEscaped}:`, 'i');
   if (!targetPattern.test(content)) {
-    error(`Phase ${afterPhase} doesn't exist in the roadmap. Check /gsd:progress for current phases`);
+    error(`Phase ${afterPhase} doesn't exist in the roadmap. Check /gsd-pm:progress for current phases`);
   }
 
   // Calculate next decimal using existing logic
@@ -3127,7 +3127,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
   fs.mkdirSync(dirPath, { recursive: true });
 
   // Build phase entry
-  const phaseEntry = `\n### Phase ${decimalPhase}: ${description} (INSERTED)\n\n**Goal:** [Urgent work - to be planned]\n**Depends on:** Phase ${afterPhase}\n**Plans:** 0 plans\n\nPlans:\n- [ ] TBD (run /gsd:plan-phase ${decimalPhase} to break down)\n`;
+  const phaseEntry = `\n### Phase ${decimalPhase}: ${description} (INSERTED)\n\n**Goal:** [Urgent work - to be planned]\n**Depends on:** Phase ${afterPhase}\n**Plans:** 0 plans\n\nPlans:\n- [ ] TBD (run /gsd-pm:plan-phase ${decimalPhase} to break down)\n`;
 
   // Insert after the target phase section
   const headerPattern = new RegExp(`(###\\s*Phase\\s+${afterPhaseEscaped}:[^\\n]*\\n)`, 'i');
@@ -3173,7 +3173,7 @@ function cmdPhaseRemove(cwd, targetPhase, options, raw) {
   const force = options.force || false;
 
   if (!fs.existsSync(roadmapPath)) {
-    error('Roadmap not found. Run /gsd:new-project to set up a project first');
+    error('Roadmap not found. Run /gsd-pm:new-project to set up a project first');
   }
 
   // Normalize the target
@@ -3486,7 +3486,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
   // Verify phase info
   const phaseInfo = findPhaseInternal(cwd, phaseNum);
   if (!phaseInfo) {
-    error(`Phase ${phaseNum} doesn't exist in the roadmap. Run /gsd:progress to see current phases`);
+    error(`Phase ${phaseNum} doesn't exist in the roadmap. Run /gsd-pm:progress to see current phases`);
   }
 
   const planCount = phaseInfo.plans.length;
@@ -3968,7 +3968,7 @@ function cmdTodoComplete(cwd, filename, raw) {
   const sourcePath = path.join(pendingDir, filename);
 
   if (!fs.existsSync(sourcePath)) {
-    error(`Couldn't find todo "${filename}". Run /gsd:check-todos to see available todos`);
+    error(`Couldn't find todo "${filename}". Run /gsd-pm:check-todos to see available todos`);
   }
 
   // Ensure completed directory exists
@@ -4005,7 +4005,7 @@ function cmdScaffold(cwd, type, options, raw) {
   switch (type) {
     case 'context': {
       filePath = path.join(phaseDir, `${padded}-CONTEXT.md`);
-      content = `---\nphase: "${padded}"\nname: "${name || phaseInfo?.phase_name || 'Unnamed'}"\ncreated: ${today}\n---\n\n# Phase ${phase}: ${name || phaseInfo?.phase_name || 'Unnamed'} — Context\n\n## Decisions\n\n_Decisions will be captured during /gsd:discuss-phase ${phase}_\n\n## Discretion Areas\n\n_Areas where the executor can use judgment_\n\n## Deferred Ideas\n\n_Ideas to consider later_\n`;
+      content = `---\nphase: "${padded}"\nname: "${name || phaseInfo?.phase_name || 'Unnamed'}"\ncreated: ${today}\n---\n\n# Phase ${phase}: ${name || phaseInfo?.phase_name || 'Unnamed'} — Context\n\n## Decisions\n\n_Decisions will be captured during /gsd-pm:discuss-phase ${phase}_\n\n## Discretion Areas\n\n_Areas where the executor can use judgment_\n\n## Deferred Ideas\n\n_Ideas to consider later_\n`;
       break;
     }
     case 'uat': {
@@ -4698,7 +4698,7 @@ function verifyMigration(cwd, slug) {
 function cmdInitCreateProject(cwd, raw) {
   // Deprecated: create-project merged into new-project
   return output({
-    error: 'create-project has been merged into new-project. Use /gsd:new-project instead.',
+    error: 'create-project has been merged into new-project. Use /gsd-pm:new-project instead.',
     redirect: 'new-project',
   }, raw);
 }
@@ -5548,10 +5548,10 @@ function writePlanningStatus(cwd, phases, milestone, sessionLog) {
   let resumeReason = 'Planning complete';
 
   if (inProgress) {
-    resumeCommand = `/gsd:plan-phase ${inProgress.phase}`;
+    resumeCommand = `/gsd-pm:plan-phase ${inProgress.phase}`;
     resumeReason = `Phase ${inProgress.phase} planning in progress`;
   } else if (nextPending) {
-    resumeCommand = `/gsd:plan-phase ${nextPending.phase}`;
+    resumeCommand = `/gsd-pm:plan-phase ${nextPending.phase}`;
     resumeReason = `Phase ${nextPending.phase} not yet planned`;
   }
 
@@ -5712,21 +5712,21 @@ function cmdPlanningStatusResumePoint(cwd, raw) {
       resume_phase: inProgress.phase,
       status: 'in_progress',
       reason: `Phase ${inProgress.phase} planning was interrupted`,
-      command: `/gsd:plan-phase ${inProgress.phase}`,
+      command: `/gsd-pm:plan-phase ${inProgress.phase}`,
     }, raw);
   } else if (nextPending) {
     output({
       resume_phase: nextPending.phase,
       status: 'pending',
       reason: `Phase ${nextPending.phase} is next to plan`,
-      command: `/gsd:plan-phase ${nextPending.phase}`,
+      command: `/gsd-pm:plan-phase ${nextPending.phase}`,
     }, raw);
   } else {
     output({
       resume_phase: null,
       status: 'all_done',
       reason: 'All phases have been planned',
-      command: '/gsd:complete-milestone',
+      command: '/gsd-pm:complete-milestone',
     }, raw);
   }
 }
@@ -6176,9 +6176,9 @@ async function main() {
       switch (workflow) {
         case 'execute-phase':
           if (raw) {
-            console.log(JSON.stringify({ error: "Workflow removed", message: "execute-phase workflow has been removed. GSD is now planning-only. Use /gsd:complete-phase to mark phases complete." }, null, 2));
+            console.log(JSON.stringify({ error: "Workflow removed", message: "execute-phase workflow has been removed. GSD is now planning-only. Use /gsd-pm:complete-phase to mark phases complete." }, null, 2));
           } else {
-            console.log("⚠️  Workflow Removed\n\nThe execute-phase workflow has been removed. GSD is now planning-only.\n\nUse /gsd:complete-phase {N} to mark phases complete.");
+            console.log("⚠️  Workflow Removed\n\nThe execute-phase workflow has been removed. GSD is now planning-only.\n\nUse /gsd-pm:complete-phase {N} to mark phases complete.");
           }
           process.exit(1);
           break;

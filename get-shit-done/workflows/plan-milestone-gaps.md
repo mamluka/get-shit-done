@@ -1,5 +1,5 @@
 <purpose>
-Create all phases necessary to close gaps identified by `/gsd:audit-milestone`. Reads MILESTONE-AUDIT.md, groups gaps into logical phases, creates phase entries in ROADMAP.md, and offers to plan each phase. One command creates all fix phases — no manual `/gsd:add-phase` per gap.
+Create all phases necessary to close gaps identified by `/gsd-pm:audit-milestone`. Reads MILESTONE-AUDIT.md, groups gaps into logical phases, creates phase entries in ROADMAP.md, and offers to plan each phase. One command creates all fix phases — no manual `/gsd-pm:add-phase` per gap.
 </purpose>
 
 <required_reading>
@@ -22,7 +22,7 @@ Parse YAML frontmatter to extract structured gaps:
 
 If no audit file exists or has no gaps, error:
 ```
-No audit gaps found. Run `/gsd:audit-milestone` first.
+No audit gaps found. Run `/gsd-pm:audit-milestone` first.
 ```
 
 ## 2. Prioritize Gaps
@@ -149,7 +149,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(roadmap): add gap clo
 
 **Plan first gap closure phase**
 
-`/gsd:plan-phase {N}`
+`/gsd-pm:plan-phase {N}`
 
 <sub>`/clear` first → fresh context window</sub>
 
@@ -162,8 +162,8 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(roadmap): add gap clo
 
 **After all gap phases complete:**
 
-`/gsd:audit-milestone` — re-audit to verify gaps closed
-`/gsd:complete-milestone {version}` — archive when audit passes
+`/gsd-pm:audit-milestone` — re-audit to verify gaps closed
+`/gsd-pm:complete-milestone {version}` — archive when audit passes
 ```
 
 </process>
@@ -251,5 +251,5 @@ becomes:
 - [ ] ROADMAP.md updated with new phases
 - [ ] Phase directories created
 - [ ] Changes committed
-- [ ] User knows to run `/gsd:plan-phase` next
+- [ ] User knows to run `/gsd-pm:plan-phase` next
 </success_criteria>

@@ -71,7 +71,7 @@ BRANCH_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js git status --raw)
 ```
 
 Parse the output. If `on_project_branch` is false:
-- Display: "Warning: You are not on a project branch (currently on {current_branch}). The milestone tag will not be created. Switch to the project branch with /gsd:switch-project if you want the tag."
+- Display: "Warning: You are not on a project branch (currently on {current_branch}). The milestone tag will not be created. Switch to the project branch with /gsd-pm:switch-project if you want the tag."
 - Do NOT block completion -- this is informational only.
 
 If `on_project_branch` is true:
@@ -636,7 +636,7 @@ If sync errors occur, report them but do NOT fail the milestone completion. The 
 
 **If user says "skip" (or equivalent negative):**
 
-Print: `Skipped Notion sync. You can sync manually later with /gsd:sync-notion`
+Print: `Skipped Notion sync. You can sync manually later with /gsd-pm:sync-notion`
 
 Continue to next step.
 
@@ -682,7 +682,7 @@ Tag: {git_tag} (on branch {current_branch})
 
 **Start Next Milestone** — questioning → research → requirements → roadmap
 
-`/gsd:new-milestone`
+`/gsd-pm:new-milestone`
 
 <sub>`/clear` first → fresh context window</sub>
 
@@ -729,6 +729,6 @@ Milestone completion is successful when:
 - [ ] STATE.md updated with fresh project reference
 - [ ] Git tag created (v[X.Y])
 - [ ] Milestone commit made (includes archive files and deletion)
-- [ ] User knows next step (/gsd:new-milestone)
+- [ ] User knows next step (/gsd-pm:new-milestone)
 
 </success_criteria>

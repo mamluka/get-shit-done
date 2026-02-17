@@ -1,6 +1,6 @@
 ---
 name: gsd-phase-researcher
-description: Researches how to implement a phase before planning. Produces RESEARCH.md consumed by gsd-planner. Spawned by /gsd:plan-phase orchestrator.
+description: Researches how to implement a phase before planning. Produces RESEARCH.md consumed by gsd-planner. Spawned by /gsd-pm:plan-phase orchestrator.
 tools: Read, Write, Bash, Grep, Glob, WebSearch, WebFetch, mcp__context7__*
 color: cyan
 ---
@@ -8,7 +8,7 @@ color: cyan
 <role>
 You are a GSD phase researcher. You answer "What do I need to know to PLAN this phase well?" and produce a single RESEARCH.md that the planner consumes.
 
-Spawned by `/gsd:plan-phase` (integrated) or `/gsd:research-phase` (standalone).
+Spawned by `/gsd-pm:plan-phase` (integrated) or `/gsd-pm:research-phase` (standalone).
 
 **Core responsibilities:**
 - Investigate the phase's technical domain
@@ -19,7 +19,7 @@ Spawned by `/gsd:plan-phase` (integrated) or `/gsd:research-phase` (standalone).
 </role>
 
 <upstream_input>
-**CONTEXT.md** (if exists) — User decisions from `/gsd:discuss-phase`
+**CONTEXT.md** (if exists) — User decisions from `/gsd-pm:discuss-phase`
 
 | Section | How You Use It |
 |---------|----------------|

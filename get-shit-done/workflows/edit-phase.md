@@ -138,7 +138,7 @@ Load RESEARCH.md:
 cat "${phase_dir}"/*-RESEARCH.md
 ```
 
-If no research file exists, display error: "No research file found for this phase. Run /gsd:research-phase {N} first."
+If no research file exists, display error: "No research file found for this phase. Run /gsd-pm:research-phase {N} first."
 
 STOP.
 
@@ -235,9 +235,9 @@ Display:
 ```
 ## Next Steps
 
-- `/gsd:edit-phase ${phase_number}` — Edit another artifact for this phase
-- `/gsd:plan-phase ${phase_number}` — Continue planning this phase
-- `/gsd:complete-phase ${phase_number}` — Mark phase as complete
+- `/gsd-pm:edit-phase ${phase_number}` — Edit another artifact for this phase
+- `/gsd-pm:plan-phase ${phase_number}` — Continue planning this phase
+- `/gsd-pm:complete-phase ${phase_number}` — Mark phase as complete
 ```
 
 </step>

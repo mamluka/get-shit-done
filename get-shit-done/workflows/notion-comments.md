@@ -256,7 +256,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(16): incorporate comm
 | {title} | Update Phase {N} | ROADMAP.md, REQUIREMENTS.md |
 | {title} | New Phase {N} | ROADMAP.md, REQUIREMENTS.md |
 
-Planning artifacts updated. Run `/gsd:plan-phase` to plan any new phases.
+Planning artifacts updated. Run `/gsd-pm:plan-phase` to plan any new phases.
 ```
 
 If no changes were accepted (all skipped in discuss mode):

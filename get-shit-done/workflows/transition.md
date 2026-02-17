@@ -370,7 +370,7 @@ Next: Phase [X+1] — [Name]
 ⚡ Auto-continuing: Plan Phase [X+1] in detail
 ```
 
-Exit skill and invoke SlashCommand("/gsd:plan-phase [X+1]")
+Exit skill and invoke SlashCommand("/gsd-pm:plan-phase [X+1]")
 
 </if>
 
@@ -385,15 +385,15 @@ Exit skill and invoke SlashCommand("/gsd:plan-phase [X+1]")
 
 **Phase [X+1]: [Name]** — [Goal from ROADMAP.md]
 
-`/gsd:plan-phase [X+1]`
+`/gsd-pm:plan-phase [X+1]`
 
 <sub>`/clear` first → fresh context window</sub>
 
 ---
 
 **Also available:**
-- `/gsd:discuss-phase [X+1]` — gather context first
-- `/gsd:research-phase [X+1]` — investigate unknowns
+- `/gsd-pm:discuss-phase [X+1]` — gather context first
+- `/gsd-pm:research-phase [X+1]` — investigate unknowns
 - Review roadmap
 
 ---
@@ -415,7 +415,7 @@ Phase {X} marked complete.
 ⚡ Auto-continuing: Complete milestone and archive
 ```
 
-Exit skill and invoke SlashCommand("/gsd:complete-milestone {version}")
+Exit skill and invoke SlashCommand("/gsd-pm:complete-milestone {version}")
 
 </if>
 
@@ -432,7 +432,7 @@ Exit skill and invoke SlashCommand("/gsd:complete-milestone {version}")
 
 **Complete Milestone {version}** — archive and prepare for next
 
-`/gsd:complete-milestone {version}`
+`/gsd-pm:complete-milestone {version}`
 
 <sub>`/clear` first → fresh context window</sub>
 

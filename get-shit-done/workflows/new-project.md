@@ -20,15 +20,15 @@ Check if `--auto` flag is present in $ARGUMENTS.
   - Requirements: Include all table stakes + features from provided document
   - Requirements approval: Auto-approve
   - Roadmap approval: Auto-approve
-- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd:discuss-phase` first, never `/gsd:plan-phase` directly
+- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd-pm:discuss-phase` first, never `/gsd-pm:plan-phase` directly
 
 **Document requirement:**
-Auto mode requires an idea document via @ reference (e.g., `/gsd:new-project --auto @prd.md`). If no document provided, error:
+Auto mode requires an idea document via @ reference (e.g., `/gsd-pm:new-project --auto @prd.md`). If no document provided, error:
 
 ```
 Problem: --auto requires an idea document via @ reference.
 
-Usage: /gsd:new-project --auto @your-idea.md
+Usage: /gsd-pm:new-project --auto @your-idea.md
 
 The document should describe what you want to build.
 ```
@@ -181,12 +181,12 @@ Use AskUserQuestion:
 - header: "Existing Code"
 - question: "I detected existing code in this directory. Would you like to map the codebase first?"
 - options:
-  - "Map codebase first" — Run /gsd:map-codebase to understand existing architecture (Recommended)
+  - "Map codebase first" — Run /gsd-pm:map-codebase to understand existing architecture (Recommended)
   - "Skip mapping" — Proceed with project initialization
 
 **If "Map codebase first":**
 ```
-Run `/gsd:map-codebase` first, then return to `/gsd:new-project`
+Run `/gsd-pm:map-codebase` first, then return to `/gsd-pm:new-project`
 ```
 Exit command.
 
@@ -372,7 +372,7 @@ Parse result JSON. If `applied: true`, display the summary:
   Model Profile    Balanced
   Commit Docs      Enabled
 
-  You can change these anytime with /gsd:settings
+  You can change these anytime with /gsd-pm:settings
 ```
 
 If error: Display error message and fall back to Custom flow.
@@ -513,7 +513,7 @@ Create `.planning/config.json` with all settings:
 node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: add project config" --files .planning/config.json
 ```
 
-**Note:** Run `/gsd:settings` anytime to update these preferences.
+**Note:** Run `/gsd-pm:settings` anytime to update these preferences.
 
 ## 6.5. Resolve Model Profile
 
@@ -1071,7 +1071,7 @@ Present completion with next steps:
 
 **Phase 1: [Phase Name]** — [Goal from ROADMAP.md]
 
-`/gsd:discuss-phase 1` — gather context and clarify approach
+`/gsd-pm:discuss-phase 1` — gather context and clarify approach
 
 <sub>`/clear` first → fresh context window</sub>
 
@@ -1117,7 +1117,7 @@ Present completion with next steps:
 - [ ] ROADMAP.md created with phases, requirement mappings, success criteria
 - [ ] STATE.md initialized
 - [ ] REQUIREMENTS.md traceability updated
-- [ ] User knows next step is `/gsd:discuss-phase 1`
+- [ ] User knows next step is `/gsd-pm:discuss-phase 1`
 
 **Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.
 

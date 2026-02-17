@@ -22,7 +22,7 @@ Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_
 
 **File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `uat_content`, `planning_status_content`. These are null if files don't exist.
 
-**If `planning_exists` is false:** Error — run `/gsd:new-project` first.
+**If `planning_exists` is false:** Error — run `/gsd-pm:new-project` first.
 
 **If `planning_status_content` is null (PLANNING-STATUS.md missing):**
 ```bash
@@ -161,7 +161,7 @@ Answer: "What do I need to know to PLAN this phase well?"
 </objective>
 
 <phase_context>
-IMPORTANT: If CONTEXT.md exists below, it contains user decisions from /gsd:discuss-phase.
+IMPORTANT: If CONTEXT.md exists below, it contains user decisions from /gsd-pm:discuss-phase.
 - **Decisions** = Locked — research THESE deeply, no alternatives
 - **Claude's Discretion** = Freedom areas — research options, recommend
 - **Deferred Ideas** = Out of scope — ignore
@@ -240,7 +240,7 @@ Planner prompt:
 **Requirements:** {requirements_content}
 
 **Phase Context:**
-IMPORTANT: If context exists below, it contains USER DECISIONS from /gsd:discuss-phase.
+IMPORTANT: If context exists below, it contains USER DECISIONS from /gsd-pm:discuss-phase.
 - **Decisions** = LOCKED — honor exactly, do not revisit
 - **Claude's Discretion** = Freedom — make implementation choices
 - **Deferred Ideas** = Out of scope — do NOT include
@@ -411,7 +411,7 @@ Then proceed directly to step 14 (auto-complete).
 
 ## 14. Auto-Complete Phase
 
-Automatically mark the phase complete and advance — do NOT wait for the user to run `/gsd:complete-phase`.
+Automatically mark the phase complete and advance — do NOT wait for the user to run `/gsd-pm:complete-phase`.
 
 ### 14a. Validate Phase
 
@@ -518,14 +518,14 @@ if node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"; then
   echo "Planning docs synced to Notion"
 else
   echo ""
-  echo "Sync encountered errors. You can retry with /gsd:sync-notion"
+  echo "Sync encountered errors. You can retry with /gsd-pm:sync-notion"
   echo "Milestone completion will proceed regardless."
 fi
 ```
 
 **If user selects "Skip":**
 
-Display: `Skipped Notion sync. Run /gsd:sync-notion later to upload docs.`
+Display: `Skipped Notion sync. Run /gsd-pm:sync-notion later to upload docs.`
 
 **If CONFIGURED is "false":**
 
@@ -543,8 +543,8 @@ Display:
 This was the last phase in the current roadmap.
 
 **Options:**
-- `/gsd:complete-milestone` — Mark milestone as shipped and archive
-- `/gsd:add-phase` — Add more phases to current milestone
+- `/gsd-pm:complete-milestone` — Mark milestone as shipped and archive
+- `/gsd-pm:add-phase` — Add more phases to current milestone
 
 ───────────────────────────────────────────────────────────────
 ```

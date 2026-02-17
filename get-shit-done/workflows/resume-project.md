@@ -27,7 +27,7 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 
 **If `state_exists` is true:** Proceed to load_state
 **If `state_exists` is false but `roadmap_exists` or `project_exists` is true:** Offer to reconstruct STATE.md
-**If `planning_exists` is false:** This is a new project - route to /gsd:new-project
+**If `planning_exists` is false:** This is a new project - route to /gsd-pm:new-project
 </step>
 
 <step name="load_state">
@@ -149,7 +149,7 @@ Present complete project status to user:
     Resume with: Task tool (resume parameter with agent ID)
 
 [If pending todos exist:]
-📋 [N] pending todos — /gsd:check-todos to review
+📋 [N] pending todos — /gsd-pm:check-todos to review
 
 [If blockers exist:]
 ⚠️  Carried concerns:
@@ -211,7 +211,7 @@ What would you like to do?
    OR
 1. Plan Phase 3 (auto-executes) [if ready to plan]
    OR
-1. Discuss Phase 3 context (/gsd:discuss-phase 3) [if CONTEXT.md missing]
+1. Discuss Phase 3 context (/gsd-pm:discuss-phase 3) [if CONTEXT.md missing]
 
 [Secondary options:]
 2. Review current phase status
@@ -244,15 +244,15 @@ Based on user selection, route to appropriate workflow:
 
   **Phase [N]: [Name]** — [Goal from ROADMAP.md]
 
-  `/gsd:plan-phase [phase-number]`
+  `/gsd-pm:plan-phase [phase-number]`
 
   <sub>`/clear` first → fresh context window</sub>
 
   ---
 
   **Also available:**
-  - `/gsd:discuss-phase [N]` — gather context first
-  - `/gsd:research-phase [N]` — investigate unknowns
+  - `/gsd-pm:discuss-phase [N]` — gather context first
+  - `/gsd-pm:research-phase [N]` — investigate unknowns
 
   ---
   ```

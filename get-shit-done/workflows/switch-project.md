@@ -15,7 +15,7 @@ Parse JSON for: `projects`, `active_project`, `has_projects`.
 ## 2. Handle No Projects
 
 If `!has_projects`:
-  Display: "No projects found. Create one with /gsd:new-project"
+  Display: "No projects found. Create one with /gsd-pm:new-project"
   Exit.
 
 ## 3. Present Projects
@@ -69,8 +69,8 @@ Switched to {friendlyName}.
 All GSD commands now operate on this project.
 
 Next steps:
-  /gsd:progress — view project status
-  /gsd:plan-phase {N} — plan next phase
+  /gsd-pm:progress — view project status
+  /gsd-pm:plan-phase {N} — plan next phase
 ```
 
 **Per user decision: Active project shown on every GSD command output.**

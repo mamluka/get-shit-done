@@ -15,7 +15,7 @@ Parse JSON for: `projects`, `active_project`, `project_count`.
 ## 2. Handle No Projects
 
 If `project_count` === 0:
-  Display: "No projects yet. Create one with /gsd:new-project"
+  Display: "No projects yet. Create one with /gsd-pm:new-project"
   Exit.
 
 ## 3. Display Projects
@@ -45,9 +45,9 @@ After table, display available commands:
 
 ```
 Commands:
-  /gsd:switch-project — switch active project
-  /gsd:new-project — create a new project
-  /gsd:progress — view active project status
+  /gsd-pm:switch-project — switch active project
+  /gsd-pm:new-project — create a new project
+  /gsd-pm:progress — view active project status
 ```
 
 </process>

@@ -355,7 +355,7 @@ async function handleClear(options) {
     saveSyncState(cwd, syncState);
 
     console.log(`\n${green}✓ Clear complete:${reset} ${archived} archived, ${skipped} skipped`);
-    console.log(`${dim}Sync state reset. Run /gsd:sync-notion to resync.${reset}`);
+    console.log(`${dim}Sync state reset. Run /gsd-pm:sync-notion to resync.${reset}`);
     process.exit(0);
 
   } catch (error) {

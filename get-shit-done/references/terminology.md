@@ -62,7 +62,7 @@ Error: Failed to parse STATE.md - file is corrupted
 
 ### Good (Constructive Language)
 ```
-Problem: Couldn't read the project state file. The file may be corrupted. Run /gsd:new-project to set up a fresh project.
+Problem: Couldn't read the project state file. The file may be corrupted. Run /gsd-pm:new-project to set up a fresh project.
 ```
 
 ## Progressive Disclosure

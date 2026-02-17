@@ -22,7 +22,7 @@ Check if `--auto` flag is present in $ARGUMENTS.
 - Requirements approval: Auto-approve
 - Roadmap approval: Auto-approve
 - Auto-derive milestone version from MILESTONES.md (next minor bump)
-- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd:discuss-phase` first, never `/gsd:plan-phase` directly
+- **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd-pm:discuss-phase` first, never `/gsd-pm:plan-phase` directly
 
 **Document requirement:**
 Auto mode requires an idea document via @ reference or `.planning/external-spec.md`. If neither is provided, error:
@@ -30,7 +30,7 @@ Auto mode requires an idea document via @ reference or `.planning/external-spec.
 ```
 Problem: --auto requires an idea document via @ reference or .planning/external-spec.md.
 
-Usage: /gsd:new-milestone --auto @your-spec.md
+Usage: /gsd-pm:new-milestone --auto @your-spec.md
 
 The document should describe what you want to build next.
 ```
@@ -43,7 +43,7 @@ The document should describe what you want to build next.
 - Read PROJECT.md (existing project, validated requirements, decisions)
 - Read MILESTONES.md (what shipped previously)
 - Read STATE.md (pending todos, blockers)
-- Check for MILESTONE-CONTEXT.md (from /gsd:discuss-milestone)
+- Check for MILESTONE-CONTEXT.md (from /gsd-pm:discuss-milestone)
 
 ## 2. Gather Milestone Goals
 
@@ -119,7 +119,7 @@ AskUserQuestion: "Research the domain ecosystem for new features before defining
 - "Research first (Recommended)" — Discover patterns, features, architecture for NEW capabilities
 - "Skip research" — Go straight to requirements
 
-**Persist choice to config** (so future `/gsd:plan-phase` honors it):
+**Persist choice to config** (so future `/gsd-pm:plan-phase` honors it):
 
 ```bash
 # If "Research first": persist true
@@ -393,7 +393,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status init
 
 **Phase [N]: [Phase Name]** — [Goal]
 
-`/gsd:discuss-phase [N]` — gather context and clarify approach
+`/gsd-pm:discuss-phase [N]` — gather context and clarify approach
 
 <sub>`/clear` first → fresh context window</sub>
 ```
@@ -412,7 +412,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status init
 - [ ] User feedback incorporated (if any)
 - [ ] ROADMAP.md phases continue from previous milestone
 - [ ] All commits made (if planning docs committed)
-- [ ] User knows next step: `/gsd:discuss-phase [N]`
+- [ ] User knows next step: `/gsd-pm:discuss-phase [N]`
 
 **Atomic commits:** Each phase commits its artifacts immediately.
 </success_criteria>
