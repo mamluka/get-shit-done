@@ -161,10 +161,10 @@ Plans:
   3. New requirements or phases detected on re-run create new tickets
   4. jira-sync.json tracks ticket IDs with granularity metadata (phase/category/requirement)
   5. Update operations preserve existing ticket IDs and links
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 21-01-PLAN.md
+- [ ] 21-01-PLAN.md — Create sync-state module and extend sync-jira workflow with incremental create/update detection
 
 ## Progress
 
@@ -197,4 +197,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-18 (Phase 20 complete)*
+*Last updated: 2026-02-18 (Phase 21 planned)*
