@@ -38,19 +38,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYNC-01 | — | Pending |
-| SYNC-02 | — | Pending |
-| FOLD-01 | — | Pending |
-| FOLD-02 | — | Pending |
-| FOLD-03 | — | Pending |
-| FOLD-04 | — | Pending |
-| FOLD-05 | — | Pending |
+| SYNC-01 | Phase 22 | Pending |
+| SYNC-02 | Phase 22 | Pending |
+| FOLD-01 | Phase 22 | Pending |
+| FOLD-02 | Phase 22 | Pending |
+| FOLD-03 | Phase 22 | Pending |
+| FOLD-04 | Phase 22 | Pending |
+| FOLD-05 | Phase 22 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7 ⚠️
+- Mapped to phases: 7
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after initial definition*
+*Last updated: 2026-02-18 (roadmap created, traceability complete)*

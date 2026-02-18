@@ -7,6 +7,7 @@
 - ✅ **v1.2 Streamlined Workflow** — Phases 11-14 (shipped 2026-02-12)
 - ✅ **v1.3 Comment-Driven Planning** — Phases 15-16 (shipped 2026-02-12)
 - ✅ **v1.4 Jira Sync** — Phases 17-21 (shipped 2026-02-18)
+- 🚧 **v1.5 Structural Fixes** — Phase 22 (in progress)
 
 ## Phases
 
@@ -99,6 +100,25 @@ Plans:
 
 </details>
 
+### 🚧 v1.5 Structural Fixes (In Progress)
+
+**Milestone Goal:** Fix structural issues found during usage — move jira-sync.json into project folder and rename .planning to .planning-pm to avoid collisions.
+
+#### Phase 22: Structural Refactor
+**Goal**: Relocate sync state to project folder and rename planning folder to avoid collisions
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: FOLD-01, FOLD-02, FOLD-03, FOLD-04, FOLD-05, SYNC-01, SYNC-02
+**Success Criteria** (what must be TRUE):
+  1. Planning folder is named .planning-pm across entire codebase (PathResolver, gsd-tools, workflows, templates, agents, commands)
+  2. Existing .planning folder is safely migrated to .planning-pm with no data loss
+  3. jira-sync.json is written inside project folder at .planning-pm/{name}/v{N}/jira-sync.json
+  4. All jira-sync.json references (sync-state module, workflow, gsd-tools) resolve to project folder path
+  5. All existing workflows continue to function with new folder structure
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -124,7 +144,8 @@ Plans:
 | 19. Epic & Ticket Creation | v1.4 | 1/1 | Complete | 2026-02-18 |
 | 20. Team Assignment | v1.4 | 1/1 | Complete | 2026-02-18 |
 | 21. Update Semantics & Tracking | v1.4 | 1/1 | Complete | 2026-02-18 |
+| 22. Structural Refactor | v1.5 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-18 (v1.4 Jira Sync shipped)*
+*Last updated: 2026-02-18 (v1.5 Structural Fixes roadmap added)*

@@ -5,14 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.5 Structural Fixes — jira-sync.json placement + .planning → .planning-pm rename
+**Current focus:** Phase 22 - Structural Refactor
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-18 — Milestone v1.5 started
+Phase: 22 of 22 (Structural Refactor)
+Plan: 0 of 1 in current phase
+Status: Ready to plan
+Last activity: 2026-02-18 — v1.5 roadmap created
+
+Progress: [████████████████████░] 95% (21/22 phases complete)
 
 ## Performance Metrics
 
@@ -76,6 +78,7 @@ Last activity: 2026-02-18 — Milestone v1.5 started
 | 19. Epic & Ticket Creation | 1/1 | Complete | v1.4 |
 | 20. Team Assignment | 1/1 | Complete | v1.4 |
 | 21. Update Semantics & Tracking | 1/1 | Complete | v1.4 |
+| 22. Structural Refactor | 0/1 | Not started | v1.5 |
 
 ## Accumulated Context
 
@@ -83,22 +86,26 @@ Last activity: 2026-02-18 — Milestone v1.5 started
 
 Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.4 decisions marked as ✓ Good.
 
+Recent decisions affecting current work:
+- v1.0: `.planning/{name}/v{N}/` folder structure preserves history of all projects and milestones in one repo
+- v1.4: jira-sync.json currently written at root level — v1.5 moves it into project folder
+- v1.5: Rename .planning to .planning-pm to avoid collisions with other tools
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None.
+None — v1.5 is a focused structural fix with clear scope.
 
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: v1.4 milestone archived
+Stopped at: v1.5 roadmap created
 Resume file: None
-
-**Next step:** Define v1.5 requirements
+Next action: Plan Phase 22 via `/gsd:plan-phase 22`
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (v1.4 milestone archived)*
+*Last updated: 2026-02-18 (v1.5 roadmap created)*
