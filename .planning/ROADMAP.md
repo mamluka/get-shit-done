@@ -146,10 +146,10 @@ Plans:
   2. User can assign epic to self or a team member
   3. User can assign tickets to team members (bulk assignment or individual per ticket)
   4. Assignments are reflected in Jira after sync completes
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 20-01-PLAN.md
+- [ ] 20-01-PLAN.md — Create team-fetcher module and extend sync-jira workflow with team assignment step
 
 #### Phase 21: Update Semantics & Tracking
 **Goal**: Enable incremental sync with create vs update detection and local tracking
@@ -197,4 +197,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-18 (Phase 19 complete)*
+*Last updated: 2026-02-18 (Phase 20 planned)*
