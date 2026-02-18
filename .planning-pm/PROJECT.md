@@ -56,16 +56,11 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 - ✓ Notion page links embedded in Jira ticket descriptions — v1.4
 - ✓ Team member retrieval and assignment (epic + tickets, bulk or individual) — v1.4
 - ✓ Incremental sync with create/update routing and jira-sync.json state tracking — v1.4
+- ✓ Planning folder renamed from `.planning` to `.planning-pm` to avoid collisions — v1.5
+- ✓ jira-sync.json relocated to versioned project folder (`.planning-pm/{slug}/v{N}/`) — v1.5
+- ✓ Safe migration command (`project migrate-folder`) with backup and idempotency — v1.5
 
 ### Active
-
-## Current Milestone: v1.5 Structural Fixes
-
-**Goal:** Fix structural issues found during usage — correct jira-sync.json placement and rename .planning to .planning-pm to avoid collisions.
-
-**Target features:**
-- Move jira-sync.json into project folder alongside other project artifacts
-- Rename .planning folder to .planning-pm across entire codebase
 
 ### Deferred
 
@@ -95,7 +90,7 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ## Context
 
-Shipped v1.4 with 34 plans across 21 phases over 5 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration. v1.3 added comment-driven planning with interpretation, overflow handling, and phase integration workflow. v1.4 added 2,176 LOC for Jira sync pipeline (lib/jira/*, get-shit-done/workflows/sync-jira.md).
+Shipped v1.5 with 37 plans across 22 phases over 6 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration. v1.3 added comment-driven planning with interpretation, overflow handling, and phase integration workflow. v1.4 added 2,176 LOC for Jira sync pipeline (lib/jira/*, get-shit-done/workflows/sync-jira.md).
 
 Tech stack: Node.js, @notionhq/client, @tryfabric/martian, mime-types, Jira MCP tools, git-backed planning artifacts.
 
@@ -147,6 +142,9 @@ Key patterns established:
 | One-way push only (no Jira→planning sync) | Avoids bidirectional sync complexity and divergence | ✓ Good — simple, predictable |
 | diffTickets treats all matches as updates | Content comparison is complex; updates are idempotent | ✓ Good — simplicity over optimization |
 | Granularity change = fresh sync | Can't reliably map between different granularity schemas | ✓ Good — clear, safe behavior |
+| Rename `.planning` to `.planning-pm` | Avoid collisions with other tools that use `.planning` | ✓ Good — clean break, no backward compat shim |
+| jira-sync.json in versioned folder | Milestone-specific tracking, separate from cross-version notion-sync.json | ✓ Good — clean separation of concerns |
+| Idempotent migration with backup | Existing projects need safe upgrade path | ✓ Good — timestamped backup, three-state detection |
 
 ---
-*Last updated: 2026-02-18 after v1.4 milestone*
+*Last updated: 2026-02-18 after v1.5 milestone*

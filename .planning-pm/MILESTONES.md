@@ -63,3 +63,23 @@
 
 ---
 
+
+## v1.5 Structural Fixes (Shipped: 2026-02-18)
+
+**Phases:** 22 | **Plans:** 3 | **Tasks:** 6
+**Timeline:** 1 day (2026-02-18)
+**Files modified:** 116
+**Git range:** refactor(22-01) → docs(phase-22)
+
+**Delivered:** Renamed `.planning` to `.planning-pm` across entire codebase to avoid collisions with other tools, and relocated jira-sync.json into versioned project folder for cleaner artifact organization.
+
+**Key accomplishments:**
+1. Renamed `.planning` to `.planning-pm` in 9 JS source files (PathResolver, lib/jira, lib/notion, bin/install.js)
+2. Bulk-renamed `.planning` to `.planning-pm` across 103 markdown files (workflows, templates, commands, agents) and test file
+3. Relocated jira-sync.json from project root to versioned folder (`.planning-pm/{slug}/v{N}/jira-sync.json`)
+4. Added safe `migratePlanningFolder` function with backup creation, idempotency, and CLI subcommand
+
+**Archive:** [milestones/v1.5-ROADMAP.md](milestones/v1.5-ROADMAP.md) | [milestones/v1.5-REQUIREMENTS.md](milestones/v1.5-REQUIREMENTS.md)
+
+---
+

@@ -5,16 +5,16 @@
 See: .planning-pm/PROJECT.md (updated 2026-02-18)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** Phase 22 - Structural Refactor
+**Current focus:** v1.5 milestone complete — planning next milestone
 
 ## Current Position
 
-Phase: 22 of 22 (Structural Refactor)
-Plan: 3 of 3 in current phase
-Status: Phase 22 complete
-Last activity: 2026-02-18 — Plan 22-03 completed (Safe Migration Function)
+Milestone: v1.5 Structural Fixes — SHIPPED 2026-02-18
+Phase: 22 of 22 (all complete)
+Status: Milestone complete
+Last activity: 2026-02-18 — v1.5 milestone archived
 
-Progress: [█████████████████████] 100% (22/22 phases complete)
+Progress: [█████████████████████] 100% (22/22 phases, 6 milestones shipped)
 
 ## Performance Metrics
 
@@ -94,18 +94,7 @@ Progress: [█████████████████████] 100%
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.4 decisions marked as ✓ Good.
-
-Recent decisions affecting current work:
-- v1.0: `.planning/{name}/v{N}/` folder structure preserves history of all projects and milestones in one repo
-- v1.4: jira-sync.json currently written at root level — v1.5 moves it into project folder
-- v1.5: Rename .planning to .planning-pm to avoid collisions with other tools
-- [Phase 22-01]: Renamed .planning to .planning-pm in JavaScript source files (gsd-tools.js, lib/, bin/install.js)
-- [Phase 22-01]: Relocated jira-sync.json from project root to versioned folder (.planning-pm/{slug}/v{N}/jira-sync.json)
-- [Phase 22-02]: Renamed .planning to .planning-pm in all markdown docs (91 files) and test assertions (157 assertions)
-- [Phase 22-03]: Migration creates timestamped backup before rename, cleans up on success
-- [Phase 22-03]: Migration is idempotent with three states: already migrated (no-op), both exist (error), not migrated (proceed)
-- [Phase 22-03]: new-project workflow includes automatic migration check for existing .planning folders
+All v1.0-v1.5 decisions logged in PROJECT.md Key Decisions table, all marked ✓ Good.
 
 ### Pending Todos
 
@@ -113,15 +102,15 @@ None.
 
 ### Blockers/Concerns
 
-None — v1.5 is a focused structural fix with clear scope.
+None.
 
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 22-03-PLAN.md (Safe Migration Function)
+Stopped at: v1.5 milestone complete
 Resume file: None
-Next action: Phase 22 complete - v1.5 milestone ready for completion
+Next action: `/gsd:new-milestone` when ready for next version
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (Plan 22-03 completed - Phase 22 complete)*
+*Last updated: 2026-02-18 (v1.5 milestone complete)*
