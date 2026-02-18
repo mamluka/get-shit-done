@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A modification of the GSD (Get Shit Done) framework that transforms it from a developer execution tool into a product management planning tool. PMs use Claude to collaboratively define projects, research domains, scope requirements, build roadmaps, and create detailed phase plans — without code execution. Supports multiple concurrent projects with git branch isolation, optional Jira integration, Notion sync for stakeholder collaboration, and PM-friendly business language throughout.
+A modification of the GSD (Get Shit Done) framework that transforms it from a developer execution tool into a product management planning tool. PMs use Claude to collaboratively define projects, research domains, scope requirements, build roadmaps, and create detailed phase plans — without code execution. Supports multiple concurrent projects with git branch isolation, Jira sync for ticket creation and team assignment, Notion sync for stakeholder collaboration, and PM-friendly business language throughout.
 
 ## Core Value
 
@@ -49,21 +49,17 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 - ✓ Long output overflow to .md file when too verbose for conversation — v1.3
 - ✓ Intelligent phase integration (update existing phases vs create new phases) — v1.3
 - ✓ User choice: discuss changes interactively or let Claude auto-incorporate — v1.3
+- ✓ Jira MCP detection with install command guidance and Notion prerequisite check — v1.4
+- ✓ Granularity choice per sync run (phase-level, category-level, requirement-level) — v1.4
+- ✓ Epic creation per milestone as parent for all Jira tickets — v1.4
+- ✓ Ticket preview+approve gate before any Jira writes — v1.4
+- ✓ Notion page links embedded in Jira ticket descriptions — v1.4
+- ✓ Team member retrieval and assignment (epic + tickets, bulk or individual) — v1.4
+- ✓ Incremental sync with create/update routing and jira-sync.json state tracking — v1.4
 
 ### Active
 
-#### Current Milestone: v1.4 Jira Sync
-
-**Goal:** Push planning artifacts (requirements + phases) into Jira as actionable tickets under an epic, with Notion page links, team assignment, and create+update semantics.
-
-**Target features:**
-- Jira MCP detection with install command guidance
-- Granularity choice per run (phase-level, category-level, requirement-level)
-- Epic creation per milestone as parent for all tickets
-- Ticket preview before pushing to Jira
-- Notion page links on each ticket (requires Notion sync first)
-- Team member retrieval and assignment (epic + tickets)
-- Create + update with local ID tracking (jira-sync.json)
+(No active milestone — all milestones shipped)
 
 ### Deferred
 
@@ -93,9 +89,9 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ## Context
 
-Shipped v1.3 with 29 plans across 16 phases over 4 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration. v1.3 added comment-driven planning with interpretation, overflow handling, and phase integration workflow.
+Shipped v1.4 with 34 plans across 21 phases over 5 milestones. v1.1 added 3,371 LOC across 55 files for Notion integration (lib/notion/*, bin/notion-sync.js). v1.2 added streamlined setup, auto-discussion, and Notion sync integration. v1.3 added comment-driven planning with interpretation, overflow handling, and phase integration workflow. v1.4 added 2,176 LOC for Jira sync pipeline (lib/jira/*, get-shit-done/workflows/sync-jira.md).
 
-Tech stack: Node.js, @notionhq/client, @tryfabric/martian, mime-types, git-backed planning artifacts.
+Tech stack: Node.js, @notionhq/client, @tryfabric/martian, mime-types, Jira MCP tools, git-backed planning artifacts.
 
 Architecture: Commands (slash commands) → Workflows (orchestration) → Agents (specialized subprocesses) → Utilities (gsd-tools.js). PathResolver class handles multi-project path resolution. Notion modules in lib/notion/ with CLI entry point at bin/notion-sync.js.
 
@@ -139,8 +135,12 @@ Key patterns established:
 | Just-in-time image upload | Upload per-file instead of batch to respect 1-hour expiry | ✓ Good — resilient for long-running syncs |
 | Error accumulation pattern | Conversion errors become warnings, never lose content | ✓ Good — partial success preferred over batch failure |
 
----
-| Jira MCP for ticket creation | MCP provides authenticated Jira access; no SDK dependency needed | — Pending |
+| Jira MCP for ticket creation | MCP provides authenticated Jira access; no SDK dependency needed | ✓ Good — 4 JS modules, 0 new deps |
+| Three-tier granularity (phase/category/requirement) | Different PM teams organize work differently | ✓ Good — flexible per-run choice |
+| Preview+approve gate before Jira writes | Prevents accidental ticket creation | ✓ Good — user always sees what will be pushed |
+| One-way push only (no Jira→planning sync) | Avoids bidirectional sync complexity and divergence | ✓ Good — simple, predictable |
+| diffTickets treats all matches as updates | Content comparison is complex; updates are idempotent | ✓ Good — simplicity over optimization |
+| Granularity change = fresh sync | Can't reliably map between different granularity schemas | ✓ Good — clear, safe behavior |
 
 ---
-*Last updated: 2026-02-12 after v1.4 milestone start*
+*Last updated: 2026-02-18 after v1.4 milestone*

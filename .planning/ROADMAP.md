@@ -6,7 +6,7 @@
 - ✅ **v1.1 Notion Integration** — Phases 6-10 (shipped 2026-02-11)
 - ✅ **v1.2 Streamlined Workflow** — Phases 11-14 (shipped 2026-02-12)
 - ✅ **v1.3 Comment-Driven Planning** — Phases 15-16 (shipped 2026-02-12)
-- 🚧 **v1.4 Jira Sync** — Phases 17-21 (in progress)
+- ✅ **v1.4 Jira Sync** — Phases 17-21 (shipped 2026-02-18)
 
 ## Phases
 
@@ -88,88 +88,18 @@ Plans:
 
 </details>
 
-### 🚧 v1.4 Jira Sync (In Progress)
+<details>
+<summary>✅ v1.4 Jira Sync (Phases 17-21) — SHIPPED 2026-02-18</summary>
 
-**Milestone Goal:** Push planning artifacts (requirements and phases) into Jira as actionable tickets under an epic, with Notion page links, team assignment, and create+update semantics.
+- [x] Phase 17: Jira MCP Detection & Prerequisites (1/1 plans) — completed 2026-02-13
+- [x] Phase 18: Granularity Strategy & Ticket Mapping (1/1 plans) — completed 2026-02-13
+- [x] Phase 19: Epic & Ticket Creation (1/1 plans) — completed 2026-02-18
+- [x] Phase 20: Team Assignment (1/1 plans) — completed 2026-02-18
+- [x] Phase 21: Update Semantics & Tracking (1/1 plans) — completed 2026-02-18
 
-#### Phase 17: Jira MCP Detection & Prerequisites
-**Goal**: Validate environment and collect configuration required for Jira sync operations
-**Depends on**: Phase 16
-**Requirements**: SETUP-01, SETUP-02, SETUP-03
-**Success Criteria** (what must be TRUE):
-  1. User sees clear install command if Jira MCP is not available
-  2. User is blocked with actionable message if notion-sync.json doesn't exist (with guidance to run sync-notion first)
-  3. User can view and select target Jira project from available projects
-  4. Selected Jira project ID is saved for the sync operation
-**Plans:** 1 plan (complete)
-
-Plans:
-- [x] 17-01-PLAN.md — Create sync-jira command and workflow with MCP detection, Notion prerequisite check, and Jira project selection — completed 2026-02-13
-
-#### Phase 18: Granularity Strategy & Ticket Mapping
-**Goal**: Enable flexible ticket creation at phase, category, or requirement level based on team workflow preferences
-**Depends on**: Phase 17
-**Requirements**: GRAN-01, GRAN-02, GRAN-03, GRAN-04
-**Success Criteria** (what must be TRUE):
-  1. User is prompted to choose ticket granularity (phase-level, category-level, requirement-level) at start of each sync
-  2. Phase-level creates one ticket per phase with all requirements listed in description
-  3. Category-level creates one ticket per requirement category with individual requirements as checklist items
-  4. Requirement-level creates one ticket per REQ-ID with phase context included in description
-  5. Ticket structure matches user's selected granularity choice without manual configuration
-**Plans:** 1 plan (complete)
-
-Plans:
-- [x] 18-01-PLAN.md — Create ticket-mapper module and extend sync-jira workflow with granularity selection and ticket preview — completed 2026-02-13
-
-#### Phase 19: Epic & Ticket Creation
-**Goal**: Push planning artifacts to Jira as structured epic and tickets with Notion links and preview workflow
-**Depends on**: Phase 18
-**Requirements**: TICK-01, TICK-02, TICK-03, TICK-04, TICK-05
-**Success Criteria** (what must be TRUE):
-  1. Epic is created per milestone as parent for all tickets
-  2. Tickets are created as children of the epic
-  3. Each ticket includes Notion page link as remote link (pulled from notion-sync.json)
-  4. Ticket descriptions include relevant planning content (requirements, success criteria, phase context)
-  5. User sees full ticket preview (epic + all tickets) before any writes to Jira
-  6. User can approve or cancel the sync operation after preview
-**Plans:** 1 plan
-
-Plans:
-- [x] 19-01-PLAN.md — Create issue-creator module and extend sync-jira workflow with preview+approve gate and Jira epic/ticket creation — completed 2026-02-18
-
-#### Phase 20: Team Assignment
-**Goal**: Enable epic and ticket assignment to team members for workload distribution
-**Depends on**: Phase 19
-**Requirements**: TEAM-01, TEAM-02, TEAM-03
-**Success Criteria** (what must be TRUE):
-  1. User sees list of Jira project team members with names and account IDs
-  2. User can assign epic to self or a team member
-  3. User can assign tickets to team members (bulk assignment or individual per ticket)
-  4. Assignments are reflected in Jira after sync completes
-**Plans:** 1 plan
-
-Plans:
-- [x] 20-01-PLAN.md — Create team-fetcher module and extend sync-jira workflow with team assignment step — completed 2026-02-18
-
-#### Phase 21: Update Semantics & Tracking
-**Goal**: Enable incremental sync with create vs update detection and local tracking
-**Depends on**: Phase 19
-**Requirements**: SYNC-01, SYNC-02, SYNC-03
-**Success Criteria** (what must be TRUE):
-  1. Ticket-to-Jira mapping is persisted in .planning/jira-sync.json per project
-  2. Re-running sync updates existing tickets instead of creating duplicates
-  3. New requirements or phases detected on re-run create new tickets
-  4. jira-sync.json tracks ticket IDs with granularity metadata (phase/category/requirement)
-  5. Update operations preserve existing ticket IDs and links
-**Plans:** 1 plan
-
-Plans:
-- [x] 21-01-PLAN.md — Create sync-state module and extend sync-jira workflow with incremental create/update detection — completed 2026-02-18
+</details>
 
 ## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -197,4 +127,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 
 ---
 *Roadmap created: 2026-02-10*
-*Last updated: 2026-02-18 (Phase 21 complete — v1.4 milestone delivered)*
+*Last updated: 2026-02-18 (v1.4 Jira Sync shipped)*

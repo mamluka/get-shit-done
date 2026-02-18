@@ -42,3 +42,24 @@
 
 ---
 
+
+## v1.4 Jira Sync (Shipped: 2026-02-18)
+
+**Phases:** 17-21 | **Plans:** 5 | **Tasks:** 12
+**Timeline:** 6 days (2026-02-13 → 2026-02-18)
+**LOC:** 2,176 (Jira modules + workflow) | **Files modified:** 170
+**Git range:** feat(17-01) → feat(21-01)
+
+**Delivered:** Full Jira sync pipeline — push planning artifacts to Jira as epics and tickets with flexible granularity, Notion page links, team assignment, and incremental update semantics that prevent duplicates on re-run.
+
+**Key accomplishments:**
+1. Jira MCP integration with env detection, Notion prerequisite check, and project selection
+2. Three-tier granularity mapping — phase-level, category-level, or requirement-level ticket creation
+3. Epic + ticket creation pipeline with preview+approve gate and Notion page links in descriptions
+4. Team assignment workflow with bulk or individual assignment to Jira team members
+5. Incremental sync with create/update routing — diffTickets analysis prevents duplicates, jira-sync.json tracks state
+
+**Archive:** [milestones/v1.4-ROADMAP.md](milestones/v1.4-ROADMAP.md) | [milestones/v1.4-REQUIREMENTS.md](milestones/v1.4-REQUIREMENTS.md)
+
+---
+
