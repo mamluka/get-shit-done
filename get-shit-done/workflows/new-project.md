@@ -99,14 +99,14 @@ This step creates the project folder structure and activates the project before 
 
 **2a. Migration check:**
 
-If `has_flat_structure` is true AND `existing_projects` is empty (flat `.planning/` with no project folders):
+If `has_flat_structure` is true AND `existing_projects` is empty (flat `.planning-pm/` with no project folders):
 
 Read existing PROJECT.md to suggest a name:
 ```bash
-cat .planning/PROJECT.md 2>/dev/null | head -5
+cat .planning-pm/PROJECT.md 2>/dev/null | head -5
 ```
 
-Display: "I notice you have an existing project in `.planning/`. To support multiple projects, I need to move your existing work into a project folder."
+Display: "I notice you have an existing project in `.planning-pm/`. To support multiple projects, I need to move your existing work into a project folder."
 
 Use AskUserQuestion:
 - header: "Migrate"
@@ -163,7 +163,7 @@ Display:
 ```
 Project created:
   Name: {friendlyName}
-  Folder: .planning/{slug}/
+  Folder: .planning-pm/{slug}/
   Version: v1
 
 All GSD commands now target this project.
@@ -252,7 +252,7 @@ Loop until "Create PROJECT.md" selected.
 
 **If auto mode:** Synthesize from provided document. No "Ready?" gate was shown — proceed directly to commit.
 
-Synthesize all context into `.planning/PROJECT.md` using the template from `templates/project.md`.
+Synthesize all context into `.planning-pm/PROJECT.md` using the template from `templates/project.md`.
 
 **For greenfield projects:**
 
@@ -283,7 +283,7 @@ All Active requirements are hypotheses until shipped and validated.
 
 Infer Validated requirements from existing code:
 
-1. Read `.planning/codebase/ARCHITECTURE.md` and `STACK.md`
+1. Read `.planning-pm/codebase/ARCHITECTURE.md` and `STACK.md`
 2. Identify what the codebase already does
 3. These become the initial Validated set
 
@@ -330,8 +330,8 @@ Do not compress. Capture everything gathered.
 **Commit PROJECT.md:**
 
 ```bash
-mkdir -p .planning
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: initialize project" --files .planning/PROJECT.md
+mkdir -p .planning-pm
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: initialize project" --files .planning-pm/PROJECT.md
 ```
 
 ## 6. Workflow Preferences
@@ -423,7 +423,7 @@ questions: [
     multiSelect: false,
     options: [
       { label: "Yes (Recommended)", description: "Planning docs tracked in version control" },
-      { label: "No", description: "Keep .planning/ local-only (add to .gitignore)" }
+      { label: "No", description: "Keep .planning-pm/ local-only (add to .gitignore)" }
     ]
   }
 ]
@@ -483,7 +483,7 @@ questions: [
 ]
 ```
 
-Create `.planning/config.json` with all settings:
+Create `.planning-pm/config.json` with all settings:
 
 ```json
 {
@@ -502,7 +502,7 @@ Create `.planning/config.json` with all settings:
 
 **If commit_docs = No:**
 - Set `commit_docs: false` in config.json
-- Add `.planning/` to `.gitignore` (create if needed)
+- Add `.planning-pm/` to `.gitignore` (create if needed)
 
 **If commit_docs = Yes:**
 - No additional gitignore entries needed
@@ -510,7 +510,7 @@ Create `.planning/config.json` with all settings:
 **Commit config.json:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: add project config" --files .planning/config.json
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: add project config" --files .planning-pm/config.json
 ```
 
 **Note:** Run `/gsd-pm:settings` anytime to update these preferences.
@@ -543,7 +543,7 @@ Researching [domain] ecosystem...
 
 Create research directory:
 ```bash
-mkdir -p .planning/research
+mkdir -p .planning-pm/research
 ```
 
 **Determine milestone context:**
@@ -599,7 +599,7 @@ Your STACK.md feeds into roadmap creation. Be prescriptive:
 </quality_gate>
 
 <output>
-Write to: .planning/research/STACK.md
+Write to: .planning-pm/research/STACK.md
 Use template: ~/.claude/get-shit-done/templates/research-project/STACK.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Stack research")
@@ -639,7 +639,7 @@ Your FEATURES.md feeds into requirements definition. Categorize clearly:
 </quality_gate>
 
 <output>
-Write to: .planning/research/FEATURES.md
+Write to: .planning-pm/research/FEATURES.md
 Use template: ~/.claude/get-shit-done/templates/research-project/FEATURES.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Features research")
@@ -679,7 +679,7 @@ Your ARCHITECTURE.md informs phase structure in roadmap. Include:
 </quality_gate>
 
 <output>
-Write to: .planning/research/ARCHITECTURE.md
+Write to: .planning-pm/research/ARCHITECTURE.md
 Use template: ~/.claude/get-shit-done/templates/research-project/ARCHITECTURE.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Architecture research")
@@ -719,7 +719,7 @@ Your PITFALLS.md prevents mistakes in roadmap/planning. For each pitfall:
 </quality_gate>
 
 <output>
-Write to: .planning/research/PITFALLS.md
+Write to: .planning-pm/research/PITFALLS.md
 Use template: ~/.claude/get-shit-done/templates/research-project/PITFALLS.md
 </output>
 ", subagent_type="general-purpose", model="{researcher_model}", description="Pitfalls research")
@@ -735,14 +735,14 @@ Synthesize research outputs into SUMMARY.md.
 
 <research_files>
 Read these files:
-- .planning/research/STACK.md
-- .planning/research/FEATURES.md
-- .planning/research/ARCHITECTURE.md
-- .planning/research/PITFALLS.md
+- .planning-pm/research/STACK.md
+- .planning-pm/research/FEATURES.md
+- .planning-pm/research/ARCHITECTURE.md
+- .planning-pm/research/PITFALLS.md
 </research_files>
 
 <output>
-Write to: .planning/research/SUMMARY.md
+Write to: .planning-pm/research/SUMMARY.md
 Use template: ~/.claude/get-shit-done/templates/research-project/SUMMARY.md
 Commit after writing.
 </output>
@@ -761,7 +761,7 @@ Display research complete banner and key findings:
 **Table Stakes:** [from SUMMARY.md]
 **Watch Out For:** [from SUMMARY.md]
 
-Files: `.planning/research/`
+Files: `.planning-pm/research/`
 ```
 
 **If "Skip research":** Continue to Step 8.
@@ -860,7 +860,7 @@ Cross-check requirements against Core Value from PROJECT.md. If gaps detected, s
 
 **Generate REQUIREMENTS.md:**
 
-Create `.planning/REQUIREMENTS.md` with:
+Create `.planning-pm/REQUIREMENTS.md` with:
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - v2 Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
@@ -908,7 +908,7 @@ If "adjust": Return to scoping.
 **Commit requirements:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define v1 requirements" --files .planning-pm/REQUIREMENTS.md
 ```
 
 ## 9. Create Roadmap
@@ -929,16 +929,16 @@ Task(prompt="
 <planning_context>
 
 **Project:**
-@.planning/PROJECT.md
+@.planning-pm/PROJECT.md
 
 **Requirements:**
-@.planning/REQUIREMENTS.md
+@.planning-pm/REQUIREMENTS.md
 
 **Research (if exists):**
-@.planning/research/SUMMARY.md
+@.planning-pm/research/SUMMARY.md
 
 **Config:**
-@.planning/config.json
+@.planning-pm/config.json
 
 </planning_context>
 
@@ -1026,7 +1026,7 @@ Use AskUserQuestion:
   User feedback on roadmap:
   [user's notes]
 
-  Current ROADMAP.md: @.planning/ROADMAP.md
+  Current ROADMAP.md: @.planning-pm/ROADMAP.md
 
   Update the roadmap based on feedback. Edit files in place.
   Return ROADMAP REVISED with changes made.
@@ -1036,12 +1036,12 @@ Use AskUserQuestion:
 - Present revised roadmap
 - Loop until user approves
 
-**If "Review full file":** Display raw `cat .planning/ROADMAP.md`, then re-ask.
+**If "Review full file":** Display raw `cat .planning-pm/ROADMAP.md`, then re-ask.
 
 **Commit roadmap (after approval or auto mode):**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create roadmap ([N] phases)" --files .planning-pm/ROADMAP.md .planning-pm/STATE.md .planning-pm/REQUIREMENTS.md
 ```
 
 ## 10. Done
@@ -1057,11 +1057,11 @@ Present completion with next steps:
 
 | Artifact       | Location                    |
 |----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Config         | `.planning/config.json`     |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Project        | `.planning-pm/PROJECT.md`      |
+| Config         | `.planning-pm/config.json`     |
+| Research       | `.planning-pm/research/`       |
+| Requirements   | `.planning-pm/REQUIREMENTS.md` |
+| Roadmap        | `.planning-pm/ROADMAP.md`      |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 
@@ -1082,26 +1082,26 @@ Present completion with next steps:
 
 <output>
 
-- `.planning/PROJECT.md`
-- `.planning/config.json`
-- `.planning/research/` (if research selected)
+- `.planning-pm/PROJECT.md`
+- `.planning-pm/config.json`
+- `.planning-pm/research/` (if research selected)
   - `STACK.md`
   - `FEATURES.md`
   - `ARCHITECTURE.md`
   - `PITFALLS.md`
   - `SUMMARY.md`
-- `.planning/REQUIREMENTS.md`
-- `.planning/ROADMAP.md`
-- `.planning/STATE.md`
+- `.planning-pm/REQUIREMENTS.md`
+- `.planning-pm/ROADMAP.md`
+- `.planning-pm/STATE.md`
 
 </output>
 
 <success_criteria>
 
-- [ ] .planning/ directory created
+- [ ] .planning-pm/ directory created
 - [ ] Git repo initialized
 - [ ] Migration handled (if flat structure detected)
-- [ ] Project folder created at .planning/{slug}/v1/
+- [ ] Project folder created at .planning-pm/{slug}/v1/
 - [ ] Project auto-activated (.active-project written)
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)

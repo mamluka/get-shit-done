@@ -56,7 +56,7 @@ Check if Notion sync has been completed (required for page links on Jira tickets
 SYNC_CHECK=$(node -e '
 var fs = require("fs");
 var path = require("path");
-var planningRoot = path.join(process.cwd(), ".planning");
+var planningRoot = path.join(process.cwd(), ".planning-pm");
 var activeProjectPath = path.join(planningRoot, ".active-project");
 var syncPath;
 
@@ -214,7 +214,7 @@ If user selects "No": use the selection for this session only — skip the `save
 
 <step name="save_jira_config">
 
-Save the selected Jira project configuration to .planning/config.json:
+Save the selected Jira project configuration to .planning-pm/config.json:
 
 ```bash
 node ~/.claude/get-shit-done/bin/gsd-tools.js config-set jira.cloud_id "{cloud_id}"
@@ -908,7 +908,7 @@ Tickets assigned: {assigned_count}/{ALL_TICKET_COUNT}
 
 <step name="save_sync_state">
 
-Save the Jira issue keys and assignment information to `.planning/jira-sync.json` using the sync-state module with merge logic:
+Save the Jira issue keys and assignment information to `.planning-pm/jira-sync.json` using the sync-state module with merge logic:
 
 ```bash
 node -e '
@@ -1015,7 +1015,7 @@ For each ticket in the current run, include granularity metadata based on the gr
 Display:
 
 ```
-✓ Sync state saved to .planning/jira-sync.json
+✓ Sync state saved to .planning-pm/jira-sync.json
 ```
 
 </step>

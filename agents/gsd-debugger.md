@@ -729,8 +729,8 @@ Can I observe the behavior directly?
 ## File Location
 
 ```
-DEBUG_DIR=.planning/debug
-DEBUG_RESOLVED_DIR=.planning/debug/resolved
+DEBUG_DIR=.planning-pm/debug
+DEBUG_RESOLVED_DIR=.planning-pm/debug/resolved
 ```
 
 ## File Structure
@@ -826,7 +826,7 @@ The file IS the debugging brain.
 **First:** Check for active debug sessions.
 
 ```bash
-ls .planning/debug/*.md 2>/dev/null | grep -v resolved
+ls .planning-pm/debug/*.md 2>/dev/null | grep -v resolved
 ```
 
 **If active sessions exist AND no $ARGUMENTS:**
@@ -847,7 +847,7 @@ ls .planning/debug/*.md 2>/dev/null | grep -v resolved
 **Create debug file IMMEDIATELY.**
 
 1. Generate slug from user input (lowercase, hyphens, max 30 chars)
-2. `mkdir -p .planning/debug`
+2. `mkdir -p .planning-pm/debug`
 3. Create file with initial state:
    - status: gathering
    - trigger: verbatim $ARGUMENTS
@@ -919,7 +919,7 @@ Return structured diagnosis:
 ```markdown
 ## ROOT CAUSE FOUND
 
-**Debug Session:** .planning/debug/{slug}.md
+**Debug Session:** .planning-pm/debug/{slug}.md
 
 **Root Cause:** {from Resolution.root_cause}
 
@@ -938,7 +938,7 @@ If inconclusive:
 ```markdown
 ## INVESTIGATION INCONCLUSIVE
 
-**Debug Session:** .planning/debug/{slug}.md
+**Debug Session:** .planning-pm/debug/{slug}.md
 
 **What Was Checked:**
 - {area}: {finding}
@@ -975,8 +975,8 @@ Update status to "fixing".
 Update status to "resolved".
 
 ```bash
-mkdir -p .planning/debug/resolved
-mv .planning/debug/{slug}.md .planning/debug/resolved/
+mkdir -p .planning-pm/debug/resolved
+mv .planning-pm/debug/{slug}.md .planning-pm/debug/resolved/
 ```
 
 **Check planning config using state load (commit_docs is available from the output):**
@@ -999,7 +999,7 @@ Root cause: {root_cause}"
 
 Then commit planning docs via CLI (respects `commit_docs` config automatically):
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: resolve debug {slug}" --files .planning/debug/resolved/{slug}.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: resolve debug {slug}" --files .planning-pm/debug/resolved/{slug}.md
 ```
 
 Report completion and offer next steps.
@@ -1022,7 +1022,7 @@ Return a checkpoint when:
 ## CHECKPOINT REACHED
 
 **Type:** [human-verify | human-action | decision]
-**Debug Session:** .planning/debug/{slug}.md
+**Debug Session:** .planning-pm/debug/{slug}.md
 **Progress:** {evidence_count} evidence entries, {eliminated_count} hypotheses eliminated
 
 ### Investigation State
@@ -1093,7 +1093,7 @@ Orchestrator presents checkpoint to user, gets response, spawns fresh continuati
 ```markdown
 ## ROOT CAUSE FOUND
 
-**Debug Session:** .planning/debug/{slug}.md
+**Debug Session:** .planning-pm/debug/{slug}.md
 
 **Root Cause:** {specific cause with evidence}
 
@@ -1114,7 +1114,7 @@ Orchestrator presents checkpoint to user, gets response, spawns fresh continuati
 ```markdown
 ## DEBUG COMPLETE
 
-**Debug Session:** .planning/debug/resolved/{slug}.md
+**Debug Session:** .planning-pm/debug/resolved/{slug}.md
 
 **Root Cause:** {what was wrong}
 **Fix Applied:** {what was changed}
@@ -1132,7 +1132,7 @@ Orchestrator presents checkpoint to user, gets response, spawns fresh continuati
 ```markdown
 ## INVESTIGATION INCONCLUSIVE
 
-**Debug Session:** .planning/debug/{slug}.md
+**Debug Session:** .planning-pm/debug/{slug}.md
 
 **What Was Checked:**
 - {area 1}: {finding}

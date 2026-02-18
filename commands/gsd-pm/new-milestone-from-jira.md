@@ -18,11 +18,11 @@ allowed-tools:
 Fetch a spec from Jira, then start a new milestone using it.
 
 Two-step composition:
-1. Fetch Jira issue content → write `.planning/external-spec.md`
+1. Fetch Jira issue content → write `.planning-pm/external-spec.md`
 2. Run `/gsd-pm:new-milestone --auto`
 
 **Creates/Updates:**
-- `.planning/external-spec.md` — imported spec from Jira
+- `.planning-pm/external-spec.md` — imported spec from Jira
 - All standard `/gsd-pm:new-milestone` artifacts (PROJECT.md update, REQUIREMENTS.md, ROADMAP.md, etc.)
 
 **After:** `/gsd-pm:plan-phase [N]` to start execution.
@@ -38,10 +38,10 @@ Two-step composition:
 Jira issue key: $ARGUMENTS (optional — will search if not provided)
 
 **Load project context:**
-@.planning/PROJECT.md
-@.planning/STATE.md
-@.planning/MILESTONES.md
-@.planning/config.json
+@.planning-pm/PROJECT.md
+@.planning-pm/STATE.md
+@.planning-pm/MILESTONES.md
+@.planning-pm/config.json
 </context>
 
 <process>
@@ -53,7 +53,7 @@ If the fetch fails, stop and display the error.
 
 ## Step 2: Review Imported Spec
 
-Read `.planning/external-spec.md` and display its contents to the user.
+Read `.planning-pm/external-spec.md` and display its contents to the user.
 
 Use AskUserQuestion:
 - header: "Review"
@@ -63,11 +63,11 @@ Use AskUserQuestion:
   - { label: "Edit the spec", description: "Tell me what to change before continuing" }
   - { label: "Stop here", description: "Keep the file — I'll edit it myself and run /gsd-pm:new-milestone --auto later" }
 
-**If "Edit the spec":** Ask the user what to change. Apply their edits to `.planning/external-spec.md`. Show the updated content and re-ask the review question. Loop until they choose "Looks good" or "Stop here".
+**If "Edit the spec":** Ask the user what to change. Apply their edits to `.planning-pm/external-spec.md`. Show the updated content and re-ask the review question. Loop until they choose "Looks good" or "Stop here".
 
 **If "Stop here":** Display:
 ```
-Spec saved to .planning/external-spec.md
+Spec saved to .planning-pm/external-spec.md
 
 When ready, run:
   /gsd-pm:new-milestone --auto
@@ -80,5 +80,5 @@ Stop.
 
 Execute `/gsd-pm:new-milestone --auto`.
 
-The new-milestone workflow detects `.planning/external-spec.md` and uses it as the spec document. Research, requirements, and roadmap gates are auto-approved.
+The new-milestone workflow detects `.planning-pm/external-spec.md` and uses it as the spec document. Research, requirements, and roadmap gates are auto-approved.
 </process>

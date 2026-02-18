@@ -27,7 +27,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js config-ensure-section
 INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js state load)
 ```
 
-This creates `.planning/config.json` with defaults if missing and loads current config.
+This creates `.planning-pm/config.json` with defaults if missing and loads current config.
 </step>
 
 <step name="update_config">
@@ -40,7 +40,7 @@ Update `model_profile` field:
 }
 ```
 
-Write updated config back to `.planning/config.json`.
+Write updated config back to `.planning-pm/config.json`.
 </step>
 
 <step name="confirm">

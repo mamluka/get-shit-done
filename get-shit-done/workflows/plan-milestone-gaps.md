@@ -12,7 +12,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 ```bash
 # Find the most recent audit file
-ls -t .planning/v*-MILESTONE-AUDIT.md 2>/dev/null | head -1
+ls -t .planning-pm/v*-MILESTONE-AUDIT.md 2>/dev/null | head -1
 ```
 
 Parse YAML frontmatter to extract structured gaps:
@@ -126,13 +126,13 @@ Add new phases to current milestone:
 ## 7. Create Phase Directories
 
 ```bash
-mkdir -p ".planning/phases/{NN}-{name}"
+mkdir -p ".planning-pm/phases/{NN}-{name}"
 ```
 
 ## 8. Commit Roadmap Update
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning-pm/ROADMAP.md
 ```
 
 ## 9. Offer Next Steps
@@ -156,7 +156,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(roadmap): add gap clo
 ---
 
 **Also available:**
-- `cat .planning/ROADMAP.md` — see updated roadmap
+- `cat .planning-pm/ROADMAP.md` — see updated roadmap
 
 ---
 

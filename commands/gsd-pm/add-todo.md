@@ -23,7 +23,7 @@ Routes to the add-todo workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/STATE.md
+@.planning-pm/STATE.md
 @~/.claude/get-shit-done/workflows/add-todo.md
 </execution_context>
 

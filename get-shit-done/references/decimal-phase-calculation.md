@@ -58,8 +58,8 @@ Decimal phase directories use the full decimal number:
 
 ```bash
 SLUG=$(node ~/.claude/get-shit-done/bin/gsd-tools.js generate-slug "$DESCRIPTION" --raw)
-PHASE_DIR=".planning/phases/${DECIMAL_PHASE}-${SLUG}"
+PHASE_DIR=".planning-pm/phases/${DECIMAL_PHASE}-${SLUG}"
 mkdir -p "$PHASE_DIR"
 ```
 
-Example: `.planning/phases/06.1-fix-critical-auth-bug/`
+Example: `.planning-pm/phases/06.1-fix-critical-auth-bug/`

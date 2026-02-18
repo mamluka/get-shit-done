@@ -26,7 +26,7 @@ If `found` is false: Error and exit.
 ## Step 2: Check Existing Research
 
 ```bash
-ls .planning/phases/${PHASE}-*/RESEARCH.md 2>/dev/null
+ls .planning-pm/phases/${PHASE}-*/RESEARCH.md 2>/dev/null
 ```
 
 If exists: Offer update/view/skip options.
@@ -36,8 +36,8 @@ If exists: Offer update/view/skip options.
 ```bash
 # Phase section from roadmap (already loaded in PHASE_INFO)
 echo "$PHASE_INFO" | jq -r '.section'
-cat .planning/REQUIREMENTS.md 2>/dev/null
-cat .planning/phases/${PHASE}-*/*-CONTEXT.md 2>/dev/null
+cat .planning-pm/REQUIREMENTS.md 2>/dev/null
+cat .planning-pm/phases/${PHASE}-*/*-CONTEXT.md 2>/dev/null
 # Decisions from state-snapshot (structured JSON)
 node ~/.claude/get-shit-done/bin/gsd-tools.js state-snapshot | jq '.decisions'
 ```
@@ -58,7 +58,7 @@ Phase context: {context_md}
 </context>
 
 <output>
-Write to: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
+Write to: .planning-pm/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
 </output>",
   subagent_type="gsd-phase-researcher",
   model="{researcher_model}"

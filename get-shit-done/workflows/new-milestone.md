@@ -25,10 +25,10 @@ Check if `--auto` flag is present in $ARGUMENTS.
 - **Never skip discuss-phase** — the "Next Up" output must always recommend `/gsd-pm:discuss-phase` first, never `/gsd-pm:plan-phase` directly
 
 **Document requirement:**
-Auto mode requires an idea document via @ reference or `.planning/external-spec.md`. If neither is provided, error:
+Auto mode requires an idea document via @ reference or `.planning-pm/external-spec.md`. If neither is provided, error:
 
 ```
-Problem: --auto requires an idea document via @ reference or .planning/external-spec.md.
+Problem: --auto requires an idea document via @ reference or .planning-pm/external-spec.md.
 
 Usage: /gsd-pm:new-milestone --auto @your-spec.md
 
@@ -47,7 +47,7 @@ The document should describe what you want to build next.
 
 ## 2. Gather Milestone Goals
 
-**If auto mode:** Skip this step. Extract milestone goals from the provided document or `.planning/external-spec.md`.
+**If auto mode:** Skip this step. Extract milestone goals from the provided document or `.planning-pm/external-spec.md`.
 
 **If MILESTONE-CONTEXT.md exists:**
 - Use features and scope from discuss-milestone
@@ -100,7 +100,7 @@ Keep Accumulated Context section from previous milestone.
 Delete MILESTONE-CONTEXT.md if exists (consumed).
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: start milestone v[X.Y] [Name]" --files .planning-pm/PROJECT.md .planning-pm/STATE.md
 ```
 
 ## 7. Load Context and Resolve Models
@@ -141,7 +141,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js config-set workflow.research false
 ```
 
 ```bash
-mkdir -p .planning/research
+mkdir -p .planning-pm/research
 ```
 
 Spawn 4 parallel gsd-project-researcher agents. Each uses this template with dimension-specific fields:
@@ -166,7 +166,7 @@ Focus ONLY on what's needed for the NEW features.
 <quality_gate>{GATES}</quality_gate>
 
 <output>
-Write to: .planning/research/{FILE}
+Write to: .planning-pm/research/{FILE}
 Use template: ~/.claude/get-shit-done/templates/research-project/{FILE}
 </output>
 ", subagent_type="gsd-project-researcher", model="{researcher_model}", description="{DIMENSION} research")
@@ -188,9 +188,9 @@ After all 4 complete, spawn synthesizer:
 Task(prompt="
 Synthesize research outputs into SUMMARY.md.
 
-Read: .planning/research/STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
+Read: .planning-pm/research/STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
 
-Write to: .planning/research/SUMMARY.md
+Write to: .planning-pm/research/SUMMARY.md
 Use template: ~/.claude/get-shit-done/templates/research-project/SUMMARY.md
 Commit after writing.
 ", subagent_type="gsd-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
@@ -286,7 +286,7 @@ If "adjust": Return to scoping.
 
 **Commit requirements:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define milestone v[X.Y] requirements" --files .planning-pm/REQUIREMENTS.md
 ```
 
 ## 10. Create Roadmap
@@ -304,11 +304,11 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define milestone v[X
 ```
 Task(prompt="
 <planning_context>
-@.planning/PROJECT.md
-@.planning/REQUIREMENTS.md
-@.planning/research/SUMMARY.md (if exists)
-@.planning/config.json
-@.planning/MILESTONES.md
+@.planning-pm/PROJECT.md
+@.planning-pm/REQUIREMENTS.md
+@.planning-pm/research/SUMMARY.md (if exists)
+@.planning-pm/config.json
+@.planning-pm/MILESTONES.md
 </planning_context>
 
 <instructions>
@@ -363,7 +363,7 @@ Success criteria:
 
 **Commit roadmap** (after approval):
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning-pm/ROADMAP.md .planning-pm/STATE.md .planning-pm/REQUIREMENTS.md
 ```
 
 **Initialize planning status tracking:**
@@ -382,10 +382,10 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status init
 
 | Artifact       | Location                    |
 |----------------|-----------------------------|
-| Project        | `.planning/PROJECT.md`      |
-| Research       | `.planning/research/`       |
-| Requirements   | `.planning/REQUIREMENTS.md` |
-| Roadmap        | `.planning/ROADMAP.md`      |
+| Project        | `.planning-pm/PROJECT.md`      |
+| Research       | `.planning-pm/research/`       |
+| Requirements   | `.planning-pm/REQUIREMENTS.md` |
+| Roadmap        | `.planning-pm/ROADMAP.md`      |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 

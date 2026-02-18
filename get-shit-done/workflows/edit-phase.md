@@ -8,8 +8,8 @@ Implements WKFL-05: PMs can iterate on planning artifacts after initial creation
 
 <required_reading>
 
-1. `.planning/STATE.md`
-2. `.planning/ROADMAP.md`
+1. `.planning-pm/STATE.md`
+2. `.planning-pm/ROADMAP.md`
 3. Phase directory for specified phase
 
 </required_reading>
@@ -185,7 +185,7 @@ Store modified file path in `MODIFIED_FILES` array.
 Load ROADMAP.md:
 
 ```bash
-cat .planning/ROADMAP.md
+cat .planning-pm/ROADMAP.md
 ```
 
 Find and display the phase section for specified phase number.

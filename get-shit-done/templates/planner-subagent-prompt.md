@@ -13,23 +13,23 @@ Template for spawning gsd-planner agent. The agent contains all planning experti
 **Mode:** {standard | gap_closure}
 
 **Project State:**
-@.planning/STATE.md
+@.planning-pm/STATE.md
 
 **Roadmap:**
-@.planning/ROADMAP.md
+@.planning-pm/ROADMAP.md
 
 **Requirements (if exists):**
-@.planning/REQUIREMENTS.md
+@.planning-pm/REQUIREMENTS.md
 
 **Phase Context (if exists):**
-@.planning/phases/{phase_dir}/{phase}-CONTEXT.md
+@.planning-pm/phases/{phase_dir}/{phase}-CONTEXT.md
 
 **Research (if exists):**
-@.planning/phases/{phase_dir}/{phase}-RESEARCH.md
+@.planning-pm/phases/{phase_dir}/{phase}-RESEARCH.md
 
 **Gap Closure (if --gaps mode):**
-@.planning/phases/{phase_dir}/{phase}-VERIFICATION.md
-@.planning/phases/{phase_dir}/{phase}-UAT.md
+@.planning-pm/phases/{phase_dir}/{phase}-VERIFICATION.md
+@.planning-pm/phases/{phase_dir}/{phase}-UAT.md
 
 </planning_context>
 
@@ -98,8 +98,8 @@ Continue planning for Phase {phase_number}: {phase_name}
 </objective>
 
 <prior_state>
-Phase directory: @.planning/phases/{phase_dir}/
-Existing plans: @.planning/phases/{phase_dir}/*-PLAN.md
+Phase directory: @.planning-pm/phases/{phase_dir}/
+Existing plans: @.planning-pm/phases/{phase_dir}/*-PLAN.md
 </prior_state>
 
 <checkpoint_response>

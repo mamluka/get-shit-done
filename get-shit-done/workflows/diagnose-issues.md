@@ -7,9 +7,9 @@ Orchestrator stays lean: parse gaps, spawn agents, collect results, update UAT.
 </purpose>
 
 <paths>
-DEBUG_DIR=.planning/debug
+DEBUG_DIR=.planning-pm/debug
 
-Debug files use the `.planning/debug/` path (hidden directory with leading dot).
+Debug files use the `.planning-pm/debug/` path (hidden directory with leading dot).
 </paths>
 
 <core_principle>
@@ -151,14 +151,14 @@ For each gap in the Gaps section, add artifacts and missing fields:
   missing:
     - "Add commentCount to useEffect dependency array"
     - "Trigger re-render when new comment added"
-  debug_session: .planning/debug/comment-not-refreshing.md
+  debug_session: .planning-pm/debug/comment-not-refreshing.md
 ```
 
 Update status in frontmatter to "diagnosed".
 
 Commit the updated UAT.md:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs({phase}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase}-UAT.md"
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs({phase}): add root causes from diagnosis" --files ".planning-pm/phases/XX-name/{phase}-UAT.md"
 ```
 </step>
 

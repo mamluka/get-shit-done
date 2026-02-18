@@ -21,8 +21,8 @@ Routes to the check-todos workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/STATE.md
-@.planning/ROADMAP.md
+@.planning-pm/STATE.md
+@.planning-pm/ROADMAP.md
 @~/.claude/get-shit-done/workflows/check-todos.md
 </execution_context>
 

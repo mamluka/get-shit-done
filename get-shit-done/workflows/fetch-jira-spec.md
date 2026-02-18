@@ -1,5 +1,5 @@
 <purpose>
-Fetch a spec from Jira and write it to .planning/external-spec.md. Validates Jira MCP availability, resolves the issue (accepts key as argument or searches), fetches issue content (handles epics by fetching children), formats as markdown, and writes the output file.
+Fetch a spec from Jira and write it to .planning-pm/external-spec.md. Validates Jira MCP availability, resolves the issue (accepts key as argument or searches), fetches issue content (handles epics by fetching children), formats as markdown, and writes the output file.
 </purpose>
 
 <required_reading>
@@ -222,18 +222,18 @@ Jira returns descriptions in Atlassian Document Format (ADF). Convert to markdow
 
 If description is already plain text, use as-is.
 
-Write to `.planning/external-spec.md`:
+Write to `.planning-pm/external-spec.md`:
 
 ```bash
-mkdir -p .planning
+mkdir -p .planning-pm
 ```
 
-Write the formatted markdown to `.planning/external-spec.md`.
+Write the formatted markdown to `.planning-pm/external-spec.md`.
 
 Display:
 
 ```
-✓ Spec written to .planning/external-spec.md
+✓ Spec written to .planning-pm/external-spec.md
 
   Source: {issue_key} — {summary}
   Content: {word_count} words{, {child_count} child issues if epic}

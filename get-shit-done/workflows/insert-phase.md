@@ -39,7 +39,7 @@ INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init phase-op "${after_phas
 
 Check `roadmap_exists` from init JSON. If false:
 ```
-ERROR: No roadmap found (.planning/ROADMAP.md)
+ERROR: No roadmap found (.planning-pm/ROADMAP.md)
 ```
 Exit.
 </step>
@@ -55,7 +55,7 @@ The CLI handles:
 - Verifying target phase exists in ROADMAP.md
 - Calculating next decimal phase number (checking existing decimals on disk)
 - Generating slug from description
-- Creating the phase directory (`.planning/phases/{N.M}-{slug}/`)
+- Creating the phase directory (`.planning-pm/phases/{N.M}-{slug}/`)
 - Inserting the phase entry into ROADMAP.md after the target phase with (INSERTED) marker
 
 Extract from result: `phase_number`, `after_phase`, `name`, `slug`, `directory`.
@@ -64,7 +64,7 @@ Extract from result: `phase_number`, `after_phase`, `name`, `slug`, `directory`.
 <step name="update_project_state">
 Update STATE.md to reflect the inserted phase:
 
-1. Read `.planning/STATE.md`
+1. Read `.planning-pm/STATE.md`
 2. Under "## Accumulated Context" → "### Roadmap Evolution" add entry:
    ```
    - Phase {decimal_phase} inserted after Phase {after_phase}: {description} (URGENT)
@@ -79,12 +79,12 @@ Present completion summary:
 ```
 Phase {decimal_phase} inserted after Phase {after_phase}:
 - Description: {description}
-- Directory: .planning/phases/{decimal-phase}-{slug}/
+- Directory: .planning-pm/phases/{decimal-phase}-{slug}/
 - Status: Not planned yet
 - Marker: (INSERTED) - indicates urgent work
 
-Roadmap updated: .planning/ROADMAP.md
-Project state updated: .planning/STATE.md
+Roadmap updated: .planning-pm/ROADMAP.md
+Project state updated: .planning-pm/STATE.md
 
 ---
 

@@ -8,8 +8,8 @@ Implements WKFL-03, WKFL-04, and WKFL-06: auto-advance after phase completion wi
 
 <required_reading>
 
-1. `.planning/STATE.md`
-2. `.planning/ROADMAP.md`
+1. `.planning-pm/STATE.md`
+2. `.planning-pm/ROADMAP.md`
 3. Phase directory for specified phase
 
 </required_reading>
@@ -21,7 +21,7 @@ Implements WKFL-03, WKFL-04, and WKFL-06: auto-advance after phase completion wi
 Read STATE.md to understand current project position:
 
 ```bash
-cat .planning/STATE.md
+cat .planning-pm/STATE.md
 ```
 
 Parse: Current Phase, Current Plan, Status, Last Activity
@@ -83,7 +83,7 @@ Continue marking phase complete? (yes/no)
 <config-check>
 
 ```bash
-cat .planning/config.json 2>/dev/null
+cat .planning-pm/config.json 2>/dev/null
 ```
 
 </config-check>
@@ -194,7 +194,7 @@ This was the last phase in the current roadmap.
 Commit the phase completion changes:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${completed_phase}): mark phase complete" --files .planning/ROADMAP.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${completed_phase}): mark phase complete" --files .planning-pm/ROADMAP.md .planning-pm/STATE.md
 ```
 
 Confirm:

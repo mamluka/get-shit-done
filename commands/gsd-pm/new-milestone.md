@@ -11,7 +11,7 @@ allowed-tools:
 ---
 <context>
 **Flags:**
-- `--auto` — Automatic mode. After config, runs research → requirements → roadmap without further interaction. Expects idea document via @ reference or `.planning/external-spec.md`.
+- `--auto` — Automatic mode. After config, runs research → requirements → roadmap without further interaction. Expects idea document via @ reference or `.planning-pm/external-spec.md`.
 </context>
 
 <objective>
@@ -20,11 +20,11 @@ Start a new milestone: questioning → research (optional) → requirements → 
 Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Gathers "what's next", updates PROJECT.md, then runs requirements → roadmap cycle.
 
 **Creates/Updates:**
-- `.planning/PROJECT.md` — updated with new milestone goals
-- `.planning/research/` — domain research (optional, NEW features only)
-- `.planning/REQUIREMENTS.md` — scoped requirements for this milestone
-- `.planning/ROADMAP.md` — phase structure (continues numbering)
-- `.planning/STATE.md` — reset for new milestone
+- `.planning-pm/PROJECT.md` — updated with new milestone goals
+- `.planning-pm/research/` — domain research (optional, NEW features only)
+- `.planning-pm/REQUIREMENTS.md` — scoped requirements for this milestone
+- `.planning-pm/ROADMAP.md` — phase structure (continues numbering)
+- `.planning-pm/STATE.md` — reset for new milestone
 
 **After:** `/gsd-pm:plan-phase [N]` to start execution.
 </objective>
@@ -41,16 +41,16 @@ Brownfield equivalent of new-project. Project exists, PROJECT.md has history. Ga
 Milestone name: $ARGUMENTS (optional - will prompt if not provided)
 
 **Load project context:**
-@.planning/PROJECT.md
-@.planning/STATE.md
-@.planning/MILESTONES.md
-@.planning/config.json
+@.planning-pm/PROJECT.md
+@.planning-pm/STATE.md
+@.planning-pm/MILESTONES.md
+@.planning-pm/config.json
 
 **Load milestone context (if exists, from /gsd-pm:discuss-milestone):**
-@.planning/MILESTONE-CONTEXT.md
+@.planning-pm/MILESTONE-CONTEXT.md
 
 **Load external spec (if exists, from fetch workflows):**
-@.planning/external-spec.md
+@.planning-pm/external-spec.md
 </context>
 
 <process>

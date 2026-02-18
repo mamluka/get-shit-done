@@ -27,8 +27,8 @@ Mark a phase as complete after validating planning artifacts are sufficient, the
 Phase number: $ARGUMENTS (required)
 
 **Required reading:**
-- @.planning/ROADMAP.md
-- @.planning/STATE.md
+- @.planning-pm/ROADMAP.md
+- @.planning-pm/STATE.md
 - Phase directory for specified phase
 </context>
 

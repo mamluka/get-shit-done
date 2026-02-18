@@ -68,7 +68,7 @@ If the fetch fails, stop and display the error.
 
 ## Step 3: Review Imported Spec
 
-Read `.planning/external-spec.md` and display its contents to the user.
+Read `.planning-pm/external-spec.md` and display its contents to the user.
 
 Use AskUserQuestion:
 - header: "Review"
@@ -78,14 +78,14 @@ Use AskUserQuestion:
   - { label: "Edit the spec", description: "Tell me what to change before continuing" }
   - { label: "Stop here", description: "Keep the file — I'll edit it myself and run the target command later" }
 
-**If "Edit the spec":** Ask the user what to change. Apply their edits to `.planning/external-spec.md`. Show the updated content and re-ask the review question. Loop until they choose "Looks good" or "Stop here".
+**If "Edit the spec":** Ask the user what to change. Apply their edits to `.planning-pm/external-spec.md`. Show the updated content and re-ask the review question. Loop until they choose "Looks good" or "Stop here".
 
 **If "Stop here":** Display the appropriate follow-up command based on their target selection:
 ```
-Spec saved to .planning/external-spec.md
+Spec saved to .planning-pm/external-spec.md
 
 When ready, run:
-  /gsd-pm:new-project --auto @.planning/external-spec.md   (for new project)
+  /gsd-pm:new-project --auto @.planning-pm/external-spec.md   (for new project)
   /gsd-pm:new-milestone --auto                              (for new milestone)
 ```
 Stop.
@@ -98,6 +98,6 @@ Based on the target selection, execute the matching workflow:
 
 | Target | Action |
 |--------|--------|
-| New project | `/gsd-pm:new-project --auto @.planning/external-spec.md` |
+| New project | `/gsd-pm:new-project --auto @.planning-pm/external-spec.md` |
 | New milestone | `/gsd-pm:new-milestone --auto` |
 </process>

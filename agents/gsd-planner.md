@@ -365,9 +365,9 @@ Output: [Artifacts created]
 </execution_context>
 
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/PROJECT.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 
 # Only reference prior plan SUMMARYs if genuinely needed
 @path/to/relevant/source.ts
@@ -394,7 +394,7 @@ Output: [Artifacts created]
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
+After completion, create `.planning-pm/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 </output>
 ```
 
@@ -745,7 +745,7 @@ Triggered when orchestrator provides `<revision_context>` with checker issues. N
 ### Step 1: Load Existing Plans
 
 ```bash
-cat .planning/phases/$PHASE-*/$PHASE-*-PLAN.md
+cat .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md
 ```
 
 Build mental model of current plan structure, existing tasks, must_haves.
@@ -793,7 +793,7 @@ Group by plan, dimension, severity.
 ### Step 6: Commit
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans based on checker feedback" --files .planning/phases/$PHASE-*/$PHASE-*-PLAN.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans based on checker feedback" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md
 ```
 
 ### Step 7: Return Revision Summary
@@ -812,8 +812,8 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans 
 
 ### Files Updated
 
-- .planning/phases/16-xxx/16-01-PLAN.md
-- .planning/phases/16-xxx/16-02-PLAN.md
+- .planning-pm/phases/16-xxx/16-01-PLAN.md
+- .planning-pm/phases/16-xxx/16-02-PLAN.md
 
 {If any issues NOT addressed:}
 
@@ -839,17 +839,17 @@ Extract from init JSON: `planner_model`, `researcher_model`, `checker_model`, `c
 
 Also read STATE.md for position, decisions, blockers:
 ```bash
-cat .planning/STATE.md 2>/dev/null
+cat .planning-pm/STATE.md 2>/dev/null
 ```
 
-If STATE.md missing but .planning/ exists, offer to reconstruct or continue without.
+If STATE.md missing but .planning-pm/ exists, offer to reconstruct or continue without.
 </step>
 
 <step name="load_codebase_context">
 Check for codebase map:
 
 ```bash
-ls .planning/codebase/*.md 2>/dev/null
+ls .planning-pm/codebase/*.md 2>/dev/null
 ```
 
 If exists, load relevant documents by phase type:
@@ -868,8 +868,8 @@ If exists, load relevant documents by phase type:
 
 <step name="identify_phase">
 ```bash
-cat .planning/ROADMAP.md
-ls .planning/phases/
+cat .planning-pm/ROADMAP.md
+ls .planning-pm/phases/
 ```
 
 If multiple phases available, ask which to plan. If obvious (first incomplete), proceed.
@@ -903,7 +903,7 @@ Select top 2-4 phases. Skip phases with no relevance signal.
 
 **Step 3 — Read full SUMMARYs for selected phases:**
 ```bash
-cat .planning/phases/{selected-phase}/*-SUMMARY.md
+cat .planning-pm/phases/{selected-phase}/*-SUMMARY.md
 ```
 
 From full SUMMARYs extract:
@@ -995,7 +995,7 @@ Present breakdown with wave structure. Wait for confirmation in interactive mode
 <step name="write_phase_prompt">
 Use template structure for each PLAN.md.
 
-Write to `.planning/phases/XX-name/{phase}-{NN}-PLAN.md`
+Write to `.planning-pm/phases/XX-name/{phase}-{NN}-PLAN.md`
 
 Include all frontmatter fields.
 </step>
@@ -1031,7 +1031,7 @@ Returns JSON: `{ valid, errors, warnings, task_count, tasks }`
 <step name="update_roadmap">
 Update ROADMAP.md to finalize phase placeholders:
 
-1. Read `.planning/ROADMAP.md`
+1. Read `.planning-pm/ROADMAP.md`
 2. Find phase entry (`### Phase {N}:`)
 3. Update placeholders:
 
@@ -1054,7 +1054,7 @@ Plans:
 
 <step name="git_commit">
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs($PHASE): create phase plan" --files .planning/phases/$PHASE-*/$PHASE-*-PLAN.md .planning/ROADMAP.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs($PHASE): create phase plan" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md .planning-pm/ROADMAP.md
 ```
 </step>
 

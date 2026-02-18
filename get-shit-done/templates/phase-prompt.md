@@ -3,7 +3,7 @@
 > **Note:** Planning methodology is in `agents/gsd-planner.md`.
 > This template defines the PLAN.md output format that the agent produces.
 
-Template for `.planning/phases/XX-name/{phase}-{plan}-PLAN.md` - executable phase plans optimized for parallel execution.
+Template for `.planning-pm/phases/XX-name/{phase}-{plan}-PLAN.md` - executable phase plans optimized for parallel execution.
 
 **Naming:** Use `{phase}-{plan}-PLAN.md` format (e.g., `01-02-PLAN.md` for Phase 1, Plan 2)
 
@@ -43,9 +43,9 @@ Output: [What artifacts will be created]
 </execution_context>
 
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/PROJECT.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 
 # Only reference prior plan SUMMARYs if genuinely needed:
 # - This plan uses types/exports from prior plan
@@ -111,7 +111,7 @@ Before declaring plan complete:
   </success_criteria>
 
 <output>
-After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
+After completion, create `.planning-pm/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 </output>
 ```
 
@@ -205,9 +205,9 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 
 ```markdown
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/PROJECT.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 
 # Only include SUMMARY refs if genuinely needed:
 # - This plan imports types from prior plan
@@ -224,8 +224,8 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 **Bad pattern (creates false dependencies):**
 ```markdown
 <context>
-@.planning/phases/03-features/03-01-SUMMARY.md  # Just because it's earlier
-@.planning/phases/03-features/03-02-SUMMARY.md  # Reflexive chaining
+@.planning-pm/phases/03-features/03-01-SUMMARY.md  # Just because it's earlier
+@.planning-pm/phases/03-features/03-02-SUMMARY.md  # Reflexive chaining
 </context>
 ```
 
@@ -312,9 +312,9 @@ Output: User model, API endpoints, and UI components.
 </objective>
 
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/PROJECT.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 </context>
 
 <tasks>
@@ -346,7 +346,7 @@ Output: User model, API endpoints, and UI components.
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/03-features/03-01-SUMMARY.md`
+After completion, create `.planning-pm/phases/03-features/03-01-SUMMARY.md`
 </output>
 ```
 
@@ -376,10 +376,10 @@ Output: Working dashboard component.
 </execution_context>
 
 <context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/phases/03-features/03-01-SUMMARY.md
-@.planning/phases/03-features/03-02-SUMMARY.md
+@.planning-pm/PROJECT.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/phases/03-features/03-01-SUMMARY.md
+@.planning-pm/phases/03-features/03-02-SUMMARY.md
 </context>
 
 <tasks>
@@ -416,7 +416,7 @@ Output: Working dashboard component.
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/03-features/03-03-SUMMARY.md`
+After completion, create `.planning-pm/phases/03-features/03-03-SUMMARY.md`
 </output>
 ```
 

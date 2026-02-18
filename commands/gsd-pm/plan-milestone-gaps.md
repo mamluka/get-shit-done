@@ -23,15 +23,15 @@ One command creates all fix phases — no manual `/gsd-pm:add-phase` per gap.
 
 <context>
 **Audit results:**
-Glob: .planning/v*-MILESTONE-AUDIT.md (use most recent)
+Glob: .planning-pm/v*-MILESTONE-AUDIT.md (use most recent)
 
 **Original intent (for prioritization):**
-@.planning/PROJECT.md
-@.planning/REQUIREMENTS.md
+@.planning-pm/PROJECT.md
+@.planning-pm/REQUIREMENTS.md
 
 **Current state:**
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 </context>
 
 <process>

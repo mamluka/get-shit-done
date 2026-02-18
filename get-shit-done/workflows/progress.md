@@ -19,7 +19,7 @@ Extract from init JSON: `project_exists`, `roadmap_exists`, `state_exists`, `pha
 
 **File contents (from --include):** `state_content`, `roadmap_content`, `project_content`, `config_content`, `planning_status_content`. These are null if files don't exist.
 
-If `project_exists` is false (no `.planning/` directory):
+If `project_exists` is false (no `.planning-pm/` directory):
 
 ```
 No planning structure found.
@@ -85,7 +85,7 @@ Use this instead of manually reading/parsing ROADMAP.md.
 - Use phase-level `has_context` and `has_research` flags from analyze
 - Note `paused_at` if work was paused (from init context)
 - Count pending todos: use `init todos` or `list-todos`
-- Check for active debug sessions: `ls .planning/debug/*.md 2>/dev/null | grep -v resolved | wc -l`
+- Check for active debug sessions: `ls .planning-pm/debug/*.md 2>/dev/null | grep -v resolved | wc -l`
   </step>
 
 <step name="report">
@@ -158,9 +158,9 @@ Parse JSON. If `status` is `in_progress`, use the `command` field for routing in
 List files in the current phase directory:
 
 ```bash
-ls -1 .planning/phases/[current-phase-dir]/*-PLAN.md 2>/dev/null | wc -l
-ls -1 .planning/phases/[current-phase-dir]/*-SUMMARY.md 2>/dev/null | wc -l
-ls -1 .planning/phases/[current-phase-dir]/*-UAT.md 2>/dev/null | wc -l
+ls -1 .planning-pm/phases/[current-phase-dir]/*-PLAN.md 2>/dev/null | wc -l
+ls -1 .planning-pm/phases/[current-phase-dir]/*-SUMMARY.md 2>/dev/null | wc -l
+ls -1 .planning-pm/phases/[current-phase-dir]/*-UAT.md 2>/dev/null | wc -l
 ```
 
 State: "This phase has {X} plans, {Y} summaries."
@@ -171,7 +171,7 @@ Check for UAT.md files with status "diagnosed" (has gaps needing fixes).
 
 ```bash
 # Check for diagnosed UAT with gaps
-grep -l "status: diagnosed" .planning/phases/[current-phase-dir]/*-UAT.md 2>/dev/null
+grep -l "status: diagnosed" .planning-pm/phases/[current-phase-dir]/*-UAT.md 2>/dev/null
 ```
 
 Track:

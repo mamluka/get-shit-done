@@ -3,9 +3,9 @@ Retrieve unresolved comments from synced Notion pages, interpret each comment, a
 </purpose>
 
 <required_reading>
-1. `.planning/ROADMAP.md`
-2. `.planning/STATE.md`
-3. `.planning/REQUIREMENTS.md`
+1. `.planning-pm/ROADMAP.md`
+2. `.planning-pm/STATE.md`
+3. `.planning-pm/REQUIREMENTS.md`
 </required_reading>
 
 <process>
@@ -78,7 +78,7 @@ Found {N} comments across {M} pages.
 
 2. **Route based on length:**
    - **If estimated tokens < 1500:** Present the interpretation directly in the conversation (inline). No file is created.
-   - **If estimated tokens >= 1500:** Save the interpretation to `.planning/notion-comments-{YYYY-MM-DD}.md` (using today's date in ISO 8601 format). If the file already exists for today, append a counter (e.g., `notion-comments-2026-02-12-2.md`). Tell the user: "Comment interpretation saved to `.planning/notion-comments-{date}.md` — read the file for full details." Then present a brief summary inline: total comment count, page count, and a one-line-per-page overview (page title + comment count).
+   - **If estimated tokens >= 1500:** Save the interpretation to `.planning-pm/notion-comments-{YYYY-MM-DD}.md` (using today's date in ISO 8601 format). If the file already exists for today, append a counter (e.g., `notion-comments-2026-02-12-2.md`). Tell the user: "Comment interpretation saved to `.planning-pm/notion-comments-{date}.md` — read the file for full details." Then present a brief summary inline: total comment count, page count, and a one-line-per-page overview (page title + comment count).
 
 **File format when saving:**
 
@@ -111,7 +111,7 @@ After comment interpretation, analyze each comment against the current roadmap a
 
 **1. Read the current roadmap:**
 
-Read `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md` to understand the current phase structure, goals, requirements, and what's in progress vs complete.
+Read `.planning-pm/ROADMAP.md` and `.planning-pm/REQUIREMENTS.md` to understand the current phase structure, goals, requirements, and what's in progress vs complete.
 
 **2. For each interpreted comment**, analyze whether it:
 
@@ -211,16 +211,16 @@ Apply all recommended changes automatically without per-change review.
 For each accepted change, Claude modifies the actual planning artifacts:
 
 **1. For existing phase updates:**
-- Read the target section of `.planning/ROADMAP.md`
+- Read the target section of `.planning-pm/ROADMAP.md`
 - Add new requirements to the phase's **Requirements** line
 - Add new success criteria to the phase's **Success Criteria** section
 - Update the phase goal if recommended
-- If requirements are added, also add them to `.planning/REQUIREMENTS.md`:
+- If requirements are added, also add them to `.planning-pm/REQUIREMENTS.md`:
   - Add new requirement entries under the appropriate section (create a new section if needed)
   - Add entries to the Traceability table at the bottom
 
 **2. For new phase creation:**
-- Add a new phase entry to `.planning/ROADMAP.md` following the existing format:
+- Add a new phase entry to `.planning-pm/ROADMAP.md` following the existing format:
   ```
   ### Phase {N}: {Name}
 
@@ -238,13 +238,13 @@ For each accepted change, Claude modifies the actual planning artifacts:
   Plans:
   - [ ] {N}-01-PLAN.md — TBD
   ```
-- Add new requirements to `.planning/REQUIREMENTS.md`
+- Add new requirements to `.planning-pm/REQUIREMENTS.md`
 - Add to the Progress table in ROADMAP.md
-- Create the phase directory: `.planning/phases/{N}-{slug}/`
+- Create the phase directory: `.planning-pm/phases/{N}-{slug}/`
 
 **3. Commit all changes:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(16): incorporate comment feedback into planning artifacts" --files .planning/ROADMAP.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(16): incorporate comment feedback into planning artifacts" --files .planning-pm/ROADMAP.md .planning-pm/REQUIREMENTS.md
 ```
 
 **4. Present result:**

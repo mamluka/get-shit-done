@@ -1,5 +1,5 @@
 <purpose>
-Fetch a spec from Notion and write it to .planning/external-spec.md. Validates Notion MCP availability, resolves the page (accepts URL as argument or searches), fetches page content, formats as markdown, and writes the output file.
+Fetch a spec from Notion and write it to .planning-pm/external-spec.md. Validates Notion MCP availability, resolves the page (accepts URL as argument or searches), fetches page content, formats as markdown, and writes the output file.
 </purpose>
 
 <required_reading>
@@ -167,18 +167,18 @@ Format the fetched content as a markdown spec document:
 {end for each}
 ```
 
-Write to `.planning/external-spec.md`:
+Write to `.planning-pm/external-spec.md`:
 
 ```bash
-mkdir -p .planning
+mkdir -p .planning-pm
 ```
 
-Write the formatted markdown to `.planning/external-spec.md`.
+Write the formatted markdown to `.planning-pm/external-spec.md`.
 
 Display:
 
 ```
-✓ Spec written to .planning/external-spec.md
+✓ Spec written to .planning-pm/external-spec.md
 
   Source: {page_title} (Notion)
   Content: {word_count} words{, {child_count} sub-pages if any}

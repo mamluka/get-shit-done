@@ -19,8 +19,8 @@ Routes to the add-phase workflow which handles:
 </objective>
 
 <execution_context>
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 @~/.claude/get-shit-done/workflows/add-phase.md
 </execution_context>
 

@@ -23,8 +23,8 @@ Purpose: Handle urgent work discovered during execution without renumbering enti
 <context>
 Arguments: $ARGUMENTS (format: <after-phase-number> <description>)
 
-@.planning/ROADMAP.md
-@.planning/STATE.md
+@.planning-pm/ROADMAP.md
+@.planning-pm/STATE.md
 </context>
 
 <process>

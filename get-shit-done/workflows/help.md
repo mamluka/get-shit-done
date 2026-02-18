@@ -37,7 +37,7 @@ One command takes you from idea to ready-for-planning:
 - Requirements definition with v1/v2/out-of-scope scoping
 - Roadmap creation with phase breakdown and success criteria
 
-Creates all `.planning/` artifacts:
+Creates all `.planning-pm/` artifacts:
 - `PROJECT.md` — vision and requirements
 - `config.json` — workflow mode (interactive/yolo)
 - `research/` — domain research (if selected)
@@ -51,7 +51,7 @@ Usage: `/gsd-pm:new-project`
 Map an existing codebase for brownfield projects.
 
 - Analyzes codebase with parallel Explore agents
-- Creates `.planning/codebase/` with 7 focused documents
+- Creates `.planning-pm/codebase/` with 7 focused documents
 - Covers stack, architecture, structure, conventions, testing, integrations, concerns
 - Use before `/gsd-pm:new-project` on existing codebases
 
@@ -90,7 +90,7 @@ Usage: `/gsd-pm:list-phase-assumptions 3`
 **`/gsd-pm:plan-phase <number>`**
 Create detailed execution plan for a specific phase, then auto-complete and advance.
 
-- Generates `.planning/phases/XX-phase-name/XX-YY-PLAN.md`
+- Generates `.planning-pm/phases/XX-phase-name/XX-YY-PLAN.md`
 - Breaks phase into concrete, actionable tasks
 - Includes verification criteria and success measures
 - After planning: auto-validates, marks phase complete, and advances to next phase
@@ -222,10 +222,10 @@ Usage: `/gsd-pm:pause-work`
 Systematic debugging with persistent state across context resets.
 
 - Gathers symptoms through adaptive questioning
-- Creates `.planning/debug/[slug].md` to track investigation
+- Creates `.planning-pm/debug/[slug].md` to track investigation
 - Investigates using scientific method (evidence → hypothesis → test)
 - Survives `/clear` — run `/gsd-pm:debug` with no args to resume
-- Archives resolved issues to `.planning/debug/resolved/`
+- Archives resolved issues to `.planning-pm/debug/resolved/`
 
 Usage: `/gsd-pm:debug "login button doesn't work"`
 Usage: `/gsd-pm:debug` (resume active session)
@@ -236,7 +236,7 @@ Usage: `/gsd-pm:debug` (resume active session)
 Capture idea or task as todo from current conversation.
 
 - Extracts context from conversation (or uses provided description)
-- Creates structured todo file in `.planning/todos/pending/`
+- Creates structured todo file in `.planning-pm/todos/pending/`
 - Infers area from file paths for grouping
 - Checks for duplicates before creating
 - Updates STATE.md todo count
@@ -284,7 +284,7 @@ Usage: `/gsd-pm:plan-milestone-gaps`
 Import a spec from Jira or Notion into a new project or milestone.
 
 - Interactive router: asks source (Jira/Notion) and target (project/milestone)
-- Fetches content, writes `.planning/external-spec.md`, then runs target in auto mode
+- Fetches content, writes `.planning-pm/external-spec.md`, then runs target in auto mode
 - Combines fetch + create in one command
 
 Usage: `/gsd-pm:use-external-spec`
@@ -293,7 +293,7 @@ Usage: `/gsd-pm:use-external-spec`
 Import a Jira issue as spec and initialize a new project.
 
 - Fetches Jira issue content (handles epics with children)
-- Writes `.planning/external-spec.md`
+- Writes `.planning-pm/external-spec.md`
 - Runs `/gsd-pm:new-project --auto` with the imported spec
 
 Usage: `/gsd-pm:new-project-from-jira PROJ-123`
@@ -302,7 +302,7 @@ Usage: `/gsd-pm:new-project-from-jira PROJ-123`
 Import a Jira issue as spec and start a new milestone.
 
 - Fetches Jira issue content (handles epics with children)
-- Writes `.planning/external-spec.md`
+- Writes `.planning-pm/external-spec.md`
 - Runs `/gsd-pm:new-milestone --auto` with the imported spec
 
 Usage: `/gsd-pm:new-milestone-from-jira PROJ-123`
@@ -311,7 +311,7 @@ Usage: `/gsd-pm:new-milestone-from-jira PROJ-123`
 Import a Notion page as spec and initialize a new project.
 
 - Fetches Notion page content (includes sub-pages)
-- Writes `.planning/external-spec.md`
+- Writes `.planning-pm/external-spec.md`
 - Runs `/gsd-pm:new-project --auto` with the imported spec
 
 Usage: `/gsd-pm:new-project-from-notion https://notion.so/my-spec-page`
@@ -320,7 +320,7 @@ Usage: `/gsd-pm:new-project-from-notion https://notion.so/my-spec-page`
 Import a Notion page as spec and start a new milestone.
 
 - Fetches Notion page content (includes sub-pages)
-- Writes `.planning/external-spec.md`
+- Writes `.planning-pm/external-spec.md`
 - Runs `/gsd-pm:new-milestone --auto` with the imported spec
 
 Usage: `/gsd-pm:new-milestone-from-notion https://notion.so/my-spec-page`
@@ -328,7 +328,7 @@ Usage: `/gsd-pm:new-milestone-from-notion https://notion.so/my-spec-page`
 ### Notion Integration
 
 **`/gsd-pm:sync-notion`**
-Push .planning/ markdown files to Notion workspace.
+Push .planning-pm/ markdown files to Notion workspace.
 
 - Validates Notion config (API key format, parent page)
 - Runs notion-sync.js with live progress output
@@ -354,7 +354,7 @@ Configure workflow toggles and model profile interactively.
 
 - Toggle researcher, plan checker, verifier agents
 - Select model profile (quality/balanced/budget)
-- Updates `.planning/config.json`
+- Updates `.planning-pm/config.json`
 
 Usage: `/gsd-pm:settings`
 
@@ -386,7 +386,7 @@ Usage: `/gsd-pm:update`
 ## Files & Structure
 
 ```
-.planning/
+.planning-pm/
 ├── PROJECT.md            # Project vision
 ├── ROADMAP.md            # Current phase breakdown
 ├── STATE.md              # Project memory & context
@@ -429,24 +429,24 @@ Set during `/gsd-pm:new-project`:
 - Executes plans without confirmation
 - Only stops for critical checkpoints
 
-Change anytime by editing `.planning/config.json`
+Change anytime by editing `.planning-pm/config.json`
 
 ## Planning Configuration
 
-Configure how planning artifacts are managed in `.planning/config.json`:
+Configure how planning artifacts are managed in `.planning-pm/config.json`:
 
 **`planning.commit_docs`** (default: `true`)
 - `true`: Planning artifacts committed to git (standard workflow)
 - `false`: Planning artifacts kept local-only, not committed
 
 When `commit_docs: false`:
-- Add `.planning/` to your `.gitignore`
+- Add `.planning-pm/` to your `.gitignore`
 - Useful for OSS contributions, client projects, or keeping planning private
 - All planning files still work normally, just not tracked in git
 
 **`planning.search_gitignored`** (default: `false`)
 - `true`: Add `--no-ignore` to broad ripgrep searches
-- Only needed when `.planning/` is gitignored and you want project-wide searches to include it
+- Only needed when `.planning-pm/` is gitignored and you want project-wide searches to include it
 
 Example config:
 ```json
@@ -509,8 +509,8 @@ Example config:
 
 ## Getting Help
 
-- Read `.planning/PROJECT.md` for project vision
-- Read `.planning/STATE.md` for current context
-- Check `.planning/ROADMAP.md` for phase status
+- Read `.planning-pm/PROJECT.md` for project vision
+- Read `.planning-pm/STATE.md` for current context
+- Check `.planning-pm/ROADMAP.md` for phase status
 - Run `/gsd-pm:progress` to check where you're up to
 </reference>

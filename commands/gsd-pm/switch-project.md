@@ -9,7 +9,7 @@ allowed-tools:
 ---
 
 <objective>
-Switch the active project by updating .planning/.active-project file. All subsequent GSD commands will operate on the selected project.
+Switch the active project by updating .planning-pm/.active-project file. All subsequent GSD commands will operate on the selected project.
 </objective>
 
 <execution_context>

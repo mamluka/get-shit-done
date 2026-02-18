@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of GSD workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences.
+Interactive configuration of GSD workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning-pm/config.json with user preferences.
 </purpose>
 
 <required_reading>
@@ -16,12 +16,12 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js config-ensure-section
 INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js state load)
 ```
 
-Creates `.planning/config.json` with defaults if missing and loads current config values.
+Creates `.planning-pm/config.json` with defaults if missing and loads current config values.
 </step>
 
 <step name="read_current">
 ```bash
-cat .planning/config.json
+cat .planning-pm/config.json
 ```
 
 Parse current values (default to `true` if not present):
@@ -106,7 +106,7 @@ Merge new settings into existing config.json:
 }
 ```
 
-Write updated config to `.planning/config.json`.
+Write updated config to `.planning-pm/config.json`.
 </step>
 
 <step name="confirm">

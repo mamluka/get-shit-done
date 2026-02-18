@@ -1,5 +1,5 @@
 <purpose>
-Sync .planning/ markdown files to Notion. Validates Notion configuration, runs auth check, then pushes files with live progress output.
+Sync .planning-pm/ markdown files to Notion. Validates Notion configuration, runs auth check, then pushes files with live progress output.
 </purpose>
 
 <required_reading>
@@ -16,7 +16,7 @@ Check Notion configuration exists and is valid:
 NOTION_CHECK=$(node -e '
 var fs = require("fs");
 var path = require("path");
-var configPath = path.join(process.cwd(), ".planning", "config.json");
+var configPath = path.join(process.cwd(), ".planning-pm", "config.json");
 
 try {
   var config = JSON.parse(fs.readFileSync(configPath, "utf8"));
@@ -42,10 +42,10 @@ REASON=$(echo "$NOTION_CHECK" | jq -r '.reason')
 
 Display error based on reason:
 
-- `no_config` → "No .planning/config.json found. Run `/gsd-pm:new-project` first."
+- `no_config` → "No .planning-pm/config.json found. Run `/gsd-pm:new-project` first."
 - `no_api_key` → "No Notion API key configured. Run `node bin/install.js` to set up Notion integration."
 - `invalid_prefix` → "Notion API key has invalid format. Keys should start with `secret_` or `ntn_`. Run `node bin/install.js` to reconfigure."
-- `exec_error` → "Failed to read configuration. Check .planning/config.json exists and is valid JSON."
+- `exec_error` → "Failed to read configuration. Check .planning-pm/config.json exists and is valid JSON."
 
 Stop.
 

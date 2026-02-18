@@ -37,7 +37,7 @@ Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`-
 
 **If `phase_found` is false:** Validate phase exists in ROADMAP.md. If valid, create the directory using `phase_slug` and `padded_phase` from init:
 ```bash
-mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
+mkdir -p ".planning-pm/phases/${padded_phase}-${phase_slug}"
 ```
 
 **Existing artifacts from init:** `has_research`, `has_plans`, `plan_count`.
@@ -96,7 +96,7 @@ Spawn the discuss-phase workflow via Task():
 
 ```
 Task(
-  prompt="First, read ~/.claude/get-shit-done/workflows/discuss-phase.md for your role and instructions.\n\n<context>\nPhase number: {phase_number}\n\nLoad project state:\n@.planning/STATE.md\n\nLoad roadmap:\n@.planning/ROADMAP.md\n</context>",
+  prompt="First, read ~/.claude/get-shit-done/workflows/discuss-phase.md for your role and instructions.\n\n<context>\nPhase number: {phase_number}\n\nLoad project state:\n@.planning-pm/STATE.md\n\nLoad roadmap:\n@.planning-pm/ROADMAP.md\n</context>",
   subagent_type="general-purpose",
   model="{planner_model}",
   description="Discuss Phase {phase} context"
@@ -444,7 +444,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js planning-status update --phase "${
 ### 14c. Commit Completion
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${PHASE}): mark phase complete" --files .planning/ROADMAP.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-${PHASE}): mark phase complete" --files .planning-pm/ROADMAP.md .planning-pm/STATE.md
 ```
 
 ### 14d. Route to Next
@@ -461,7 +461,7 @@ First, run a fast local pre-check (no network calls) to validate Notion configur
 NOTION_CHECK=$(node -e '
 var fs = require("fs");
 var path = require("path");
-var configPath = path.join(process.cwd(), ".planning", "config.json");
+var configPath = path.join(process.cwd(), ".planning-pm", "config.json");
 try {
   var config = JSON.parse(fs.readFileSync(configPath, "utf8"));
   var hasKey = config.notion && config.notion.api_key && config.notion.api_key.trim().length > 0;
@@ -490,7 +490,7 @@ Display this banner:
 
 Your milestone planning docs are finalized and ready to share.
 
-This will sync .planning/ markdown files to Notion:
+This will sync .planning-pm/ markdown files to Notion:
 - New files create pages
 - Changed files update existing pages
 - Unchanged files are skipped
@@ -566,7 +566,7 @@ Display:
 Then **automatically start planning the next phase** by looping back to step 1 with `PHASE` set to `next_phase`. This creates a continuous plan-complete-advance cycle until all phases are planned or the user interrupts.
 
 <success_criteria>
-- [ ] .planning/ directory validated
+- [ ] .planning-pm/ directory validated
 - [ ] Phase validated against roadmap
 - [ ] Phase directory created if needed
 - [ ] Discussion offered when CONTEXT.md missing (step 3b)

@@ -1,6 +1,6 @@
 ---
 name: gsd-pm:sync-notion
-description: Push .planning/ markdown files to Notion pages
+description: Push .planning-pm/ markdown files to Notion pages
 allowed-tools:
   - Read
   - Bash
@@ -9,7 +9,7 @@ allowed-tools:
   - AskUserQuestion
 ---
 <objective>
-Sync .planning/ markdown files to Notion workspace. Validates configuration first, then runs notion-sync.js with live progress output.
+Sync .planning-pm/ markdown files to Notion workspace. Validates configuration first, then runs notion-sync.js with live progress output.
 
 Use this to manually push planning docs to Notion at any time.
 </objective>

@@ -41,7 +41,7 @@ Model profiles control which Claude model each GSD agent uses. This allows balan
 Orchestrators resolve model before spawning:
 
 ```
-1. Read .planning/config.json
+1. Read .planning-pm/config.json
 2. Get model_profile (default: "balanced")
 3. Look up agent in table above
 4. Pass model parameter to Task call
@@ -51,7 +51,7 @@ Orchestrators resolve model before spawning:
 
 Runtime: `/gsd-pm:set-profile <profile>`
 
-Per-project default: Set in `.planning/config.json`:
+Per-project default: Set in `.planning-pm/config.json`:
 ```json
 {
   "model_profile": "balanced"
