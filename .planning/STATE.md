@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.4 Jira Sync — Phase 17 complete, ready for Phase 18
+**Current focus:** v1.4 Jira Sync — Phase 19 complete, ready for Phase 20
 
 ## Current Position
 
