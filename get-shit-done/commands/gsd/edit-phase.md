@@ -29,8 +29,8 @@ Phase number: $ARGUMENTS (required)
 Artifact type: $ARGUMENTS (optional: "plan", "research", "context", "roadmap")
 
 **Required reading:**
-- @.planning/ROADMAP.md
-- @.planning/STATE.md
+- @.planning-pm/ROADMAP.md
+- @.planning-pm/STATE.md
 - Phase directory for specified phase
 </context>
 

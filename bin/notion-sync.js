@@ -32,8 +32,8 @@ ${cyan}Usage:${reset} node bin/notion-sync.js <command> [options]
 
 ${cyan}Commands:${reset}
   ${green}auth-check${reset}        Verify Notion API key is valid
-  ${green}convert [path]${reset}    Convert .planning/ markdown to Notion blocks
-  ${green}sync${reset}              Push .planning/ markdown to Notion pages
+  ${green}convert [path]${reset}    Convert .planning-pm/ markdown to Notion blocks
+  ${green}sync${reset}              Push .planning-pm/ markdown to Notion pages
   ${green}comments${reset}          Fetch unresolved comments from synced Notion pages
   ${green}clear${reset}             Archive all synced pages and reset sync state
   ${green}help${reset}              Show this help message
@@ -47,8 +47,8 @@ ${cyan}Options:${reset}
 ${dim}Examples:${reset}
   ${dim}node bin/notion-sync.js auth-check${reset}
   ${dim}node bin/notion-sync.js auth-check --cwd /path/to/project${reset}
-  ${dim}node bin/notion-sync.js convert                          # Convert all .planning/ files${reset}
-  ${dim}node bin/notion-sync.js convert .planning/ROADMAP.md     # Convert single file${reset}
+  ${dim}node bin/notion-sync.js convert                          # Convert all .planning-pm/ files${reset}
+  ${dim}node bin/notion-sync.js convert .planning-pm/ROADMAP.md     # Convert single file${reset}
   ${dim}node bin/notion-sync.js convert --dry-run                # Preview without side effects${reset}
   ${dim}node bin/notion-sync.js sync --parent-page <page-id>     # Sync all files to Notion${reset}
   ${dim}node bin/notion-sync.js sync --dry-run                   # Preview what would sync${reset}
@@ -76,7 +76,7 @@ async function handleAuthCheck(cwd) {
       process.exit(0);
     } else {
       console.error(`${red}✗ Authentication failed:${reset} ${result.error}`);
-      console.error(`${dim}Check your API key in .planning/config.json${reset}`);
+      console.error(`${dim}Check your API key in .planning-pm/config.json${reset}`);
       process.exit(1);
     }
 
@@ -133,7 +133,7 @@ async function handleConvert(targetPath, options) {
         console.log(`${green}✓ Converted${reset} ${result.fileName} — ${result.blockCount} blocks, ${result.chunks.length} chunks`);
 
         if (result.warnings.length > 0) {
-          const logPath = path.join(cwd, '.planning', 'notion-sync.log');
+          const logPath = path.join(cwd, '.planning-pm', 'notion-sync.log');
           console.log(`${yellow}⚠ ${result.warnings.length} warnings written to ${logPath}${reset}`);
         }
       }
@@ -143,7 +143,7 @@ async function handleConvert(targetPath, options) {
 
     // Process directory
     if (isDirectory) {
-      const logPath = path.join(cwd, '.planning', 'notion-sync.log');
+      const logPath = path.join(cwd, '.planning-pm', 'notion-sync.log');
 
       const result = convertDirectory(fullPath, {
         dryRun,
@@ -379,7 +379,7 @@ async function handleSync(options) {
 
     if (!parentPageId) {
       console.error(`${red}✗ Error:${reset} No parent page ID specified.`);
-      console.error(`${dim}Use --parent-page <id> or set workspace_page_id in .planning/notion-sync.json${reset}`);
+      console.error(`${dim}Use --parent-page <id> or set workspace_page_id in .planning-pm/notion-sync.json${reset}`);
       process.exit(1);
     }
 
@@ -394,7 +394,7 @@ async function handleSync(options) {
     const notion = dryRun ? null : createNotionClient(cwd);
 
     // Step 5: Call syncProject with progress callback
-    console.log(`${cyan}${dryRun ? '[DRY RUN] ' : ''}Syncing .planning/ to Notion...${reset}\n`);
+    console.log(`${cyan}${dryRun ? '[DRY RUN] ' : ''}Syncing .planning-pm/ to Notion...${reset}\n`);
 
     const results = await syncProject(notion, {
       cwd,
@@ -506,7 +506,7 @@ async function main() {
     projectSlug = args[projectIndex + 1];
   } else {
     // Auto-detect from .active-project
-    const activeProjectPath = path.join(cwd, '.planning', '.active-project');
+    const activeProjectPath = path.join(cwd, '.planning-pm', '.active-project');
     try {
       const slug = fs.readFileSync(activeProjectPath, 'utf8').trim();
       if (slug) projectSlug = slug;
@@ -533,7 +533,7 @@ async function main() {
     // Find the path argument (second non-flag argument after 'convert')
     const commandIndex = args.indexOf('convert');
     const pathArg = args.slice(commandIndex + 1).find(arg => !arg.startsWith('--') && arg !== cwd);
-    const targetPath = pathArg || '.planning/';
+    const targetPath = pathArg || '.planning-pm/';
 
     await handleConvert(targetPath, { cwd, dryRun });
     return;
