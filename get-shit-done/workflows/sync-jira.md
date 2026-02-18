@@ -271,6 +271,100 @@ Store the granularity value for the next step.
 
 </step>
 
+<step name="detect_existing_sync">
+
+Load existing sync state to determine if this is a fresh sync or incremental update:
+
+```bash
+SYNC_STATE=$(node -e '
+var ss = require("./lib/jira/sync-state.js");
+var state = ss.loadSyncState(process.cwd());
+if (state === null) {
+  console.log(JSON.stringify({ mode: "fresh" }));
+} else if (state.error) {
+  console.log(JSON.stringify({ mode: "error", error: state.error }));
+} else {
+  console.log(JSON.stringify({ mode: "incremental", state: state }));
+}
+')
+
+SYNC_MODE=$(echo "$SYNC_STATE" | jq -r '.mode')
+```
+
+**If SYNC_MODE is "error":**
+
+Extract and display the error:
+
+```bash
+SYNC_ERROR=$(echo "$SYNC_STATE" | jq -r '.error')
+```
+
+Display:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ SYNC STATE ERROR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{SYNC_ERROR}
+```
+
+Stop.
+
+**If SYNC_MODE is "fresh":**
+
+Display:
+
+```
+ℹ No previous sync found. All tickets will be created.
+```
+
+Set `EXISTING_STATE` to null for use in preview step.
+
+Continue to next step.
+
+**If SYNC_MODE is "incremental":**
+
+Extract existing state details:
+
+```bash
+EXISTING_EPIC_KEY=$(echo "$SYNC_STATE" | jq -r '.state.epic.key')
+EXISTING_TICKET_COUNT=$(echo "$SYNC_STATE" | jq -r '.state.tickets | length')
+EXISTING_SYNCED_AT=$(echo "$SYNC_STATE" | jq -r '.state.synced_at')
+EXISTING_GRANULARITY=$(echo "$SYNC_STATE" | jq -r '.state.granularity')
+```
+
+Display:
+
+```
+ℹ Previous sync found:
+  Epic: {EXISTING_EPIC_KEY}
+  Tickets: {EXISTING_TICKET_COUNT}
+  Last synced: {EXISTING_SYNCED_AT}
+  Granularity: {EXISTING_GRANULARITY}
+```
+
+**Check for granularity change:**
+
+If `EXISTING_GRANULARITY` does not match the current `granularity` selected in step 5:
+
+Display:
+
+```
+⚠ Granularity changed from {EXISTING_GRANULARITY} to {granularity}.
+  All tickets will be created fresh (previous tickets will NOT be deleted from Jira).
+```
+
+Set `EXISTING_STATE` to null (treat as fresh sync for diffing purposes).
+
+Otherwise, if granularities match:
+
+Set `EXISTING_STATE` to the loaded state for use in preview step.
+
+Continue to next step.
+
+</step>
+
 <step name="preview_and_approve">
 
 First, read Jira config values saved in step 4:
@@ -317,6 +411,24 @@ Stop.
 
 **If preview is valid:**
 
+Run diffTickets to determine creates vs updates:
+
+```bash
+DIFF=$(node -e '
+var ss = require("./lib/jira/sync-state.js");
+var preview = JSON.parse(process.argv[1]);
+var existingStateJson = process.argv[2];
+var existingState = existingStateJson === "null" ? null : JSON.parse(existingStateJson);
+var diff = ss.diffTickets(existingState, preview.tickets, "{granularity}");
+console.log(JSON.stringify(diff));
+' "$PREVIEW" "$EXISTING_STATE")
+
+TO_CREATE_COUNT=$(echo "$DIFF" | jq -r '.toCreate | length')
+TO_UPDATE_COUNT=$(echo "$DIFF" | jq -r '.toUpdate | length')
+EPIC_EXISTS=$(echo "$DIFF" | jq -r '.epicExists')
+EXISTING_EPIC_KEY=$(echo "$DIFF" | jq -r '.existingEpicKey // ""')
+```
+
 Call `formatPreviewDisplay` to render the preview:
 
 ```bash
@@ -333,16 +445,44 @@ Display the formatted preview to the user:
 {DISPLAY}
 ```
 
+Display sync operation summary:
+
+```bash
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo " SYNC OPERATION"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+if [ "$EPIC_EXISTS" = "true" ]; then
+  echo "Epic: $EXISTING_EPIC_KEY (will be updated)"
+else
+  echo "Epic: NEW"
+fi
+echo "New tickets to CREATE: $TO_CREATE_COUNT"
+echo "Existing tickets to UPDATE: $TO_UPDATE_COUNT"
+echo ""
+```
+
 Extract ticket count from preview:
 
 ```bash
 TICKET_COUNT=$(echo "$PREVIEW" | jq -r '.ticket_count')
 ```
 
+Determine approval prompt based on sync mode:
+
+```bash
+if [ "$SYNC_MODE" = "fresh" ]; then
+  APPROVAL_PROMPT="Proceed with Jira sync? This will create 1 epic + ${TICKET_COUNT} tickets in ${PROJECT_KEY}."
+else
+  APPROVAL_PROMPT="Proceed with Jira sync? This will update ${TO_UPDATE_COUNT} tickets and create ${TO_CREATE_COUNT} new tickets in ${PROJECT_KEY}. Epic: ${EXISTING_EPIC_KEY}."
+fi
+```
+
 Use `AskUserQuestion` to prompt:
 
 ```
-Proceed with Jira sync? This will create 1 epic + {TICKET_COUNT} tickets in {PROJECT_KEY}.
+{APPROVAL_PROMPT}
 
 Type "yes" to proceed or "cancel" to abort:
 ```
@@ -363,7 +503,7 @@ Stop.
 
 **If user types "yes":**
 
-Continue to step 7.
+Continue to step 8.
 
 </step>
 
@@ -379,7 +519,7 @@ Store the Epic type name (e.g., "Epic" or "epic") for use in creation.
 
 Also find a standard task type (look for "Task", "Story", or "Sub-task" in that order). Store the task type name.
 
-**Create the Epic:**
+**Handle Epic:**
 
 Extract epic summary and description from preview:
 
@@ -387,6 +527,24 @@ Extract epic summary and description from preview:
 EPIC_SUMMARY=$(echo "$PREVIEW" | jq -r '.epic.summary')
 EPIC_DESCRIPTION=$(echo "$PREVIEW" | jq -r '.epic.description')
 ```
+
+If `EPIC_EXISTS` is `"true"` (from step 7 diff):
+
+Call `mcp__jira__editJiraIssue` with:
+- `cloudId`: `CLOUD_ID`
+- `issueIdOrKey`: `EXISTING_EPIC_KEY`
+- `summary`: `EPIC_SUMMARY`
+- `description`: `EPIC_DESCRIPTION`
+
+Display:
+
+```
+✓ Updated epic: {EXISTING_EPIC_KEY} — {EPIC_SUMMARY}
+```
+
+Set `EPIC_KEY` to `EXISTING_EPIC_KEY`.
+
+If `EPIC_EXISTS` is `"false"`:
 
 Call `mcp__jira__createJiraIssue` with:
 - `cloudId`: `CLOUD_ID`
@@ -403,18 +561,38 @@ Display:
 ✓ Epic created: {epic_key} — {EPIC_SUMMARY}
 ```
 
-**Create child tickets:**
+Set `EPIC_KEY` to the created epic's key.
 
-For each ticket in the preview's tickets array:
+**Process tickets:**
+
+Extract the toCreate and toUpdate arrays from the diff:
+
+```bash
+TO_CREATE_JSON=$(echo "$DIFF" | jq -c '.toCreate')
+TO_UPDATE_JSON=$(echo "$DIFF" | jq -c '.toUpdate')
+```
+
+Initialize tracking variables:
+
+```bash
+ALL_TICKET_KEYS=()
+FAILURE_COUNT=0
+TICKET_INDEX=0
+TOTAL_TICKET_COUNT=$(echo "$DIFF" | jq -r '(.toCreate | length) + (.toUpdate | length)')
+```
+
+**For each ticket in toCreate:**
+
+Parse ticket data and create new Jira issue:
 
 1. Extract ticket data:
-   - `summary`: from `ticket.summary`
-   - `description`: from `ticket.description`
-   - `notion_link`: from `ticket.notion_link`
+   - `summary`: from ticket object
+   - `description`: from ticket object
+   - `notion_link`: from `notion_page_id` (build URL if present)
 
-2. If `notion_link` is not null, prepend Notion link to description:
+2. If `notion_page_id` is present, prepend Notion link to description:
    ```
-   **📎 Notion Page:** [View in Notion]({notion_link})
+   **📎 Notion Page:** [View in Notion](https://www.notion.so/{notion_page_id})
 
    {original description}
    ```
@@ -425,29 +603,80 @@ For each ticket in the preview's tickets array:
    - `issueTypeName`: The task type name found above
    - `summary`: ticket summary
    - `description`: ticket description (with Notion link if available)
-   - `parent`: the epic key created above
+   - `parent`: `EPIC_KEY`
 
-4. After each ticket creation, display progress:
+4. After each creation, display progress:
    ```
-   ✓ [{N}/{TICKET_COUNT}] {ticket_key} — {ticket_summary}
+   ✓ Created [{TICKET_INDEX}/{TOTAL_TICKET_COUNT}] {ticket_key} — {ticket_summary}
    ```
+
+5. Collect the created ticket key into `ALL_TICKET_KEYS` array.
+
+**For each ticket in toUpdate:**
+
+Parse ticket data and update existing Jira issue:
+
+1. Extract ticket data:
+   - `jira_key`: from ticket object (attached by diffTickets)
+   - `summary`: from ticket object
+   - `description`: from ticket object
+   - `notion_link`: from `notion_page_id` (build URL if present)
+
+2. If `notion_page_id` is present, prepend Notion link to description:
+   ```
+   **📎 Notion Page:** [View in Notion](https://www.notion.so/{notion_page_id})
+
+   {original description}
+   ```
+
+3. Call `mcp__jira__editJiraIssue` with:
+   - `cloudId`: `CLOUD_ID`
+   - `issueIdOrKey`: `jira_key`
+   - `summary`: ticket summary
+   - `description`: ticket description (with Notion link if available)
+   - **Note:** Do NOT change the parent field on updates
+
+4. After each update, display progress:
+   ```
+   ✓ Updated [{TICKET_INDEX}/{TOTAL_TICKET_COUNT}] {jira_key} — {ticket_summary}
+   ```
+
+5. Collect the updated ticket key into `ALL_TICKET_KEYS` array.
 
 **Handle errors gracefully:**
 
-If any ticket creation fails, display the error, continue with remaining tickets, and track the failure count.
+If any ticket creation or update fails, display the error, continue with remaining tickets, and increment the failure count.
 
 **Display completion banner:**
 
-Collect all created ticket keys into a comma-separated list.
+Collect all ticket keys from `ALL_TICKET_KEYS` into a comma-separated list.
+
+If `SYNC_MODE` is `"fresh"`:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► JIRA SYNC COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✓ Created 1 epic + {TICKET_COUNT} tickets in {PROJECT_KEY}
+✓ Created 1 epic + {TOTAL_TICKET_COUNT} tickets in {PROJECT_KEY}
 
-  Epic: {epic_key}
+  Epic: {EPIC_KEY}
+  Tickets: {comma-separated list of ticket keys}
+  Granularity: {granularity}-level
+
+All planning artifacts are now in Jira.
+```
+
+If `SYNC_MODE` is `"incremental"`:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► JIRA SYNC COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Updated epic + {TO_UPDATE_COUNT} tickets, created {TO_CREATE_COUNT} new tickets in {PROJECT_KEY}
+
+  Epic: {EPIC_KEY}
   Tickets: {comma-separated list of ticket keys}
   Granularity: {granularity}-level
 
@@ -458,7 +687,7 @@ If there were any failures, append:
 
 ```
 
-⚠ {failure_count} ticket(s) failed to create. See errors above.
+⚠ {FAILURE_COUNT} ticket(s) failed. See errors above.
 ```
 
 </step>
@@ -509,6 +738,7 @@ Continue to save_sync_state step.
 
 ```bash
 USERS_JSON=$(echo "$USERS_RESPONSE" | jq -c '.')
+USER_COUNT=$(echo "$USERS_JSON" | jq -r 'length')
 
 TEAM_LIST=$(node -e '
 var tf = require("./lib/jira/team-fetcher.js");
@@ -528,19 +758,19 @@ Display the formatted team list:
 Use `AskUserQuestion` to prompt:
 
 ```
-Assign epic ({epic_key}) to a team member?
+Assign epic ({EPIC_KEY}) to a team member?
 
-Enter member number (1-{user_count}), or "skip" to leave unassigned:
+Enter member number (1-{USER_COUNT}), or "skip" to leave unassigned:
 ```
 
 Parse the response:
-- If user enters a valid number (1 to user_count):
+- If user enters a valid number (1 to USER_COUNT):
   - Extract the selected user's `accountId` and `displayName` from `USERS_JSON`
   - Call `mcp__jira__editJiraIssue` with:
     - `cloudId`: `CLOUD_ID`
-    - `issueIdOrKey`: epic_key
+    - `issueIdOrKey`: EPIC_KEY
     - `assigneeAccountId`: selected user's accountId
-  - Display: `Assigned {epic_key} to {displayName}`
+  - Display: `Assigned {EPIC_KEY} to {displayName}`
   - Store epic assignee for later use
 
 - If user enters "skip":
@@ -548,10 +778,18 @@ Parse the response:
 
 **Ticket assignment:**
 
+Use the unified `ALL_TICKET_KEYS` array from step 8 (which includes both created and updated tickets).
+
+Calculate the total ticket count:
+
+```bash
+ALL_TICKET_COUNT=${#ALL_TICKET_KEYS[@]}
+```
+
 Use `AskUserQuestion` to prompt:
 
 ```
-Assign tickets to team members?
+Assign tickets to team members? ({ALL_TICKET_COUNT} tickets total)
 
 Options:
 - "all:{N}"          — Assign ALL tickets to member N
@@ -570,7 +808,7 @@ CHOICE=$(node -e '
 var tf = require("./lib/jira/team-fetcher.js");
 var result = tf.parseAssignmentChoice(process.argv[1], parseInt(process.argv[2]), parseInt(process.argv[3]));
 console.log(JSON.stringify(result));
-' "$USER_INPUT" "$USER_COUNT" "$TICKET_COUNT")
+' "$USER_INPUT" "$USER_COUNT" "$ALL_TICKET_COUNT")
 
 CHOICE_ACTION=$(echo "$CHOICE" | jq -r '.action // "error"')
 CHOICE_ERROR=$(echo "$CHOICE" | jq -r '.error // ""')
@@ -612,7 +850,7 @@ Display:
 Assigning all tickets to {displayName}...
 ```
 
-For each ticket key from step 7, call `mcp__jira__editJiraIssue` with:
+For each ticket key in `ALL_TICKET_KEYS`, call `mcp__jira__editJiraIssue` with:
 - `cloudId`: `CLOUD_ID`
 - `issueIdOrKey`: ticket_key
 - `assigneeAccountId`: selected user's accountId
@@ -620,7 +858,7 @@ For each ticket key from step 7, call `mcp__jira__editJiraIssue` with:
 After each assignment, display progress:
 
 ```
-✓ [{N}/{TICKET_COUNT}] {ticket_key} assigned
+✓ Assigned [{N}/{ALL_TICKET_COUNT}] {ticket_key}
 ```
 
 Track assigned tickets for jira-sync.json.
@@ -635,8 +873,8 @@ ASSIGNMENTS=$(echo "$CHOICE" | jq -c '.assignments')
 
 For each assignment in the array:
 - Extract `ticketIndex` and `userIndex`
-- Get the corresponding ticket key (from created tickets array at index ticketIndex-1)
-- Get the corresponding user's accountId and displayName (from USERS_JSON at index userIndex-1)
+- Get the corresponding ticket key from `ALL_TICKET_KEYS` array at index ticketIndex-1
+- Get the corresponding user's accountId and displayName from `USERS_JSON` at index userIndex-1
 - Call `mcp__jira__editJiraIssue` with:
   - `cloudId`: `CLOUD_ID`
   - `issueIdOrKey`: ticket_key
@@ -662,54 +900,117 @@ After all assignments processed, display:
  TEAM ASSIGNMENT COMPLETE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Epic: {epic_key} → {assignee displayName or "unassigned"}
-Tickets assigned: {assigned_count}/{total_count}
+Epic: {EPIC_KEY} → {assignee displayName or "unassigned"}
+Tickets assigned: {assigned_count}/{ALL_TICKET_COUNT}
 ```
 
 </step>
 
 <step name="save_sync_state">
 
-Save the created Jira issue keys and assignment information to `.planning/jira-sync.json` for future update/tracking operations:
+Save the Jira issue keys and assignment information to `.planning/jira-sync.json` using the sync-state module with merge logic:
 
 ```bash
 node -e '
-var fs = require("fs");
-var path = require("path");
+var ss = require("./lib/jira/sync-state.js");
+
+// Load existing state (will be null for fresh sync)
+var existingState = ss.loadSyncState(process.cwd());
+
+// Build the new state by merging with existing state
+var newTickets = [];
+var existingTicketsMap = {};
+
+// If we have existing state, build a map of existing tickets
+if (existingState && !existingState.error && existingState.tickets) {
+  for (var i = 0; i < existingState.tickets.length; i++) {
+    var ticket = existingState.tickets[i];
+    existingTicketsMap[ticket.key] = ticket;
+  }
+}
+
+// Process tickets from current sync run
+var currentTickets = JSON.parse(process.argv[1]);
+for (var i = 0; i < currentTickets.length; i++) {
+  var current = currentTickets[i];
+
+  // If this ticket existed before, preserve existing data and update with new
+  if (existingTicketsMap[current.key]) {
+    // Remove from map (so we know which old tickets to preserve at the end)
+    var existing = existingTicketsMap[current.key];
+    delete existingTicketsMap[current.key];
+
+    // Merge: keep new summary, preserve or update assignee
+    newTickets.push({
+      key: current.key,
+      summary: current.summary,
+      phase: current.phase || existing.phase,
+      category: current.category || existing.category,
+      requirement_id: current.requirement_id || existing.requirement_id,
+      assignee: current.assignee || existing.assignee
+    });
+  } else {
+    // New ticket
+    newTickets.push(current);
+  }
+}
+
+// Preserve tickets from previous state that were not in current run
+for (var key in existingTicketsMap) {
+  newTickets.push(existingTicketsMap[key]);
+}
+
+// Build complete state object
 var syncData = {
-  milestone: "{milestone_version}",
-  granularity: "{granularity}",
-  project_key: "{PROJECT_KEY}",
-  cloud_id: "{CLOUD_ID}",
+  milestone: process.argv[2],
+  granularity: process.argv[3],
+  project_key: process.argv[4],
+  cloud_id: process.argv[5],
   epic: {
-    key: "{epic_key}",
-    summary: "{EPIC_SUMMARY}"
-    // Add assignee field if epic was assigned:
-    // assignee: { accountId: "...", displayName: "..." }
+    key: process.argv[6],
+    summary: process.argv[7]
   },
-  tickets: [
-    // For each successfully created ticket:
-    {
-      key: "{ticket_key}",
-      summary: "{ticket_summary}",
-      phase: "{phase_number}"
-      // Add assignee field if ticket was assigned:
-      // assignee: { accountId: "...", displayName: "..." }
-    }
-  ],
+  tickets: newTickets,
   synced_at: new Date().toISOString(),
-  failed_count: {failure_count}
+  failed_count: parseInt(process.argv[8])
 };
-fs.writeFileSync(
-  path.join(process.cwd(), ".planning", "jira-sync.json"),
-  JSON.stringify(syncData, null, 2) + "\n"
-);
-'
+
+// Add epic assignee if provided
+if (process.argv[9] && process.argv[9] !== "null") {
+  syncData.epic.assignee = JSON.parse(process.argv[9]);
+}
+
+// Save using sync-state module
+var result = ss.saveSyncState(process.cwd(), syncData);
+if (result.error) {
+  console.error("Error saving sync state:", result.error);
+  process.exit(1);
+}
+' "$CURRENT_TICKETS_JSON" "$MILESTONE" "$GRANULARITY" "$PROJECT_KEY" "$CLOUD_ID" "$EPIC_KEY" "$EPIC_SUMMARY" "$FAILURE_COUNT" "$EPIC_ASSIGNEE_JSON"
 ```
 
-Build the `tickets` array from all successfully created tickets during step 7, including each ticket's `key`, `summary`, and the `phase` number extracted from the ticket-mapper output.
+To call this, you must:
 
-If an epic or ticket was assigned in step 8 (assign_team), include the `assignee` object with `accountId` and `displayName`. If not assigned, omit the `assignee` field entirely (do not include null).
+1. Build `CURRENT_TICKETS_JSON`: an array of ticket objects from the current sync run (both created and updated), where each ticket has:
+   - `key`: Jira ticket key
+   - `summary`: Ticket summary
+   - `phase`, `category`, or `requirement_id`: granularity metadata (depending on granularity mode)
+   - `assignee`: (optional) `{ accountId: "...", displayName: "..." }` if assigned
+
+2. Pass the necessary arguments:
+   - `MILESTONE`: milestone version string
+   - `GRANULARITY`: the granularity mode (phase/category/requirement)
+   - `PROJECT_KEY`: Jira project key
+   - `CLOUD_ID`: Jira cloud ID
+   - `EPIC_KEY`: Epic key (created or updated)
+   - `EPIC_SUMMARY`: Epic summary
+   - `FAILURE_COUNT`: Number of failed operations
+   - `EPIC_ASSIGNEE_JSON`: JSON string of epic assignee object, or "null" if unassigned
+
+For each ticket in the current run, include granularity metadata based on the granularity mode:
+- If `granularity` is "phase": include `phase` field with phase number as string
+- If `granularity` is "category": include `category` field with category name
+- If `granularity` is "requirement": include `requirement_id` field with requirement ID
 
 Display:
 
