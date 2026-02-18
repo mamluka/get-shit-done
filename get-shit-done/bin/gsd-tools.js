@@ -702,6 +702,64 @@ function error(message, technicalDetails) {
   process.exit(1);
 }
 
+function migratePlanningFolder(cwd) {
+  const oldDir = path.join(cwd, '.planning');
+  const newDir = path.join(cwd, '.planning-pm');
+
+  // Already migrated?
+  if (fs.existsSync(newDir)) {
+    if (fs.existsSync(oldDir)) {
+      return { error: 'Both .planning/ and .planning-pm/ exist. Please resolve manually.' };
+    }
+    return { already_migrated: true, message: '.planning-pm/ already exists. No migration needed.' };
+  }
+
+  // Nothing to migrate?
+  if (!fs.existsSync(oldDir)) {
+    return { error: 'No .planning/ directory found. Nothing to migrate.' };
+  }
+
+  // Create backup
+  const backupDir = path.join(cwd, '.planning-backup-' + new Date().toISOString().replace(/[:.]/g, '-'));
+  try {
+    // Copy .planning to backup (use fs.cpSync if available, else shell out)
+    if (fs.cpSync) {
+      fs.cpSync(oldDir, backupDir, { recursive: true });
+    } else {
+      const { execSync } = require('child_process');
+      execSync(`cp -r "${oldDir}" "${backupDir}"`, { cwd });
+    }
+  } catch (e) {
+    return { error: `Failed to create backup: ${e.message}` };
+  }
+
+  // Rename .planning to .planning-pm
+  try {
+    fs.renameSync(oldDir, newDir);
+  } catch (e) {
+    return { error: `Failed to rename .planning to .planning-pm: ${e.message}` };
+  }
+
+  // Verify migration
+  if (!fs.existsSync(newDir)) {
+    return { error: 'Migration failed: .planning-pm/ does not exist after rename.' };
+  }
+
+  // Clean up backup on success
+  try {
+    fs.rmSync(backupDir, { recursive: true, force: true });
+  } catch (e) {
+    // Backup cleanup failure is not critical
+  }
+
+  return {
+    success: true,
+    old_path: '.planning/',
+    new_path: '.planning-pm/',
+    message: 'Successfully migrated .planning/ to .planning-pm/'
+  };
+}
+
 // ─── PathResolver ─────────────────────────────────────────────────────────────
 
 /**
@@ -6276,6 +6334,17 @@ async function main() {
         cmdPlanningStatusMarkInProgress(cwd, args.slice(2), raw);
       } else {
         error('Usage: planning-status <init|update|resume-point|mark-in-progress>');
+      }
+      break;
+    }
+
+    case 'project': {
+      const subcommand = args[1];
+      if (subcommand === 'migrate-folder') {
+        const result = migratePlanningFolder(cwd);
+        output(result, raw);
+      } else {
+        error('Unknown project subcommand. Available: migrate-folder');
       }
       break;
     }

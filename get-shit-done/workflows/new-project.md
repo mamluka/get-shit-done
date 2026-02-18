@@ -51,6 +51,17 @@ Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `co
 git init
 ```
 
+**Check if .planning/ exists (old folder name):**
+```bash
+MIGRATE=$(node ~/.claude/get-shit-done/bin/gsd-tools.js project migrate-folder)
+```
+
+Parse the JSON response:
+- If `success: true`: Continue (migration completed successfully)
+- If `already_migrated: true`: Continue (already using .planning-pm)
+- If `error` and error message contains "Both .planning/ and .planning-pm/ exist": Display error message and ask user to resolve manually before continuing
+- If `error` and error message contains "No .planning/ directory found": Continue (new project, no migration needed)
+
 ## 1.5. Jira Integration Check
 
 **Non-blocking check — project creation always proceeds regardless of result.**
