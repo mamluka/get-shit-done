@@ -1546,7 +1546,7 @@ function promptNotionKey(callback) {
     return;
   }
 
-  const planningDir = path.join(process.cwd(), '.planning');
+  const planningDir = path.join(process.cwd(), '.planning-pm');
   const configPath = path.join(planningDir, 'config.json');
 
   // Check for existing Notion config
@@ -1631,7 +1631,7 @@ function promptNotionKeyFresh(planningDir, callback) {
 
     if (!wantsNotion) {
       rl.close();
-      console.log(`  Skipped. You can add your Notion API key later to .planning/config.json\n`);
+      console.log(`  Skipped. You can add your Notion API key later to .planning-pm/config.json\n`);
       callback();
       return;
     }
@@ -1658,7 +1658,7 @@ function promptNotionKeyFresh(planningDir, callback) {
         rl.close();
 
         try {
-          // Create .planning/ if it doesn't exist yet
+          // Create .planning-pm/ if it doesn't exist yet
           if (!fs.existsSync(planningDir)) {
             fs.mkdirSync(planningDir, { recursive: true });
           }
@@ -1682,7 +1682,7 @@ function promptNotionKeyFresh(planningDir, callback) {
 
           // Write back to config
           fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-          console.log(`  ${green}✓${reset} Notion API key saved to .planning/config.json\n`);
+          console.log(`  ${green}✓${reset} Notion API key saved to .planning-pm/config.json\n`);
         } catch (e) {
           console.log(`  ${yellow}⚠${reset} Failed to save config: ${e.message}\n`);
         }
@@ -1705,7 +1705,7 @@ function promptNotionParentPage(callback) {
     return;
   }
 
-  const planningDir = path.join(process.cwd(), '.planning');
+  const planningDir = path.join(process.cwd(), '.planning-pm');
   const configPath = path.join(planningDir, 'config.json');
 
   // Check if Notion API key exists
@@ -1741,7 +1741,7 @@ function promptNotionParentPage(callback) {
       // User pressed Enter - skip
       if (!trimmed) {
         rl.close();
-        console.log(`  Skipped. You can add parent_page_id later to .planning/config.json\n`);
+        console.log(`  Skipped. You can add parent_page_id later to .planning-pm/config.json\n`);
         callback();
         return;
       }
@@ -1788,7 +1788,7 @@ function promptNotionParentPage(callback) {
 
         // Write back to config
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
-        console.log(`  ${green}✓${reset} Parent page ID saved to .planning/config.json\n`);
+        console.log(`  ${green}✓${reset} Parent page ID saved to .planning-pm/config.json\n`);
       } catch (e) {
         console.log(`  ${yellow}⚠${reset} Failed to save config: ${e.message}\n`);
       }
