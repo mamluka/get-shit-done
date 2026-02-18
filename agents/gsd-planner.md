@@ -361,7 +361,7 @@ Output: [Artifacts created]
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/templates/summary.md
+@~/.claude/gsd-pm/templates/summary.md
 </execution_context>
 
 <context>
@@ -793,7 +793,7 @@ Group by plan, dimension, severity.
 ### Step 6: Commit
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans based on checker feedback" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md
+node ~/.claude/gsd-pm/bin/gsd-tools.js commit "fix($PHASE): revise plans based on checker feedback" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md
 ```
 
 ### Step 7: Return Revision Summary
@@ -832,7 +832,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans 
 Load planning context:
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init plan-phase "${PHASE}")
+INIT=$(node ~/.claude/gsd-pm/bin/gsd-tools.js init plan-phase "${PHASE}")
 ```
 
 Extract from init JSON: `planner_model`, `researcher_model`, `checker_model`, `commit_docs`, `research_enabled`, `phase_dir`, `phase_number`, `has_research`, `has_context`.
@@ -888,7 +888,7 @@ Apply discovery level protocol (see discovery_levels section).
 
 **Step 1 — Generate digest index:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js history-digest
+node ~/.claude/gsd-pm/bin/gsd-tools.js history-digest
 ```
 
 **Step 2 — Select relevant phases (typically 2-4):**
@@ -1004,7 +1004,7 @@ Include all frontmatter fields.
 Validate each created PLAN.md using gsd-tools:
 
 ```bash
-VALID=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter validate "$PLAN_PATH" --schema plan)
+VALID=$(node ~/.claude/gsd-pm/bin/gsd-tools.js frontmatter validate "$PLAN_PATH" --schema plan)
 ```
 
 Returns JSON: `{ valid, missing, present, schema }`
@@ -1017,7 +1017,7 @@ Required plan frontmatter fields:
 Also validate plan structure:
 
 ```bash
-STRUCTURE=$(node ~/.claude/get-shit-done/bin/gsd-tools.js verify plan-structure "$PLAN_PATH")
+STRUCTURE=$(node ~/.claude/gsd-pm/bin/gsd-tools.js verify plan-structure "$PLAN_PATH")
 ```
 
 Returns JSON: `{ valid, errors, warnings, task_count, tasks }`
@@ -1054,7 +1054,7 @@ Plans:
 
 <step name="git_commit">
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs($PHASE): create phase plan" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md .planning-pm/ROADMAP.md
+node ~/.claude/gsd-pm/bin/gsd-tools.js commit "docs($PHASE): create phase plan" --files .planning-pm/phases/$PHASE-*/$PHASE-*-PLAN.md .planning-pm/ROADMAP.md
 ```
 </step>
 

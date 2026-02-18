@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Bundle bin/notion-sync.js + all deps into a single file for installation.
- * Output: get-shit-done/bin/notion-sync.js
+ * Output: gsd-pm/bin/notion-sync.js
  */
 
 const esbuild = require('esbuild');
@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ENTRY = path.join(__dirname, '..', 'bin', 'notion-sync.js');
-const OUTPUT = path.join(__dirname, '..', 'get-shit-done', 'bin', 'notion-sync.js');
+const OUTPUT = path.join(__dirname, '..', 'gsd-pm', 'bin', 'notion-sync.js');
 
 async function build() {
   // Ensure output directory exists

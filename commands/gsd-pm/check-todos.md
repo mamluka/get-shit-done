@@ -23,11 +23,11 @@ Routes to the check-todos workflow which handles:
 <execution_context>
 @.planning-pm/STATE.md
 @.planning-pm/ROADMAP.md
-@~/.claude/get-shit-done/workflows/check-todos.md
+@~/.claude/gsd-pm/workflows/check-todos.md
 </execution_context>
 
 <process>
-**Follow the check-todos workflow** from `@~/.claude/get-shit-done/workflows/check-todos.md`.
+**Follow the check-todos workflow** from `@~/.claude/gsd-pm/workflows/check-todos.md`.
 
 The workflow handles all logic including:
 1. Todo existence checking

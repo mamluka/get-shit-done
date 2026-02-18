@@ -20,7 +20,7 @@ Output: .planning-pm/codebase/ folder with 7 structured documents about the code
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/map-codebase.md
+@~/.claude/gsd-pm/workflows/map-codebase.md
 </execution_context>
 
 <context>

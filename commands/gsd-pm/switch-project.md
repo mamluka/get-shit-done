@@ -13,10 +13,10 @@ Switch the active project by updating .planning-pm/.active-project file. All sub
 </objective>
 
 <execution_context>
-@./get-shit-done/workflows/switch-project.md
+@./gsd-pm/workflows/switch-project.md
 </execution_context>
 
 <process>
-Execute the switch-project workflow from @./get-shit-done/workflows/switch-project.md end-to-end.
+Execute the switch-project workflow from @./gsd-pm/workflows/switch-project.md end-to-end.
 Preserve all workflow gates (project selection, validation).
 </process>

@@ -15,9 +15,9 @@ Use this to manually push planning docs to Notion at any time.
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/sync-notion.md
+@~/.claude/gsd-pm/workflows/sync-notion.md
 </execution_context>
 
 <process>
-Execute the sync-notion workflow from @~/.claude/get-shit-done/workflows/sync-notion.md end-to-end.
+Execute the sync-notion workflow from @~/.claude/gsd-pm/workflows/sync-notion.md end-to-end.
 </process>

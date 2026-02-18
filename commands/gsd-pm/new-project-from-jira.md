@@ -29,9 +29,9 @@ Two-step composition:
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/fetch-jira-spec.md
-@~/.claude/get-shit-done/workflows/new-project.md
-@~/.claude/get-shit-done/references/ui-brand.md
+@~/.claude/gsd-pm/workflows/fetch-jira-spec.md
+@~/.claude/gsd-pm/workflows/new-project.md
+@~/.claude/gsd-pm/references/ui-brand.md
 </execution_context>
 
 <context>
@@ -41,7 +41,7 @@ Jira issue key: $ARGUMENTS (optional — will search if not provided)
 <process>
 ## Step 1: Fetch Jira Spec
 
-Execute the fetch-jira-spec workflow from @~/.claude/get-shit-done/workflows/fetch-jira-spec.md end-to-end.
+Execute the fetch-jira-spec workflow from @~/.claude/gsd-pm/workflows/fetch-jira-spec.md end-to-end.
 
 If the fetch fails, stop and display the error.
 

@@ -1,14 +1,14 @@
 {
   "name": "@david-xpn/gsd-pm",
   "version": "1.18.5",
-  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini. Fork of get-shit-done-cc by TÂCHES.",
+  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini. Fork of gsd-pm-cc by TÂCHES.",
   "bin": {
     "gsd-pm": "bin/install.js"
   },
   "files": [
     "bin",
     "commands",
-    "get-shit-done",
+    "gsd-pm",
     "agents",
     "hooks/dist",
     "scripts",
@@ -49,7 +49,7 @@
     "build:hooks": "node scripts/build-hooks.js",
     "build:notion-sync": "node scripts/build-notion-sync.js",
     "prepublishOnly": "npm run build:hooks && npm run build:notion-sync",
-    "test": "node --test get-shit-done/bin/gsd-tools.test.js",
+    "test": "node --test gsd-pm/bin/gsd-tools.test.js",
     "deploy": "bash scripts/deploy.sh"
   }
 }

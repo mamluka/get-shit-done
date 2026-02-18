@@ -2,7 +2,7 @@
 
 A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode, and Gemini CLI.
 
-This is a personal fork of [get-shit-done](https://github.com/glittercowboy/get-shit-done) by [TÂCHES (Lex Christopherson)](https://github.com/glittercowboy), extended with Notion/Jira sync and other workflow additions.
+This is a personal fork of [gsd-pm](https://github.com/glittercowboy/gsd-pm) by [TÂCHES (Lex Christopherson)](https://github.com/glittercowboy), extended with Notion/Jira sync and other workflow additions.
 
 ## What It Does
 
@@ -99,7 +99,7 @@ This fork adds:
 
 ## Credits
 
-Originally created by [TÂCHES (Lex Christopherson)](https://github.com/glittercowboy) as [get-shit-done](https://github.com/glittercowboy/get-shit-done).
+Originally created by [TÂCHES (Lex Christopherson)](https://github.com/glittercowboy) as [gsd-pm](https://github.com/glittercowboy/gsd-pm).
 
 ## License
 

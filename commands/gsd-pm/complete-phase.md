@@ -19,8 +19,8 @@ Mark a phase as complete after validating planning artifacts are sufficient, the
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/complete-phase.md
-@~/.claude/get-shit-done/references/ui-brand.md
+@~/.claude/gsd-pm/workflows/complete-phase.md
+@~/.claude/gsd-pm/references/ui-brand.md
 </execution_context>
 
 <context>
@@ -33,7 +33,7 @@ Phase number: $ARGUMENTS (required)
 </context>
 
 <process>
-Execute the complete-phase workflow from @~/.claude/get-shit-done/workflows/complete-phase.md end-to-end.
+Execute the complete-phase workflow from @~/.claude/gsd-pm/workflows/complete-phase.md end-to-end.
 
 Preserve all workflow gates:
 - Validation (plans exist, requirements mapped)

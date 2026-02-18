@@ -10,7 +10,7 @@ commands.html
 
 # Build artifacts (committed to npm, not git)
 hooks/dist/
-get-shit-done/bin/notion-sync.js
+gsd-pm/bin/notion-sync.js
 
 # Animation assets
 animation/

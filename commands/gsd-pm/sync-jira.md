@@ -23,9 +23,9 @@ Sync planning artifacts to Jira. Validates Jira MCP, checks Notion sync state, s
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/sync-jira.md
+@~/.claude/gsd-pm/workflows/sync-jira.md
 </execution_context>
 
 <process>
-Execute the sync-jira workflow from @~/.claude/get-shit-done/workflows/sync-jira.md end-to-end.
+Execute the sync-jira workflow from @~/.claude/gsd-pm/workflows/sync-jira.md end-to-end.
 </process>

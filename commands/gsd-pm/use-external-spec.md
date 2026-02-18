@@ -20,11 +20,11 @@ Interactive router for external spec import. Asks the user to pick a source (Jir
 </objective>
 
 <execution_context>
-@~/.claude/get-shit-done/workflows/fetch-jira-spec.md
-@~/.claude/get-shit-done/workflows/fetch-notion-spec.md
-@~/.claude/get-shit-done/workflows/new-project.md
-@~/.claude/get-shit-done/workflows/new-milestone.md
-@~/.claude/get-shit-done/references/ui-brand.md
+@~/.claude/gsd-pm/workflows/fetch-jira-spec.md
+@~/.claude/gsd-pm/workflows/fetch-notion-spec.md
+@~/.claude/gsd-pm/workflows/new-project.md
+@~/.claude/gsd-pm/workflows/new-milestone.md
+@~/.claude/gsd-pm/references/ui-brand.md
 </execution_context>
 
 <process>

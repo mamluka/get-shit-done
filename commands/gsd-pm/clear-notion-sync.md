@@ -14,13 +14,13 @@ Pages that are already deleted or archived are silently skipped.
 Run the clear command:
 
 ```bash
-node ~/.claude/get-shit-done/bin/notion-sync.js clear --cwd "$(pwd)"
+node ~/.claude/gsd-pm/bin/notion-sync.js clear --cwd "$(pwd)"
 ```
 
 Then run a fresh sync:
 
 ```bash
-node ~/.claude/get-shit-done/bin/notion-sync.js sync --cwd "$(pwd)"
+node ~/.claude/gsd-pm/bin/notion-sync.js sync --cwd "$(pwd)"
 ```
 
 </process>
