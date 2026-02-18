@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 Phase: 22 of 22 (Structural Refactor)
 Plan: 1 of 3 in current phase
-Status: Executing plan 22-02
-Last activity: 2026-02-18 — Plan 22-02 completed (Content Path Migration)
+Status: Executing plan 22-01
+Last activity: 2026-02-18 — Plan 22-01 completed (JavaScript Path Rename)
 
 Progress: [████████████████████░] 95% (21/22 phases complete)
 
@@ -55,7 +55,7 @@ Progress: [████████████████████░] 95% 
 
 **v1.5 In Progress:**
 - Phase 22 (Structural Refactor): 1/3 plans complete
-- Plan 22-02 completed: 2 tasks, 103 files, 3.5 min duration
+- Plan 22-01 completed: 2 tasks, 9 files, 6 min duration
 - Timeline: Started 2026-02-18
 
 **By Phase:**
@@ -84,6 +84,7 @@ Progress: [████████████████████░] 95% 
 | 20. Team Assignment | 1/1 | Complete | v1.4 |
 | 21. Update Semantics & Tracking | 1/1 | Complete | v1.4 |
 | 22. Structural Refactor | 1/3 | In progress | v1.5 |
+| Phase 22 P01 | 6 min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -95,8 +96,8 @@ Recent decisions affecting current work:
 - v1.0: `.planning/{name}/v{N}/` folder structure preserves history of all projects and milestones in one repo
 - v1.4: jira-sync.json currently written at root level — v1.5 moves it into project folder
 - v1.5: Rename .planning to .planning-pm to avoid collisions with other tools
-- 22-02: Used sed pattern `\.planning\([^-]\)` to avoid double-renaming already-correct .planning-pm references
-- 22-02: Committed markdown files and test file separately for clear atomic changes
+- [Phase 22]: Renamed .planning to .planning-pm in JavaScript source files (gsd-tools.js, lib/, bin/install.js)
+- [Phase 22]: Relocated jira-sync.json from project root to versioned folder (.planning-pm/{slug}/v{N}/jira-sync.json)
 
 ### Pending Todos
 
@@ -109,10 +110,10 @@ None — v1.5 is a focused structural fix with clear scope.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 22-02-PLAN.md (Content Path Migration)
+Stopped at: Completed 22-01-PLAN.md (JavaScript Path Rename)
 Resume file: None
-Next action: Execute Plan 22-03 via `/gsd:execute-phase 22`
+Next action: Execute Plan 22-02 via `/gsd:execute-phase 22`
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (Plan 22-02 completed)*
+*Last updated: 2026-02-18 (Plan 22-01 completed)*
