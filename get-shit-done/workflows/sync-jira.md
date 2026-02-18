@@ -463,9 +463,214 @@ If there were any failures, append:
 
 </step>
 
+<step name="assign_team">
+
+**Prompt for assignment:**
+
+Use `AskUserQuestion` to ask:
+
+```
+Would you like to assign the epic and tickets to team members?
+- Yes
+- No, skip assignment
+```
+
+**If user selects "No, skip assignment":**
+
+Display:
+
+```
+Skipping team assignment.
+```
+
+Continue to save_sync_state step.
+
+**If user selects "Yes":**
+
+**Fetch assignable users:**
+
+Call `mcp__jira__lookupJiraAccountId` with:
+- `cloudId`: `CLOUD_ID`
+- `query`: `""` (empty string to get all available users)
+
+Store the response as `USERS_JSON`.
+
+If the call fails or returns no users:
+
+Display:
+
+```
+No assignable users found for this project. Skipping assignment.
+```
+
+Continue to save_sync_state step.
+
+**Display team member list:**
+
+```bash
+USERS_JSON=$(echo "$USERS_RESPONSE" | jq -c '.')
+
+TEAM_LIST=$(node -e '
+var tf = require("./lib/jira/team-fetcher.js");
+var users = JSON.parse(process.argv[1]);
+console.log(tf.formatTeamList(users));
+' "$USERS_JSON")
+```
+
+Display the formatted team list:
+
+```
+{TEAM_LIST}
+```
+
+**Epic assignment:**
+
+Use `AskUserQuestion` to prompt:
+
+```
+Assign epic ({epic_key}) to a team member?
+
+Enter member number (1-{user_count}), or "skip" to leave unassigned:
+```
+
+Parse the response:
+- If user enters a valid number (1 to user_count):
+  - Extract the selected user's `accountId` and `displayName` from `USERS_JSON`
+  - Call `mcp__jira__editJiraIssue` with:
+    - `cloudId`: `CLOUD_ID`
+    - `issueIdOrKey`: epic_key
+    - `assigneeAccountId`: selected user's accountId
+  - Display: `Assigned {epic_key} to {displayName}`
+  - Store epic assignee for later use
+
+- If user enters "skip":
+  - Display: `Epic assignment skipped.`
+
+**Ticket assignment:**
+
+Use `AskUserQuestion` to prompt:
+
+```
+Assign tickets to team members?
+
+Options:
+- "all:{N}"          — Assign ALL tickets to member N
+- "1:2, 3:1, 4:2"   — Assign specific tickets to specific members
+- "skip"             — Leave all tickets unassigned
+
+Enter assignment:
+```
+
+Parse the user input:
+
+```bash
+USER_INPUT="{user's response}"
+
+CHOICE=$(node -e '
+var tf = require("./lib/jira/team-fetcher.js");
+var result = tf.parseAssignmentChoice(process.argv[1], parseInt(process.argv[2]), parseInt(process.argv[3]));
+console.log(JSON.stringify(result));
+' "$USER_INPUT" "$USER_COUNT" "$TICKET_COUNT")
+
+CHOICE_ACTION=$(echo "$CHOICE" | jq -r '.action // "error"')
+CHOICE_ERROR=$(echo "$CHOICE" | jq -r '.error // ""')
+```
+
+**If CHOICE_ERROR is not empty:**
+
+Display the error message and re-prompt once. If second attempt also fails, display:
+
+```
+Invalid input format. Skipping ticket assignment.
+```
+
+Continue to assignment summary.
+
+**If action is "skip":**
+
+Display:
+
+```
+Ticket assignment skipped.
+```
+
+Continue to assignment summary.
+
+**If action is "bulk":**
+
+Extract the user index:
+
+```bash
+USER_INDEX=$(echo "$CHOICE" | jq -r '.userIndex')
+```
+
+Get the selected user's accountId and displayName from `USERS_JSON`.
+
+Display:
+
+```
+Assigning all tickets to {displayName}...
+```
+
+For each ticket key from step 7, call `mcp__jira__editJiraIssue` with:
+- `cloudId`: `CLOUD_ID`
+- `issueIdOrKey`: ticket_key
+- `assigneeAccountId`: selected user's accountId
+
+After each assignment, display progress:
+
+```
+✓ [{N}/{TICKET_COUNT}] {ticket_key} assigned
+```
+
+Track assigned tickets for jira-sync.json.
+
+**If action is "individual":**
+
+Extract the assignments array:
+
+```bash
+ASSIGNMENTS=$(echo "$CHOICE" | jq -c '.assignments')
+```
+
+For each assignment in the array:
+- Extract `ticketIndex` and `userIndex`
+- Get the corresponding ticket key (from created tickets array at index ticketIndex-1)
+- Get the corresponding user's accountId and displayName (from USERS_JSON at index userIndex-1)
+- Call `mcp__jira__editJiraIssue` with:
+  - `cloudId`: `CLOUD_ID`
+  - `issueIdOrKey`: ticket_key
+  - `assigneeAccountId`: user's accountId
+- Display:
+
+```
+✓ {ticket_key} assigned to {displayName}
+```
+
+Track assigned tickets for jira-sync.json.
+
+**Handle errors gracefully:**
+
+If any assignment call fails, log the error, continue with remaining assignments, and track failure count.
+
+**Assignment summary:**
+
+After all assignments processed, display:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ TEAM ASSIGNMENT COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Epic: {epic_key} → {assignee displayName or "unassigned"}
+Tickets assigned: {assigned_count}/{total_count}
+```
+
+</step>
+
 <step name="save_sync_state">
 
-Save the created Jira issue keys to `.planning/jira-sync.json` for future update/tracking operations:
+Save the created Jira issue keys and assignment information to `.planning/jira-sync.json` for future update/tracking operations:
 
 ```bash
 node -e '
@@ -479,10 +684,18 @@ var syncData = {
   epic: {
     key: "{epic_key}",
     summary: "{EPIC_SUMMARY}"
+    // Add assignee field if epic was assigned:
+    // assignee: { accountId: "...", displayName: "..." }
   },
   tickets: [
     // For each successfully created ticket:
-    { key: "{ticket_key}", summary: "{ticket_summary}", phase: "{phase_number}" }
+    {
+      key: "{ticket_key}",
+      summary: "{ticket_summary}",
+      phase: "{phase_number}"
+      // Add assignee field if ticket was assigned:
+      // assignee: { accountId: "...", displayName: "..." }
+    }
   ],
   synced_at: new Date().toISOString(),
   failed_count: {failure_count}
@@ -495,6 +708,8 @@ fs.writeFileSync(
 ```
 
 Build the `tickets` array from all successfully created tickets during step 7, including each ticket's `key`, `summary`, and the `phase` number extracted from the ticket-mapper output.
+
+If an epic or ticket was assigned in step 8 (assign_team), include the `assignee` object with `accountId` and `displayName`. If not assigned, omit the `assignee` field entirely (do not include null).
 
 Display:
 
