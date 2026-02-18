@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 22 of 22 (Structural Refactor)
-Plan: 0 of 1 in current phase
-Status: Ready to plan
-Last activity: 2026-02-18 — v1.5 roadmap created
+Plan: 1 of 3 in current phase
+Status: Executing plan 22-02
+Last activity: 2026-02-18 — Plan 22-02 completed (Content Path Migration)
 
 Progress: [████████████████████░] 95% (21/22 phases complete)
 
@@ -53,6 +53,11 @@ Progress: [████████████████████░] 95% 
 - Jira module LOC: 2,176
 - All phases complete — milestone shipped
 
+**v1.5 In Progress:**
+- Phase 22 (Structural Refactor): 1/3 plans complete
+- Plan 22-02 completed: 2 tasks, 103 files, 3.5 min duration
+- Timeline: Started 2026-02-18
+
 **By Phase:**
 
 | Phase | Plans | Total | Milestone |
@@ -78,7 +83,7 @@ Progress: [████████████████████░] 95% 
 | 19. Epic & Ticket Creation | 1/1 | Complete | v1.4 |
 | 20. Team Assignment | 1/1 | Complete | v1.4 |
 | 21. Update Semantics & Tracking | 1/1 | Complete | v1.4 |
-| 22. Structural Refactor | 0/1 | Not started | v1.5 |
+| 22. Structural Refactor | 1/3 | In progress | v1.5 |
 
 ## Accumulated Context
 
@@ -90,6 +95,8 @@ Recent decisions affecting current work:
 - v1.0: `.planning/{name}/v{N}/` folder structure preserves history of all projects and milestones in one repo
 - v1.4: jira-sync.json currently written at root level — v1.5 moves it into project folder
 - v1.5: Rename .planning to .planning-pm to avoid collisions with other tools
+- 22-02: Used sed pattern `\.planning\([^-]\)` to avoid double-renaming already-correct .planning-pm references
+- 22-02: Committed markdown files and test file separately for clear atomic changes
 
 ### Pending Todos
 
@@ -102,10 +109,10 @@ None — v1.5 is a focused structural fix with clear scope.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: v1.5 roadmap created
+Stopped at: Completed 22-02-PLAN.md (Content Path Migration)
 Resume file: None
-Next action: Plan Phase 22 via `/gsd:plan-phase 22`
+Next action: Execute Plan 22-03 via `/gsd:execute-phase 22`
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (v1.5 roadmap created)*
+*Last updated: 2026-02-18 (Plan 22-02 completed)*
