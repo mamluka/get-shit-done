@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.4 Jira Sync — Phase 20 complete, ready for Phase 21
+**Current focus:** v1.4 Jira Sync — Complete (all 5 phases done)
 
 ## Current Position
 
-Phase: 20 of 21 (Team Assignment) — Complete
+Phase: 21 of 21 (Update Semantics & Tracking) — Complete
 Plan: 1 of 1 complete
-Status: Phase 20 complete
-Last activity: 2026-02-18 — Phase 20 Plan 01 completed (3/3 TEAM requirements met)
+Status: Phase 21 complete - v1.4 milestone complete
+Last activity: 2026-02-18 — Phase 21 Plan 01 completed (3/3 SYNC requirements met)
 
-Progress: [████████████████████████████████████████████████████████████████████████░] ~95% (20/21 phases complete)
+Progress: [████████████████████████████████████████████████████████████████████████████] 100% (21/21 phases complete)
 
 ## Performance Metrics
 
@@ -47,8 +47,8 @@ Progress: [███████████████████████
 
 **v1.4 Status:**
 - Phases: 17-21 (5 phases total)
-- Plans: 4/5 complete
-- Status: Phase 20 complete, ready for Phase 21
+- Plans: 5/5 complete
+- Status: All phases complete - v1.4 Jira Sync milestone delivered
 
 **By Phase:**
 
@@ -74,7 +74,7 @@ Progress: [███████████████████████
 | 18. Granularity Strategy & Ticket Mapping | 1/1 | Complete | v1.4 |
 | 19. Epic & Ticket Creation | 1/1 | Complete | v1.4 |
 | 20. Team Assignment | 1/1 | Complete | v1.4 |
-| 21. Update Semantics & Tracking | 0/1 | Not started | v1.4 |
+| 21. Update Semantics & Tracking | 1/1 | Complete | v1.4 |
 
 ## Accumulated Context
 
@@ -103,6 +103,10 @@ Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.3 decisions 
 - [Phase 20-01]: Empty query to lookupJiraAccountId returns all visible users for the cloud instance
 - [Phase 20-01]: Bulk (all:N) and individual (1:2, 3:1) assignment formats for flexible team distribution
 - [Phase 20-01]: Assignment data persisted in jira-sync.json alongside epic/ticket data
+- [Phase 21-01]: diffTickets treats all matched tickets as updates (unchanged array empty) since content comparison is complex and updates are idempotent
+- [Phase 21-01]: Granularity change detection - if user changes granularity between syncs, treat as fresh sync and create new tickets (don't delete old ones)
+- [Phase 21-01]: save_sync_state uses merge logic to preserve tickets from previous runs not in current run (one-way push pattern)
+- [Phase 21-01]: assign_team operates on ALL_TICKET_KEYS (created + updated) so team assignment works for incremental syncs
 
 ### Pending Todos
 
@@ -115,11 +119,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 20 complete
+Stopped at: Phase 21 Plan 01 complete - v1.4 milestone complete
 Resume file: None
 
-**Next step:** /gsd:plan-phase 21
+**Next step:** v1.4 milestone delivered. All Jira sync capabilities complete.
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (Phase 20 Plan 01 completed)*
+*Last updated: 2026-02-18 (Phase 21 Plan 01 completed - v1.4 complete)*
