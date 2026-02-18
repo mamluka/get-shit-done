@@ -21,7 +21,7 @@
  *   current-timestamp [format]         Get timestamp (full|date|filename)
  *   list-todos [area]                  Count and enumerate pending todos
  *   verify-path-exists <path>          Check file/directory existence
- *   config-ensure-section              Initialize .planning/config.json
+ *   config-ensure-section              Initialize .planning-pm/config.json
  *   check-jira-mcp                     Check if Jira MCP server is configured
  *   history-digest                     Aggregate all SUMMARY.md data
  *   summary-extract <path> [--fields]  Extract structured data from SUMMARY.md
@@ -705,11 +705,11 @@ function error(message, technicalDetails) {
 // ─── PathResolver ─────────────────────────────────────────────────────────────
 
 /**
- * PathResolver: Centralized path resolution for .planning/ directory structure
+ * PathResolver: Centralized path resolution for .planning-pm/ directory structure
  *
  * Supports two modes:
- * - Flat mode (backward compatible): .planning/{file}
- * - Nested mode (multi-project): .planning/{project}/{version}/{file}
+ * - Flat mode (backward compatible): .planning-pm/{file}
+ * - Nested mode (multi-project): .planning-pm/{project}/{version}/{file}
  *
  * Mode detection: Reads STATE.md for current_project/current_version fields.
  *
@@ -720,7 +720,7 @@ function error(message, technicalDetails) {
 class PathResolver {
   constructor(cwd) {
     this.cwd = cwd;
-    this.planningRoot = path.join(cwd, '.planning');
+    this.planningRoot = path.join(cwd, '.planning-pm');
     this.mode = this.detectMode();
     this.currentProject = null;
     this.currentVersion = null;
@@ -826,7 +826,7 @@ class PathResolver {
       return path.join(this.planningRoot, relativePath);
     }
 
-    // Flat mode: simple .planning/{relativePath}
+    // Flat mode: simple .planning-pm/{relativePath}
     if (this.mode === 'flat') {
       return path.join(this.planningRoot, relativePath);
     }
@@ -996,7 +996,7 @@ function cmdListTodos(cwd, area, raw) {
           created: createdMatch ? createdMatch[1].trim() : 'unknown',
           title: titleMatch ? titleMatch[1].trim() : 'Untitled',
           area: todoArea,
-          path: path.join('.planning', 'todos', 'pending', file),
+          path: path.join('.planning-pm', 'todos', 'pending', file),
         });
       } catch {}
     }
@@ -1068,7 +1068,7 @@ function cmdConfigEnsureSection(cwd, raw) {
 
   try {
     fs.writeFileSync(configPath, JSON.stringify(defaults, null, 2), 'utf-8');
-    const result = { created: true, path: '.planning/config.json' };
+    const result = { created: true, path: '.planning-pm/config.json' };
     output(result, raw, 'created');
   } catch (err) {
     error('Couldn\'t save project settings. Check folder permissions and try again.', err.message);
@@ -1854,7 +1854,7 @@ function cmdFindPhase(cwd, phase, raw) {
 
     const result = {
       found: true,
-      directory: path.join('.planning', 'phases', match),
+      directory: path.join('.planning-pm', 'phases', match),
       phase_number: phaseNumber,
       phase_name: phaseName,
       plans,
@@ -1882,14 +1882,14 @@ function cmdCommit(cwd, message, files, raw, amend) {
   }
 
   // Check if .planning is gitignored
-  if (isGitIgnored(cwd, '.planning')) {
+  if (isGitIgnored(cwd, '.planning-pm')) {
     const result = { committed: false, hash: null, reason: 'skipped_gitignored' };
     output(result, raw, 'skipped');
     return;
   }
 
   // Stage files
-  const filesToStage = files && files.length > 0 ? files : ['.planning/'];
+  const filesToStage = files && files.length > 0 ? files : ['.planning-pm/'];
   for (const file of filesToStage) {
     execGit(cwd, ['add', file]);
   }
@@ -2144,9 +2144,9 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
         '- **Output:** [Concrete deliverable]',
         '',
         '## Context',
-        '@.planning/PROJECT.md',
-        '@.planning/ROADMAP.md',
-        '@.planning/STATE.md',
+        '@.planning-pm/PROJECT.md',
+        '@.planning-pm/ROADMAP.md',
+        '@.planning-pm/STATE.md',
         '',
         '## Tasks',
         '',
@@ -3075,7 +3075,7 @@ function cmdPhaseAdd(cwd, description, raw) {
     padded: paddedNum,
     name: description,
     slug,
-    directory: `.planning/phases/${dirName}`,
+    directory: `.planning-pm/phases/${dirName}`,
   };
 
   output(result, raw, paddedNum);
@@ -3155,7 +3155,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
     after_phase: afterPhase,
     name: description,
     slug,
-    directory: `.planning/phases/${dirName}`,
+    directory: `.planning-pm/phases/${dirName}`,
   };
 
   output(result, raw, decimalPhase);
@@ -3678,7 +3678,7 @@ function cmdMilestoneComplete(cwd, version, options, raw) {
   // Archive REQUIREMENTS.md
   if (fs.existsSync(reqPath)) {
     const reqContent = fs.readFileSync(reqPath, 'utf-8');
-    const archiveHeader = `# Requirements Archive: ${version} ${milestoneName}\n\n**Archived:** ${today}\n**Status:** SHIPPED\n\nFor current requirements, see \`.planning/REQUIREMENTS.md\`.\n\n---\n\n`;
+    const archiveHeader = `# Requirements Archive: ${version} ${milestoneName}\n\n**Archived:** ${today}\n**Status:** SHIPPED\n\nFor current requirements, see \`.planning-pm/REQUIREMENTS.md\`.\n\n---\n\n`;
     fs.writeFileSync(path.join(archiveDir, `${version}-REQUIREMENTS.md`), archiveHeader + reqContent, 'utf-8');
   }
 
@@ -4028,7 +4028,7 @@ function cmdScaffold(cwd, type, options, raw) {
       fs.mkdirSync(phasesParent, { recursive: true });
       const dirPath = path.join(phasesParent, dirName);
       fs.mkdirSync(dirPath, { recursive: true });
-      output({ created: true, directory: `.planning/phases/${dirName}`, path: dirPath }, raw, dirPath);
+      output({ created: true, directory: `.planning-pm/phases/${dirName}`, path: dirPath }, raw, dirPath);
       return;
     }
     default:
@@ -4090,7 +4090,7 @@ function findPhaseInternal(cwd, phase) {
 
     return {
       found: true,
-      directory: path.join('.planning', 'phases', match),
+      directory: path.join('.planning-pm', 'phases', match),
       phase_number: phaseNumber,
       phase_name: phaseName,
       phase_slug: phaseName ? phaseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : null,
@@ -4138,10 +4138,10 @@ function getMilestoneInfo(cwd) {
 // ─── Project Management Functions ─────────────────────────────────────────────
 
 /**
- * Get active project slug from .planning/.active-project file
+ * Get active project slug from .planning-pm/.active-project file
  */
 function getActiveProject(cwd) {
-  const activeProjectPath = path.join(cwd, '.planning', '.active-project');
+  const activeProjectPath = path.join(cwd, '.planning-pm', '.active-project');
   try {
     return fs.readFileSync(activeProjectPath, 'utf-8').trim() || null;
   } catch {
@@ -4156,7 +4156,7 @@ function getActiveProjectName(cwd) {
   const activeSlug = getActiveProject(cwd);
   if (!activeSlug) return null;
 
-  const projectMdPath = path.join(cwd, '.planning', activeSlug, 'PROJECT.md');
+  const projectMdPath = path.join(cwd, '.planning-pm', activeSlug, 'PROJECT.md');
   try {
     const content = fs.readFileSync(projectMdPath, 'utf-8');
     const match = content.match(/^#\s+(.+)$/m);
@@ -4170,7 +4170,7 @@ function getActiveProjectName(cwd) {
  * Detect if project has flat structure (legacy single-project mode)
  */
 function detectFlatStructure(cwd) {
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
   const statePath = path.join(planningDir, 'STATE.md');
   const activeProjectPath = path.join(planningDir, '.active-project');
 
@@ -4196,7 +4196,7 @@ function detectFlatStructure(cwd) {
  * List all projects in .planning directory
  */
 function listProjectsInternal(cwd) {
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
   if (!fs.existsSync(planningDir)) return [];
 
   const excludeDirs = new Set(['_backup', 'codebase', 'research', 'phases', 'quick', 'todos', 'archive']);
@@ -4251,7 +4251,7 @@ function listProjectsInternal(cwd) {
         description,
         active: entry.name === activeProject,
         currentVersion,
-        path: path.join('.planning', entry.name),
+        path: path.join('.planning-pm', entry.name),
       });
     }
 
@@ -4269,7 +4269,7 @@ function createProjectInternal(cwd, friendlyName, description) {
     return { error: 'Project name is required' };
   }
 
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
 
   // Ensure .planning directory exists
   if (!fs.existsSync(planningDir)) {
@@ -4336,7 +4336,7 @@ Active — Version 1
 
 ## Project Reference
 
-See: .planning/${slug}/PROJECT.md (created ${created})
+See: .planning-pm/${slug}/PROJECT.md (created ${created})
 
 **Core value:** [To be defined]
 **Current focus:** [To be defined]
@@ -4441,7 +4441,7 @@ function switchProjectInternal(cwd, projectSlug) {
     return { error: 'Project slug is required' };
   }
 
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
   const projectMdPath = path.join(planningDir, projectSlug, 'PROJECT.md');
 
   // Validate project exists
@@ -4474,11 +4474,11 @@ function switchProjectInternal(cwd, projectSlug) {
 }
 
 /**
- * Migrate flat .planning/ structure to nested multi-project structure
+ * Migrate flat .planning-pm/ structure to nested multi-project structure
  * Creates backup, moves files into project folder, updates STATE.md
  */
 function migrateToNested(cwd, existingProjectName, existingProjectDescription = '') {
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
 
   // Verify flat structure exists
   if (!detectFlatStructure(cwd)) {
@@ -4652,7 +4652,7 @@ Active — Version 1
  * Verify migration completed successfully
  */
 function verifyMigration(cwd, slug) {
-  const planningDir = path.join(cwd, '.planning');
+  const planningDir = path.join(cwd, '.planning-pm');
   const projectPath = path.join(planningDir, slug);
   const v1Path = path.join(projectPath, 'v1');
   const backupDir = path.join(planningDir, '_backup');
@@ -5061,8 +5061,8 @@ function cmdInitQuick(cwd, description, raw) {
     timestamp: now.toISOString(),
 
     // Paths
-    quick_dir: '.planning/quick',
-    task_dir: slug ? `.planning/quick/${nextNum}-${slug}` : null,
+    quick_dir: '.planning-pm/quick',
+    task_dir: slug ? `.planning-pm/quick/${nextNum}-${slug}` : null,
 
     // File existence
     roadmap_exists: fs.existsSync(resolvePlanning(cwd, 'ROADMAP.md')),
@@ -5223,7 +5223,7 @@ function cmdInitTodos(cwd, area, raw) {
           created: createdMatch ? createdMatch[1].trim() : 'unknown',
           title: titleMatch ? titleMatch[1].trim() : 'Untitled',
           area: todoArea,
-          path: path.join('.planning', 'todos', 'pending', file),
+          path: path.join('.planning-pm', 'todos', 'pending', file),
         });
       } catch {}
     }
@@ -5243,8 +5243,8 @@ function cmdInitTodos(cwd, area, raw) {
     area_filter: area || null,
 
     // Paths
-    pending_dir: '.planning/todos/pending',
-    completed_dir: '.planning/todos/completed',
+    pending_dir: '.planning-pm/todos/pending',
+    completed_dir: '.planning-pm/todos/completed',
 
     // File existence
     planning_exists: fs.existsSync(PathResolver.getInstance(cwd).planningRoot),
@@ -5354,7 +5354,7 @@ function cmdInitMapCodebase(cwd, raw) {
     parallelization: config.parallelization,
 
     // Paths
-    codebase_dir: '.planning/codebase',
+    codebase_dir: '.planning-pm/codebase',
 
     // Existing maps
     existing_maps: existingMaps,
@@ -5410,7 +5410,7 @@ function cmdInitProgress(cwd, includes, raw) {
       const phaseInfo = {
         number: phaseNumber,
         name: phaseName,
-        directory: path.join('.planning', 'phases', dir),
+        directory: path.join('.planning-pm', 'phases', dir),
         status,
         plan_count: plans.length,
         summary_count: summaries.length,
