@@ -114,10 +114,12 @@ Plans:
   3. jira-sync.json is written inside project folder at .planning-pm/{name}/v{N}/jira-sync.json
   4. All jira-sync.json references (sync-state module, workflow, gsd-tools) resolve to project folder path
   5. All existing workflows continue to function with new folder structure
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 22-01: TBD
+- [ ] 22-01-PLAN.md -- Rename .planning to .planning-pm in all JS code + SYNC relocation
+- [ ] 22-02-PLAN.md -- Rename .planning to .planning-pm in all markdown and test files
+- [ ] 22-03-PLAN.md -- Add migration command and end-to-end verification
 
 ## Progress
 
@@ -144,7 +146,7 @@ Plans:
 | 19. Epic & Ticket Creation | v1.4 | 1/1 | Complete | 2026-02-18 |
 | 20. Team Assignment | v1.4 | 1/1 | Complete | 2026-02-18 |
 | 21. Update Semantics & Tracking | v1.4 | 1/1 | Complete | 2026-02-18 |
-| 22. Structural Refactor | v1.5 | 0/1 | Not started | - |
+| 22. Structural Refactor | v1.5 | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-10*
