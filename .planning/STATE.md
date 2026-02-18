@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-12)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** v1.4 Jira Sync — Phase 19 complete, ready for Phase 20
+**Current focus:** v1.4 Jira Sync — Phase 20 complete, ready for Phase 21
 
 ## Current Position
 
-Phase: 19 of 21 (Epic & Ticket Creation) — Complete
+Phase: 20 of 21 (Team Assignment) — Complete
 Plan: 1 of 1 complete
-Status: Phase 19 verified and complete
-Last activity: 2026-02-18 — Phase 19 Plan 01 completed (5/5 TICK requirements met)
+Status: Phase 20 complete
+Last activity: 2026-02-18 — Phase 20 Plan 01 completed (3/3 TEAM requirements met)
 
-Progress: [█████████████████████████████████████████████████████████████████████░░] 90% (19/21 phases complete)
+Progress: [████████████████████████████████████████████████████████████████████████░] ~95% (20/21 phases complete)
 
 ## Performance Metrics
 
@@ -47,8 +47,8 @@ Progress: [███████████████████████
 
 **v1.4 Status:**
 - Phases: 17-21 (5 phases total)
-- Plans: 3/5 complete
-- Status: Phase 19 complete, ready for Phase 20
+- Plans: 4/5 complete
+- Status: Phase 20 complete, ready for Phase 21
 
 **By Phase:**
 
@@ -73,7 +73,7 @@ Progress: [███████████████████████
 | 17. Jira MCP Detection & Prerequisites | 1/1 | Complete | v1.4 |
 | 18. Granularity Strategy & Ticket Mapping | 1/1 | Complete | v1.4 |
 | 19. Epic & Ticket Creation | 1/1 | Complete | v1.4 |
-| 20. Team Assignment | 0/1 | Not started | v1.4 |
+| 20. Team Assignment | 1/1 | Complete | v1.4 |
 | 21. Update Semantics & Tracking | 0/1 | Not started | v1.4 |
 
 ## Accumulated Context
@@ -99,6 +99,10 @@ Decisions are logged in PROJECT.md Key Decisions table. All v1.0-v1.3 decisions 
 - [Phase 19-01]: Notion page links embedded directly in ticket descriptions using buildNotionUrl helper
 - [Phase 19-01]: Issue type discovery via mcp__jira__getJiraProjectIssueTypesMetadata to handle different Jira project configurations
 - [Phase 19-01]: Cancel path stops execution cleanly with clear messaging before any Jira changes
+- [Phase 20-01]: team-fetcher returns MCP call instructions (not direct calls), matching issue-creator pattern
+- [Phase 20-01]: Empty query to lookupJiraAccountId returns all visible users for the cloud instance
+- [Phase 20-01]: Bulk (all:N) and individual (1:2, 3:1) assignment formats for flexible team distribution
+- [Phase 20-01]: Assignment data persisted in jira-sync.json alongside epic/ticket data
 
 ### Pending Todos
 
@@ -111,11 +115,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed Phase 19 Plan 01 (Epic & Ticket Creation)
+Stopped at: Phase 20 complete
 Resume file: None
 
-**Next step:** /gsd:plan-phase 20
+**Next step:** /gsd:plan-phase 21
 
 ---
 *State initialized: 2026-02-12*
-*Last updated: 2026-02-18 (Phase 19 Plan 01 completed)*
+*Last updated: 2026-02-18 (Phase 20 Plan 01 completed)*
