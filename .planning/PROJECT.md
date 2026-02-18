@@ -59,7 +59,13 @@ PMs can go from idea to fully planned, phase-by-phase project specification usin
 
 ### Active
 
-(No active milestone — all milestones shipped)
+## Current Milestone: v1.5 Structural Fixes
+
+**Goal:** Fix structural issues found during usage — correct jira-sync.json placement and rename .planning to .planning-pm to avoid collisions.
+
+**Target features:**
+- Move jira-sync.json into project folder alongside other project artifacts
+- Rename .planning folder to .planning-pm across entire codebase
 
 ### Deferred
 

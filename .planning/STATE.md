@@ -5,13 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** PMs can go from idea to fully planned, phase-by-phase project specification using a conversational AI workflow — producing artifacts that are version-controlled, historically preserved, and ready for handoff to engineering.
-**Current focus:** All milestones shipped (v1.0-v1.4). Planning next milestone.
+**Current focus:** v1.5 Structural Fixes — jira-sync.json placement + .planning → .planning-pm rename
 
 ## Current Position
 
-Milestone: v1.4 Jira Sync — SHIPPED 2026-02-18
-Status: All 5 milestones complete (v1.0-v1.4, 21 phases, 34 plans)
-Last activity: 2026-02-18 — v1.4 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-18 — Milestone v1.5 started
 
 ## Performance Metrics
 
@@ -96,7 +97,7 @@ Last session: 2026-02-18
 Stopped at: v1.4 milestone archived
 Resume file: None
 
-**Next step:** /gsd:new-milestone
+**Next step:** Define v1.5 requirements
 
 ---
 *State initialized: 2026-02-12*
